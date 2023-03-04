@@ -7,11 +7,14 @@
         "default_popup": "popup.html",
         "default_icon": "vibinex-logo.png"
     },
+    "permissions": [
+        "tabs"
+    ],
     "icons": {
         "128": "vibinex-logo.png"
     },
     "content_scripts":[{
-        "matches":["https://github.com/*/pull/*/files"],
+        "matches":["https://github.com/*pull*","https://github.com/*pulls*"],
         "css":["main.css"],
         "js":["main.js"]
     }]
