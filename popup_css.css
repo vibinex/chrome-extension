@@ -9,7 +9,7 @@
 
  body {
      min-width: 330px;
-     min-height: 330px;
+     min-height: 300px;
      font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
  }
 
@@ -17,7 +17,6 @@
      background-color: rgb(255, 255, 255);
      padding: 20px;
  }
-
 
  .heading {
      display: flex;
@@ -47,7 +46,6 @@
      font-weight: bold;
  }
 
-
  .second_box {
      display: flex;
      align-items: center;
@@ -62,7 +60,6 @@
      transform: rotate(20deg)
  }
 
-
  li {
      list-style-type: "✓";
      font-weight: 800;
@@ -76,10 +73,7 @@
      margin-left: 5px;
 
  }
-
-
-
-
+ 
  .signup_option {
      color: rgb(158, 158, 158);
      margin-top: 15px;
