@@ -1,0 +1,101 @@
+ * {
+     padding: 0px;
+     margin: 0px;
+ }
+
+ a {
+     text-decoration: none;
+ }
+
+ body {
+     min-width: 330px;
+     min-height: 300px;
+     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+ }
+
+ .main {
+     background-color: rgb(255, 255, 255);
+     padding: 20px;
+ }
+
+ .heading {
+     display: flex;
+     align-items: center;
+     width: 95%;
+     margin: auto;
+     margin-bottom: 15px;
+ }
+
+ .heading_text {
+     margin-top: 2px;
+     font-size: large;
+     font-weight: bold;
+ }
+
+ .heading_logo {
+     width: 12%;
+     height: 12%;
+     border-radius: 100%;
+     margin-right: 5px;
+ }
+
+ .secondHeading {
+     font-size: larger;
+     margin-top: 15px;
+     margin-bottom: 10px;
+     font-weight: bold;
+ }
+
+ .second_box {
+     display: flex;
+     align-items: center;
+     background-color: rgb(180, 211, 255);
+     padding: 7px;
+     border-radius: 5px;
+ }
+
+ .light-icon {
+     width: 15%;
+     height: 30%;
+     transform: rotate(20deg)
+ }
+
+ li {
+     list-style-type: "✓";
+     font-weight: 800;
+     color: blue;
+     margin: 10px
+ }
+
+ .list_item {
+     color: black;
+     font-weight: 100;
+     margin-left: 5px;
+
+ }
+ 
+ .signup_option {
+     color: rgb(158, 158, 158);
+     margin-top: 15px;
+ }
+
+ .signUp {
+     color: blue;
+ }
+
+ .signUpButton {
+     margin-top: 20px;
+ }
+
+ .signInButton {
+     background-color: blue;
+     color: white;
+     padding: 7px;
+     padding-left: 30px;
+     padding-right: 30px;
+     width: 40%;
+     border-radius: 5px;
+     font-size: 15px;
+     margin-top: 20px;
+     margin-bottom: 8px;
+ }
