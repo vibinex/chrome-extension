@@ -1,7 +1,7 @@
 function addingImportantCss(elementId) {
-  document.getElementById(elementId).style.backgroundColor='rgb(61, 0, 0)';
+  document.getElementById(`issue_${elementId}`).style.backgroundColor='rgb(61, 0, 0)';
   let element = document.head.appendChild(document.createElement("style"));
-  element.innerHTML = `#${elementId}_link::before{
+  element.innerHTML = `#issue_${elementId}_link::before{
     background-color:red;
     content: 'Important';
     color: white;
@@ -16,9 +16,9 @@ function addingImportantCss(elementId) {
 };
 
 function addingRelevantCss(elementId,) {
-  document.getElementById(elementId).style.backgroundColor='rgb(86, 88, 0)';
+  document.getElementById(`issue_${elementId}`).style.backgroundColor='rgb(86, 88, 0)';
   let element = document.head.appendChild(document.createElement("style"));
-  element.innerHTML = `#${elementId}_link::before{
+  element.innerHTML = `#issue_${elementId}_link::before{
     background-color: rgb(164, 167, 0);
     content: 'Relevant';
     color: white;
@@ -39,8 +39,8 @@ let url = window.location.toString();
 // data getting from api 
 const output = [
   {
-    important: ['issue_36485','issue_36458','issue_36462'],
-    relevant: ['issue_36460','issue_36483','issue_36466']
+    important: [36485,36458,36462],
+    relevant: [36460,36483,36466]
   }
 ];
 
