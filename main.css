@@ -1,21 +1,10 @@
-html body {
-    background: url('https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8dGVjaCUyMGJhY2tncm91bmR8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60') !important;
-}
-
-.blob-code-inner .blob-code-maker .js-file-line{
- background-color: aquamarine !important;   
- color: red !important;
- font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif !important;
-}
-
-
-tbody div{
+/* tbody div{
     color: red !important;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif !important;
 }
 .gh-header-title .mb-2 .lh-condensed .f1 .mr-0 .flex-auto .wb-break-word{
     color: red !important;
-}
+} */
 
 /* tr[data-hunk="43e18a17f3051607c2e7c1980f646ebf79177fcc6e76bf2b34b59eed64846b53"] {
     --color-diff-blob-addition-num-bg: rgba(46,160,255,0.3);;
@@ -26,11 +15,18 @@ tbody div{
     --color-diff-blob-deletion-word-bg: rgba(46,160,255,0.4);
 } */
 
-tr {
-    --color-diff-blob-addition-num-bg: rgba(46,160,255,0.3);;
-    --color-diff-blob-addition-line-bg: rgba(46,160,255,0.15);
-    --color-diff-blob-addition-word-bg: rgba(46,160,255,0.4);
-    --color-diff-blob-deletion-num-bg: rgba(46,160,255,0.3);
-    --color-diff-blob-deletion-line-bg: rgba(46,160,255,0.15);
-    --color-diff-blob-deletion-word-bg: rgba(46,160,255,0.4);
+/* tr[data-hunk="760f3d75e2494f7561766d429d0205c94d08ed2f41c8367f83b8f5353ec4be1c"]{
+    --color-diff-blob-addition-num-bg: rgb(172, 178, 0);;
+    --color-diff-blob-deletion-num-bg: rgb(172, 178, 0);
 }
+tr[data-hunk="9ab7f36934cf29a090a7f1f7f432ab43eda8cf806712acde424581fcf2a221ca"]{
+    --color-diff-blob-addition-num-bg: rgb(172, 178, 0);;
+    --color-diff-blob-deletion-num-bg: rgb(172, 178, 0);
+}
+
+#file-tree-item-diff-62634260ec776f4d9c9922dc6c011da9447d74155a7da29e6364b5566710ff22 ,#file-tree-item-diff-96e41a6ffffa69a60e844da102b7e32039fabb7abe97a0947df5199d5a22498b{
+    background-color: rgb(122, 126, 0);
+    background-color: rgb(164, 167, 0);
+}
+ */
+
