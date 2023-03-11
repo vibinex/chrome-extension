@@ -6,8 +6,6 @@ function addingCssElement(elementId,status) {
   element.innerHTML = `#issue_${elementId}_link::before{
     background-color:${tagBackgroundColor};
     content: '${status}';
-    background-color:${tagBackgroundColor};
-    content: '${status}';
     color: white;
     width: 12px;
     height: 12px;
