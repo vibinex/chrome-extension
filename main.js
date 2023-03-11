@@ -2,10 +2,6 @@ function addingCssElement(elementId,status) {
   let backgroundColor = status =='Important'?'rgb(61, 0, 0)':'rgb(86, 88, 0)';
   let tagBackgroundColor = status =='Important'?'rgb(255,0,0)':'rgb(164, 167, 0)';
   document.getElementById(`issue_${elementId}`).style.backgroundColor = backgroundColor;
-function addingCssElement(elementId,status) {
-  let backgroundColor = status =='Important'?'rgb(61, 0, 0)':'rgb(86, 88, 0)';
-  let tagBackgroundColor = status =='Important'?'rgb(255,0,0)':'rgb(164, 167, 0)';
-  document.getElementById(`issue_${elementId}`).style.backgroundColor = backgroundColor;
   let element = document.head.appendChild(document.createElement("style"));
   element.innerHTML = `#issue_${elementId}_link::before{
     background-color:${tagBackgroundColor};
