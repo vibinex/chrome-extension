@@ -1,13 +1,21 @@
-console.log('Running content script');
+console.log('[vibinex] Running content script');
 
-function addingCssElement(elementId, status) {
+const keyToLabel = Object.freeze({
+	'relevant': "Relevant",
+	'important': "Important"
+})
+
+function addingCssElement(elementId, status, numRelevantFiles) {
 	let backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(86, 88, 0)';
 	let tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
-	document.getElementById(`issue_${elementId}`).style.backgroundColor = backgroundColor;
-	let element = document.head.appendChild(document.createElement("style"));
-	element.innerHTML = `#issue_${elementId}_link::before{
+	const row_element = document.getElementById(`issue_${elementId}`);
+	if (row_element && row_element != null) {
+		row_element.style.backgroundColor = backgroundColor;
+		let element = document.head.appendChild(document.createElement("style"));
+		// TODO: a better approach would be create a constant CSS for a class, and add the class to the elements in consideration
+		element.innerHTML = `#issue_${elementId}_link::before{
 		background-color:${tagBackgroundColor};
-		content: '${status}';
+		content: '${status} (${numRelevantFiles})';
 		color: white;
 		width: 12px;
 		height: 12px;
@@ -17,6 +25,7 @@ function addingCssElement(elementId, status) {
 		padding-left: 5px;
 		padding-right: 5px;
 		padding-bottom: 2px;;}`;
+	}
 };
 
 // fetching data from API 
@@ -32,7 +41,7 @@ async function getDataFromAPI(repoOwner, repoName) {
 		await fetch('https://gcscruncsql-k7jns52mtq-el.a.run.app/relevance/pr', {
 			method: "POST",
 			headers: {
-				"Access-Control-Allow-Origin":"no-cors",
+				"Access-Control-Allow-Origin": "no-cors",
 				"Content-Type": "application/json",
 				"Accept": "application/json",
 			},
@@ -42,7 +51,7 @@ async function getDataFromAPI(repoOwner, repoName) {
 			.then((data) => heighlightedIds = data);
 		return heighlightedIds;
 	} catch (e) {
-		console.log('Error while getting data from API', e)
+		console.error('[vibinex] Error while getting data from API', e)
 	}
 }
 
@@ -50,20 +59,9 @@ async function getDataFromAPI(repoOwner, repoName) {
 async function getHighlightedPR(repoOwner, reponame) {
 	const highlightedPRIds = await getDataFromAPI(repoOwner, reponame);
 	if (highlightedPRIds) {
-		let maxLengthIds = Math.max(
-			"important" in highlightedPRIds ? highlightedPRIds.important.length : 0,
-			"relevant" in highlightedPRIds ? highlightedPRIds.relevant.length : 0
-		);
-		// const highlightedPRIds = {
-		//   important: [36485, 36458, 36462, 36492],
-		//   relevant: [36460, 36483, 36466]
-		// };
-		for (let i = 0; i < maxLengthIds; i++) {
-			if ("relevant" in highlightedPRIds) {
-				highlightedPRIds.relevant[i] ? addingCssElement(highlightedPRIds.relevant[i], 'Relevant') : null;
-			}
-			if ("relevant" in highlightedPRIds) {
-				highlightedPRIds.important[i] ? addingCssElement(highlightedPRIds.important[i], 'Important') : null;
+		for (const priorityLevel in highlightedPRIds) {
+			for (const prNumber in highlightedPRIds[priorityLevel]) {
+				addingCssElement(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed'])
 			}
 		}
 	}
@@ -72,9 +70,9 @@ async function getHighlightedPR(repoOwner, reponame) {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
 	if (request.message === 'urlUpdated') {
-		console.log('Sending Request to API')
-		getHighlightedPR(request.repo_owner, request.repo_name);
-		// console.log(request.urls)
+		if (request.repo_function === 'pulls') {
+			getHighlightedPR(request.repo_owner, request.repo_name);
+		}
 	}
 });
 
