@@ -3,6 +3,9 @@
     "version": "0.0.1",
     "manifest_version": 2,
     "description":"for making changes in github website",
+    "background": {
+        "scripts":["backgroundScript.js"]
+      },
     "browser_action": {
         "default_popup": "popup.html",
         "default_icon": "vibinex-logo.png"
@@ -14,8 +17,8 @@
         "128": "vibinex-logo.png"
     },
     "content_scripts":[{
-        "matches":["https://github.com/*pull*","https://github.com/*pulls*"],
+        "matches":["https://github.com/**", "https://github.com/*pull*","https://github.com/*pulls*"],
         "css":["main.css"],
-        "js":["main.js"]
+        "js":["contentScript.js"]
     }]
 }
