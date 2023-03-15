@@ -5,7 +5,7 @@ const keyToLabel = Object.freeze({
 	'important': "Important"
 })
 
-function addingCssElement(elementId, status, numRelevantFiles) {
+function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 	let backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(86, 88, 0)';
 	let tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
 	const row_element = document.getElementById(`issue_${elementId}`);
@@ -27,6 +27,49 @@ function addingCssElement(elementId, status, numRelevantFiles) {
 		padding-bottom: 2px;;}`;
 	}
 };
+
+
+function addCssElementToBitbucket(highlightedPRIds) {
+
+	// To do : remove this setTime out method once data is coming from api 
+	setTimeout(() => {
+		let tables = document.getElementsByTagName('table');
+		tables = tables[0];
+		let allLinks = Array.from(tables.getElementsByTagName('a'));
+		function changingCss(id,status,numRelevantFiles = 1){
+			let backgroundColor = status == 'Important' ? '#ffbab5' : '#f1f549';
+			let tagBackgroundColor = status == 'Important' ? '#e80f00' : 'rgb(164, 167, 0)';
+			allLinks.map((item) => {
+				let link = item.getAttribute('href').split('/');
+				let linkLength = link.length;
+				let prId = link[linkLength - 1]; // getting the last element from url which is pr id. 
+				if (prId == id) {
+					const beforeElement = document.createElement('span');
+					beforeElement.innerText = `${status} (${numRelevantFiles})`;
+					beforeElement.style.display = 'inline-block';
+					beforeElement.style.marginRight = '5px';
+					beforeElement.style.backgroundColor = `${tagBackgroundColor}`;
+					beforeElement.style.color = 'white';
+					beforeElement.style.padding = '2px';
+					beforeElement.style.paddingLeft = '5px';
+					beforeElement.style.paddingRight = '5px'
+					beforeElement.style.borderRadius = '3px';
+					let parent = item.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+					parent.style.backgroundColor = `${backgroundColor}`;
+					parent.style.borderRadius = '2px';
+					item.insertBefore(beforeElement, item.firstChild);
+				};
+			});
+
+		}
+		for (const priorityLevel in highlightedPRIds) {
+			for (const prNumber in highlightedPRIds[priorityLevel]) {
+				console.log(highlightedPRIds[priorityLevel][prNumber],priorityLevel);
+				changingCss(highlightedPRIds[priorityLevel][prNumber],priorityLevel);
+			}
+		}
+	}, 1500);
+}
 
 // fetching data from API 
 async function getDataFromAPI(repoOwner, repoName) {
@@ -61,38 +104,12 @@ async function getHighlightedPR(repoOwner, reponame) {
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				addingCssElement(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed'])
+				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed'])
 			}
 		}
 	}
 };
 
-function addCssElementToBitbucket() {
-	setTimeout(() => {
-
-		let tables = document.getElementsByTagName('table');
-		tables = tables[0];
-
-		let allLinks = Array.from(tables.getElementsByTagName('a'));
-		allLinks.map((item) => {
-			const beforeElement = document.createElement('span');
-			beforeElement.innerText = 'Important (1)';
-			beforeElement.style.display = 'inline-block';
-			beforeElement.style.marginRight = '5px';
-			beforeElement.style.backgroundColor = '#e80f00';
-			beforeElement.style.color = 'white';
-			beforeElement.style.padding = '2px';
-			beforeElement.style.paddingLeft = '5px';
-			beforeElement.style.paddingRight = '5px'
-			beforeElement.style.borderRadius = '3px';
-	
-			let parent = item.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
-			parent.style.backgroundColor = '#ffbab5';
-			parent.style.borderRadius='2px';
-			item.insertBefore(beforeElement, item.firstChild);
-		});
-	}, 1500);
-}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
@@ -104,7 +121,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 	if (request.message === 'bitBucketUrl') {
 		console.log('[bitBucket CSS changed]');
-		addCssElementToBitbucket();
+
+		// testing data 
+		const heighlightedIds = {Important:[1,2,3],Relevant:[2,5,6]}
+		// todo : making a api call for fething the data for bitBucket. 
+		addCssElementToBitbucket(heighlightedIds);
 	}
 });
 
