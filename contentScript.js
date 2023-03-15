@@ -31,10 +31,9 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 
 function addCssElementToBitbucket(highlightedPRIds) {
 
-	// To do : remove this setTime out method once data is coming from api 
+	// To do : remove this setTimeout method once data is coming from api 
 	setTimeout(() => {
-		const tables = document.getElementsByTagName('table');
-		tables = tables[0];
+		const tables = document.getElementsByTagName('table')[0];
 		const allLinks = Array.from(tables.getElementsByTagName('a'));
 
 		function changingCss(id,status,numRelevantFiles = 1){
@@ -44,7 +43,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 				const link = item.getAttribute('href').split('/');
 				const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
 				if (prId == id) {
-					let beforePsuedoElement = document.createElement('span');
+					const beforePsuedoElement = document.createElement('span');
 					beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
 					beforePsuedoElement.style.display = 'inline-block';
 					beforePsuedoElement.style.marginRight = '5px';
@@ -60,11 +59,9 @@ function addCssElementToBitbucket(highlightedPRIds) {
 					item.insertBefore(beforePsuedoElement, item.firstChild);
 				};
 			});
-
 		}
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				console.log(highlightedPRIds[priorityLevel][prNumber],priorityLevel);
 				changingCss(highlightedPRIds[priorityLevel][prNumber],priorityLevel);
 			}
 		}
@@ -113,13 +110,12 @@ async function getHighlightedPR(repoOwner, reponame) {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
-	if (request.message === 'urlUpdated') {
+	if (request.message === 'githubUrl') {
 		if (request.repo_function === 'pulls') {
 			getHighlightedPR(request.repo_owner, request.repo_name);
 		}
 	}
-
-	if (request.message === 'bitBucketUrl') {	
+	if (request.message === 'bitbucketUrl') {	
 		// testing data 
 		const highlightedIds = {Important:[1,2,3],Relevant:[4,5,6]}
 		// todo : making a api call for fething the data for bitBucket. 
