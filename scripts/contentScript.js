@@ -1,4 +1,5 @@
 console.log('[vibinex] Running content script');
+'use strict';
 
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
@@ -36,7 +37,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 		const tables = document.getElementsByTagName('table')[0];
 		const allLinks = Array.from(tables.getElementsByTagName('a'));
 
-		function changingCss(id,status,numRelevantFiles = 1){
+		function changingCss(id, status, numRelevantFiles = 1) {
 			const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
 			const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
 			allLinks.forEach((item) => {
@@ -62,7 +63,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 		}
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				changingCss(highlightedPRIds[priorityLevel][prNumber],priorityLevel);
+				changingCss(highlightedPRIds[priorityLevel][prNumber], priorityLevel);
 			}
 		}
 	}, 1500);
@@ -115,9 +116,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			getHighlightedPR(request.repo_owner, request.repo_name);
 		}
 	}
-	if (request.message === 'bitbucketUrl') {	
+	if (request.message === 'bitbucketUrl') {
 		// testing data 
-		const highlightedIds = {Important:[1,2,3],Relevant:[4,5,6]}
+		const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
 		// todo : making a api call for fething the data for bitBucket. 
 		addCssElementToBitbucket(highlightedIds);
 	}
