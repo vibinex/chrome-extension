@@ -67,6 +67,33 @@ async function getHighlightedPR(repoOwner, reponame) {
 	}
 };
 
+function addCssElementToBitbucket() {
+	setTimeout(() => {
+
+		let tables = document.getElementsByTagName('table');
+		tables = tables[0];
+
+		let allLinks = Array.from(tables.getElementsByTagName('a'));
+		allLinks.map((item) => {
+			const beforeElement = document.createElement('span');
+			beforeElement.innerText = 'Important (1)';
+			beforeElement.style.display = 'inline-block';
+			beforeElement.style.marginRight = '5px';
+			beforeElement.style.backgroundColor = '#e80f00';
+			beforeElement.style.color = 'white';
+			beforeElement.style.padding = '2px';
+			beforeElement.style.paddingLeft = '5px';
+			beforeElement.style.paddingRight = '5px'
+			beforeElement.style.borderRadius = '3px';
+	
+			let parent = item.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+			parent.style.backgroundColor = '#ffbab5';
+			parent.style.borderRadius='2px';
+			item.insertBefore(beforeElement, item.firstChild);
+		});
+	}, 1500);
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
 	if (request.message === 'urlUpdated') {
@@ -74,5 +101,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			getHighlightedPR(request.repo_owner, request.repo_name);
 		}
 	}
+
+	if (request.message === 'bitBucketUrl') {
+		console.log('[bitBucket CSS changed]');
+		addCssElementToBitbucket();
+	}
 });
+
+
 

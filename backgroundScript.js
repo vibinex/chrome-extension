@@ -16,6 +16,12 @@ chrome.tabs.onUpdated.addListener(
 					repo_name: url[4],
 					repo_function: url[5]
 				})
+			} else if (url[2] === "bitbucket.org" && url[5] === "pull-requests") {
+				console.log('[bitBucket] api calling')
+				chrome.tabs.sendMessage(tabId, {
+					message: 'bitBucketUrl',
+					urls: changeInfo.url
+				})
 			}
 			console.log('updated url is', changeInfo.url, url[3], url[4], url[2])
 		}

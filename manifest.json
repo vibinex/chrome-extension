@@ -17,7 +17,7 @@
         "128": "vibinex-logo.png"
     },
     "content_scripts":[{
-        "matches":["https://github.com/**", "https://github.com/*pull*","https://github.com/*pulls*"],
+        "matches":["https://github.com/**","https://bitbucket.org/**", "https://github.com/*pull*","https://github.com/*pulls*"],
         "css":["main.css"],
         "js":["contentScript.js"]
     }]
