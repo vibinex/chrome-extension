@@ -4,9 +4,7 @@
     "manifest_version": 3,
     "description": "Add context and prioritization to your pull request reviewing",
     "background": {
-        "service_workers": [
-            "backgroundScript.js"
-        ]
+        "service_worker": "backgroundScript.js"
     },
     "action": {
         "default_popup": "popup/popup.html",
