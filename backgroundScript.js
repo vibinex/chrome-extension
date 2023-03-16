@@ -1,6 +1,6 @@
 chrome.runtime.onInstalled.addListener(() => {
-	// const environment = "prod";
-	const environment = "dev";
+	const environment = "prod";
+	// const environment = "dev";
 	const websiteUrl = (environment == "dev") ? "http://localhost:3000" : "https://vibinex.com";
 	chrome.storage.sync.set({ websiteUrl }).then(_ => console.log(`Website URL set to ${websiteUrl}`))
 })
