@@ -111,17 +111,29 @@ async function getHighlightedPR(repoOwner, reponame) {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
-	if (request.message === 'githubUrl') {
-		if (request.repo_function === 'pulls') {
-			getHighlightedPR(request.repo_owner, request.repo_name);
+	chrome.storage.sync.get(["userId"]).then(({ userId }) => {
+		console.log("[contentScript] userId:", userId);
+		if (!userId && (request.message === 'githubUrl' || request.message === 'bitbucketUrl')) {
+			console.warn("[Vibinex] You are not logged in. Head to https://vibinex.com to log in");
+			// TODO: create a UI element on the screen with CTA to login to Vibinex
 		}
-	}
-	if (request.message === 'bitbucketUrl') {
-		// testing data 
-		const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
-		// todo : making a api call for fething the data for bitBucket. 
-		addCssElementToBitbucket(highlightedIds);
-	}
+		if (request.message === 'githubUrl') {
+			if (request.repo_function === 'pulls') {
+				getHighlightedPR(request.repo_owner, request.repo_name);
+			}
+		}
+		if (request.message === 'bitbucketUrl') {
+			// testing data 
+			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
+			// todo : making a api call for fething the data for bitBucket. 
+			addCssElementToBitbucket(highlightedIds);
+		}
+		if (request.message === 'refreshSession') {
+			chrome.storage.sync.set({ userId: 1 }).then(_ => {
+				console.log("userId set to 1")
+			})
+		}
+	})
 });
 
 
