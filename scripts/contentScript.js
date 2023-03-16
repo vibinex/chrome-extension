@@ -135,19 +135,18 @@ chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) 
 	window.addEventListener("message", (event) => {
 		if (event.origin !== websiteUrl) return;
 		if (event.data.message === "refreshSession") {
-			if (event.data.userId) {
-				chrome.storage.sync.set({
-					userId: event.data.userId,
-					userName: event.data.userName,
-					userImage: event.data.userImage
-				}).then(() => {
-					console.debug(`[contentScript] userId has been set to ${userId}`);
-				}).catch(err => {
-					console.error(`[contentScript] Sync storage could not be set. userId: ${userId}`, err);
-				})
-			} else {
+			if (!event.data.userId) {
 				console.warn("[contentScript] event object does not contain userId", event.data);
 			}
+			chrome.storage.sync.set({
+				userId: event.data.userId,
+				userName: event.data.userName,
+				userImage: event.data.userImage
+			}).then(() => {
+				console.debug(`[contentScript] userId has been set from ${userId} to ${event.data.userId}`);
+			}).catch(err => {
+				console.error(`[contentScript] Sync storage could not be set. initial userId: ${userId}; final userId: ${event.data.userId}`, err);
+			})
 		}
 	}, false)
 })
