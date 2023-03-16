@@ -30,7 +30,7 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 };
 
 
-function addCssElementToBitbucket(highlightedPRIds) {
+function addCssElementToBitbucket(highlightedPRIds, userId) {
 
 	// To do : remove this setTimeout method once data is coming from api 
 	setTimeout(() => {
@@ -70,11 +70,11 @@ function addCssElementToBitbucket(highlightedPRIds) {
 }
 
 // fetching data from API 
-async function getDataFromAPI(repoOwner, repoName) {
+async function getDataFromAPI(repoOwner, repoName, userId) {
 	const data = {
-		"repo_owner": `${repoOwner}`,
-		"repo_name": `${repoName}`,
-		"alias_list": ["tapish303@gmail.com", "tapish@vibinex.com", "tapish@iitj.ac.in"],
+		"repo_owner": repoOwner,
+		"repo_name": repoName,
+		"user_id": userId,
 		"is_github": true
 	}
 	let highlightedPRIds;
@@ -97,8 +97,8 @@ async function getDataFromAPI(repoOwner, repoName) {
 }
 
 // adding css elements based up the data getting from api
-async function getHighlightedPR(repoOwner, reponame) {
-	const highlightedPRIds = await getDataFromAPI(repoOwner, reponame);
+async function getHighlightedPR(repoOwner, reponame, userId) {
+	const highlightedPRIds = await getDataFromAPI(repoOwner, reponame, userId);
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
@@ -119,22 +119,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		}
 		if (request.message === 'githubUrl') {
 			if (request.repo_function === 'pulls') {
-				getHighlightedPR(request.repo_owner, request.repo_name);
+				getHighlightedPR(request.repo_owner, request.repo_name, request.userId);
 			}
 		}
 		if (request.message === 'bitbucketUrl') {
 			// testing data 
 			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
 			// todo : making a api call for fething the data for bitBucket. 
-			addCssElementToBitbucket(highlightedIds);
-		}
-		if (request.message === 'refreshSession') {
-			chrome.storage.sync.set({ userId: 1 }).then(_ => {
-				console.log("userId set to 1")
-			})
+			addCssElementToBitbucket(highlightedIds, request.userId);
 		}
 	})
 });
 
-
-
+chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+	window.addEventListener("message", (event) => {
+		if (event.origin !== websiteUrl) return;
+		if (event.data.message === "refreshSession") {
+			if (event.data.userId) {
+				chrome.storage.sync.set({
+					userId: event.data.userId,
+					userName: event.data.userName,
+					userImage: event.data.userImage
+				}).then(() => {
+					console.debug(`[contentScript] userId has been set to ${userId}`);
+				}).catch(err => {
+					console.error(`[contentScript] Sync storage could not be set. userId: ${userId}`, err);
+				})
+			} else {
+				console.warn("[contentScript] event object does not contain userId", event.data);
+			}
+		}
+	}, false)
+})

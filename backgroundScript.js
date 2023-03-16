@@ -17,16 +17,14 @@ chrome.tabs.onUpdated.addListener(
 						urls: tab.url,
 						repo_owner: url[3],
 						repo_name: url[4],
-						repo_function: url[5]
+						repo_function: url[5],
+						userId: userId
 					})
 				} else if (url[2] === "bitbucket.org" && url[5] === "pull-requests") {
 					chrome.tabs.sendMessage(tabId, {
 						message: 'bitbucketUrl',
-						urls: tab.url
-					})
-				} else if (url[2] === websiteUrl.split('/')[2]) {
-					chrome.tabs.sendMessage(tabId, {
-						message: 'refreshSession'
+						urls: tab.url,
+						userId: userId
 					})
 				}
 			}
