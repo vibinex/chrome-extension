@@ -11,7 +11,8 @@
         "default_icon": "resources/vibinex-logo.png"
     },
     "permissions": [
-        "tabs"
+        "tabs",
+        "storage"
     ],
     "icons": {
         "128": "resources/vibinex-logo.png"
@@ -21,7 +22,8 @@
             "matches": [
                 "https://github.com/**",
                 "https://vibinex.com/**",
-                "https://bitbucket.org/**"
+                "https://bitbucket.org/**",
+                "http://localhost:3000/**"
             ],
             "css": [
                 "scripts/main.css"

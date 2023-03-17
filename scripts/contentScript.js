@@ -1,4 +1,5 @@
 console.log('[vibinex] Running content script');
+'use strict';
 
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
@@ -29,14 +30,14 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 };
 
 
-function addCssElementToBitbucket(highlightedPRIds) {
+function addCssElementToBitbucket(highlightedPRIds, userId) {
 
 	// To do : remove this setTimeout method once data is coming from api 
 	setTimeout(() => {
 		const tables = document.getElementsByTagName('table')[0];
 		const allLinks = Array.from(tables.getElementsByTagName('a'));
 
-		function changingCss(id,status,numRelevantFiles = 1){
+		function changingCss(id, status, numRelevantFiles = 1) {
 			const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
 			const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
 			allLinks.forEach((item) => {
@@ -62,18 +63,18 @@ function addCssElementToBitbucket(highlightedPRIds) {
 		}
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				changingCss(highlightedPRIds[priorityLevel][prNumber],priorityLevel);
+				changingCss(highlightedPRIds[priorityLevel][prNumber], priorityLevel);
 			}
 		}
 	}, 1500);
 }
 
 // fetching data from API 
-async function getDataFromAPI(repoOwner, repoName) {
+async function getDataFromAPI(repoOwner, repoName, userId) {
 	const data = {
-		"repo_owner": `${repoOwner}`,
-		"repo_name": `${repoName}`,
-		"alias_list": ["tapish303@gmail.com", "tapish@vibinex.com", "tapish@iitj.ac.in"],
+		"repo_owner": repoOwner,
+		"repo_name": repoName,
+		"user_id": userId,
 		"is_github": true
 	}
 	let highlightedPRIds;
@@ -96,8 +97,8 @@ async function getDataFromAPI(repoOwner, repoName) {
 }
 
 // adding css elements based up the data getting from api
-async function getHighlightedPR(repoOwner, reponame) {
-	const highlightedPRIds = await getDataFromAPI(repoOwner, reponame);
+async function getHighlightedPR(repoOwner, reponame, userId) {
+	const highlightedPRIds = await getDataFromAPI(repoOwner, reponame, userId);
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
@@ -110,18 +111,42 @@ async function getHighlightedPR(repoOwner, reponame) {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
-	if (request.message === 'githubUrl') {
-		if (request.repo_function === 'pulls') {
-			getHighlightedPR(request.repo_owner, request.repo_name);
+	chrome.storage.sync.get(["userId"]).then(({ userId }) => {
+		console.log("[contentScript] userId:", userId);
+		if (!userId && (request.message === 'githubUrl' || request.message === 'bitbucketUrl')) {
+			console.warn("[Vibinex] You are not logged in. Head to https://vibinex.com to log in");
+			// TODO: create a UI element on the screen with CTA to login to Vibinex
 		}
-	}
-	if (request.message === 'bitbucketUrl') {	
-		// testing data 
-		const highlightedIds = {Important:[1,2,3],Relevant:[4,5,6]}
-		// todo : making a api call for fething the data for bitBucket. 
-		addCssElementToBitbucket(highlightedIds);
-	}
+		if (request.message === 'githubUrl') {
+			if (request.repo_function === 'pulls') {
+				getHighlightedPR(request.repo_owner, request.repo_name, request.userId);
+			}
+		}
+		if (request.message === 'bitbucketUrl') {
+			// testing data 
+			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
+			// todo : making a api call for fething the data for bitBucket. 
+			addCssElementToBitbucket(highlightedIds, request.userId);
+		}
+	})
 });
 
-
-
+chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+	window.addEventListener("message", (event) => {
+		if (event.origin !== websiteUrl) return;
+		if (event.data.message === "refreshSession") {
+			if (!event.data.userId) {
+				console.warn("[contentScript] event object does not contain userId", event.data);
+			}
+			chrome.storage.sync.set({
+				userId: event.data.userId,
+				userName: event.data.userName,
+				userImage: event.data.userImage
+			}).then(() => {
+				console.debug(`[contentScript] userId has been set from ${userId} to ${event.data.userId}`);
+			}).catch(err => {
+				console.error(`[contentScript] Sync storage could not be set. initial userId: ${userId}; final userId: ${event.data.userId}`, err);
+			})
+		}
+	}, false)
+})
