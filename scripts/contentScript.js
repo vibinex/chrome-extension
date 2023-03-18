@@ -6,6 +6,36 @@ const keyToLabel = Object.freeze({
 	'important': "Important"
 })
 
+async function cssForGithubTrackRepo(trackedRepos) {
+	const allOrgRepo = document.getElementById('org-repositories');
+	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
+
+	orgRepoUrl.forEach((item) => {
+		const link = item.getAttribute('href').split('/');
+		const orgRepoName = link[link.length - 1];
+
+		if (trackedRepos.includes(orgRepoName)) {
+			const img = document.createElement("img");
+			const beforePsuedoElement = document.createElement('a');
+			img.src = "https://vibinex.com/favicon.ico";
+			img.style.width='15px'
+			img.style.height='15px'
+		
+			beforePsuedoElement.appendChild(img);
+			beforePsuedoElement.href = "#";
+			beforePsuedoElement.style.display = 'inline-block';
+			beforePsuedoElement.style.marginRight = '2px';
+			beforePsuedoElement.style.color = 'white';
+			beforePsuedoElement.style.borderRadius = '2px';
+			beforePsuedoElement.style.fontSize = '15px';
+			beforePsuedoElement.style.textDecoration = 'none';
+			item.insertBefore(beforePsuedoElement, item.firstChild);
+		}
+
+	})
+
+}
+
 function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(86, 88, 0)';
 	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
@@ -69,36 +99,36 @@ function addCssElementToBitbucket(highlightedPRIds, userId) {
 	}, 1500);
 }
 
-// fetching data from API 
-async function getDataFromAPI(repoOwner, repoName, userId) {
-	const data = {
-		"repo_owner": repoOwner,
-		"repo_name": repoName,
-		"user_id": userId,
-		"is_github": true
-	}
-	let highlightedPRIds;
+async function apiCall(url, body) {
 	try {
-		await fetch('https://gcscruncsql-k7jns52mtq-el.a.run.app/relevance/pr', {
+		let dataFromAPI;
+		await fetch(url, {
 			method: "POST",
 			headers: {
 				"Access-Control-Allow-Origin": "no-cors",
 				"Content-Type": "application/json",
 				"Accept": "application/json",
 			},
-			body: JSON.stringify(data)
+			body: JSON.stringify(body)
 		})
 			.then((response) => response.json())
-			.then((data) => highlightedPRIds = data);
-		return highlightedPRIds;
+			.then((data) => dataFromAPI = data);
+		return dataFromAPI;
 	} catch (e) {
 		console.error('[vibinex] Error while getting data from API', e)
 	}
 }
 
 // adding css elements based up the data getting from api
-async function getHighlightedPR(repoOwner, reponame, userId) {
-	const highlightedPRIds = await getDataFromAPI(repoOwner, reponame, userId);
+async function getHighlightedPR(repoOwner, repoName, userId) {
+	const body = {
+		"repo_owner": repoOwner,
+		"repo_name": repoName,
+		"user_id": userId,
+		"is_github": true
+	}
+	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/relevance/pr';
+	const highlightedPRIds = await apiCall(url, body);
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
@@ -108,11 +138,20 @@ async function getHighlightedPR(repoOwner, reponame, userId) {
 	}
 };
 
+// for showing all tracked/ untrack pr in a organization
+async function getTrackedPR(orgName) {
+	const body = { "org": `${orgName}` }
+	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/setup/repos';
+	const trackedRepos = await apiCall(url, body);
+	if(trackedRepos){
+		cssForGithubTrackRepo(trackedRepos);
+	};
+}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
+	// FIXME: we are getting userId from storage as well in the request object. This should be optimized
 	chrome.storage.sync.get(["userId"]).then(({ userId }) => {
-		console.log("[contentScript] userId:", userId);
 		if (!userId && (request.message === 'githubUrl' || request.message === 'bitbucketUrl')) {
 			console.warn("[Vibinex] You are not logged in. Head to https://vibinex.com to log in");
 			// TODO: create a UI element on the screen with CTA to login to Vibinex
@@ -122,11 +161,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				getHighlightedPR(request.repo_owner, request.repo_name, request.userId);
 			}
 		}
+	
 		if (request.message === 'bitbucketUrl') {
 			// testing data 
 			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
 			// todo : making a api call for fething the data for bitBucket. 
 			addCssElementToBitbucket(highlightedIds, request.userId);
+		}
+	
+		if (request.message === 'trackRepo') {
+			getTrackedPR(request.org_name);
 		}
 	})
 });
