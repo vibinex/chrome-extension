@@ -1,4 +1,5 @@
 console.log('[vibinex] Running content script');
+'use strict';
 
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
@@ -7,32 +8,20 @@ const keyToLabel = Object.freeze({
 
 async function cssForGithubTrackRepo(trackedRepos) {
 	const allOrgRepo = document.getElementById('org-repositories');
-	const ignoreUrl = [
-		'stargazers',
-		'forks',
-		'issues',
-		'pulls',
-		'issues?q=label%3A%22help+wanted%22+is%3Aissue+is%3Aopen',
-		'repositories?type=all',
-		'issues?q=label%3A%22Help+wanted%22+is%3Aissue+is%3Aopen'
-	];
 	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
 
 	orgRepoUrl.forEach((item) => {
 		const link = item.getAttribute('href').split('/');
 		const orgRepoName = link[link.length - 1];
 
-		if (ignoreUrl.includes(orgRepoName)) {
-		} else {
+		if (trackedRepos.includes(orgRepoName)) {
 			const img = document.createElement("img");
+			const beforePsuedoElement = document.createElement('a');
 			img.src = "https://vibinex.com/favicon.ico";
 			img.style.width='15px'
 			img.style.height='15px'
 		
-			trackedRepos.includes(orgRepoName) ? beforePsuedoElement.appendChild(img):null;
-			// item.addEventListener('click',()=>trackRepo(orgRepoName))
-			console.log('The names are', orgRepoName);
-			const beforePsuedoElement = document.createElement('a');
+			beforePsuedoElement.appendChild(img);
 			beforePsuedoElement.href = "#";
 			beforePsuedoElement.style.display = 'inline-block';
 			beforePsuedoElement.style.marginRight = '2px';
@@ -70,7 +59,8 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 	}
 };
 
-function addCssElementToBitbucket(highlightedPRIds) {
+
+function addCssElementToBitbucket(highlightedPRIds, userId) {
 
 	// To do : remove this setTimeout method once data is coming from api 
 	setTimeout(() => {
@@ -130,11 +120,11 @@ async function apiCall(url, body) {
 }
 
 // adding css elements based up the data getting from api
-async function getHighlightedPR(repoOwner, repoName) {
+async function getHighlightedPR(repoOwner, repoName, userId) {
 	const body = {
-		"repo_owner": `${repoOwner}`,
-		"repo_name": `${repoName}`,
-		"alias_list": ["tapish303@gmail.com", "tapish@vibinex.com", "tapish@iitj.ac.in"],
+		"repo_owner": repoOwner,
+		"repo_name": repoName,
+		"user_id": userId,
 		"is_github": true
 	}
 	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/relevance/pr';
@@ -152,31 +142,55 @@ async function getHighlightedPR(repoOwner, repoName) {
 async function getTrackedPR(orgName) {
 	const body = { "org": `${orgName}` }
 	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/setup/repos';
-	const trackedPR = await apiCall(url, body);
-	if(trackedPR){
-		cssForGithubTrackRepo(dummyData);
+	const trackedRepos = await apiCall(url, body);
+	if(trackedRepos){
+		cssForGithubTrackRepo(trackedRepos);
 	};
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("[contentScript] message received")
-	if (request.message === 'githubUrl') {
-		if (request.repo_function === 'pulls') {
-			getHighlightedPR(request.repo_owner, request.repo_name);
+	console.log("[contentScript] message received", request)
+	// FIXME: we are getting userId from storage as well in the request object. This should be optimized
+	chrome.storage.sync.get(["userId"]).then(({ userId }) => {
+		if (!userId && (request.message === 'githubUrl' || request.message === 'bitbucketUrl')) {
+			console.warn("[Vibinex] You are not logged in. Head to https://vibinex.com to log in");
+			// TODO: create a UI element on the screen with CTA to login to Vibinex
 		}
-	}
-
-	if (request.message === 'bitbucketUrl') {
-		// testing data 
-		const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
-		// todo : making a api call for fething the data for bitBucket. 
-		addCssElementToBitbucket(highlightedIds);
-	}
-
-	if (request.message === 'trackRepo') {
-		getTrackedPR(request.org_name);
-	}
+		if (request.message === 'githubUrl') {
+			if (request.repo_function === 'pulls') {
+				getHighlightedPR(request.repo_owner, request.repo_name, request.userId);
+			}
+		}
+	
+		if (request.message === 'bitbucketUrl') {
+			// testing data 
+			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
+			// todo : making a api call for fething the data for bitBucket. 
+			addCssElementToBitbucket(highlightedIds, request.userId);
+		}
+	
+		if (request.message === 'trackRepo') {
+			getTrackedPR(request.org_name);
+		}
+	})
 });
 
-
-
+chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+	window.addEventListener("message", (event) => {
+		if (event.origin !== websiteUrl) return;
+		if (event.data.message === "refreshSession") {
+			if (!event.data.userId) {
+				console.warn("[contentScript] event object does not contain userId", event.data);
+			}
+			chrome.storage.sync.set({
+				userId: event.data.userId,
+				userName: event.data.userName,
+				userImage: event.data.userImage
+			}).then(() => {
+				console.debug(`[contentScript] userId has been set from ${userId} to ${event.data.userId}`);
+			}).catch(err => {
+				console.error(`[contentScript] Sync storage could not be set. initial userId: ${userId}; final userId: ${event.data.userId}`, err);
+			})
+		}
+	}, false)
+})
