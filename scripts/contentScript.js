@@ -22,8 +22,7 @@ async function cssForGithubTrackRepo(trackedRepos) {
 		const link = item.getAttribute('href').split('/');
 		const orgRepoName = link[link.length - 1];
 
-		if (ignoreUrl.includes(orgRepoName)) {
-		} else {
+		if (!ignoreUrl.includes(orgRepoName)) {
 			const img = document.createElement("img");
 			img.src = "https://vibinex.com/favicon.ico";
 			img.style.width='15px'
