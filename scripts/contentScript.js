@@ -77,7 +77,7 @@ async function getDataFromAPI(repoOwner, repoName, userId) {
 		"user_id": userId,
 		"is_github": true
 	}
-	let highlightedPRIds;
+	let dataFromAPI;
 	try {
 		await fetch('https://gcscruncsql-k7jns52mtq-el.a.run.app/relevance/pr', {
 			method: "POST",
@@ -89,10 +89,11 @@ async function getDataFromAPI(repoOwner, repoName, userId) {
 			body: JSON.stringify(data)
 		})
 			.then((response) => response.json())
-			.then((data) => highlightedPRIds = data);
-		return highlightedPRIds;
+			.then((data) => dataFromAPI = data);
+		console.log('API response ', dataFromAPI)
+		return dataFromAPI;
 	} catch (e) {
-		console.error('[vibinex] Error while getting data from API', e)
+		console.error('[vibinex] Error while getting data from API', e, body)
 	}
 }
 
@@ -108,45 +109,69 @@ async function getHighlightedPR(repoOwner, reponame, userId) {
 	}
 };
 
+// getting all hightlighted / important files to show 
+async function getHighlightedFiles(repoOwner, repoName) {
+	const body = {
+		"repo_owner": `${repoOwner}`,
+		"repo_name": `${repoName}`,
+		"alias_list": ["tapish303@gmail.com", "tapish@vibinex.com", "tapish@iitj.ac.in"],
+		"is_github": true
+	}
+	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/relevance/pr/files';
+	const highlightedPRIds = await apiCall(url, body);
+	console.log('data From API is----------', highlightedPRIds)
+}
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("[contentScript] message received", request)
+	console.log("[contentScript] message received")
 	chrome.storage.sync.get(["userId"]).then(({ userId }) => {
-		console.log("[contentScript] userId:", userId);
+
 		if (!userId && (request.message === 'githubUrl' || request.message === 'bitbucketUrl')) {
 			console.warn("[Vibinex] You are not logged in. Head to https://vibinex.com to log in");
 			// TODO: create a UI element on the screen with CTA to login to Vibinex
 		}
+
 		if (request.message === 'githubUrl') {
 			if (request.repo_function === 'pulls') {
 				getHighlightedPR(request.repo_owner, request.repo_name, request.userId);
 			}
 		}
+
+		if (request.message === 'githubPRFiles') {
+			console.log('triggering it')
+			getHighlightedFiles(request.repo_owner, request.repo_name,request.userId);
+		}
+
 		if (request.message === 'bitbucketUrl') {
 			// testing data 
 			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
 			// todo : making a api call for fething the data for bitBucket. 
-			addCssElementToBitbucket(highlightedIds, request.userId);
+			addCssElementToBitbucket(highlightedIds,request.userId);
 		}
-	})
+
+		if (request.message === 'trackRepo') {
+			getTrackedPR(request.org_name,request.userId);
+		}
+	});
+
 });
 
-chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
-	window.addEventListener("message", (event) => {
-		if (event.origin !== websiteUrl) return;
-		if (event.data.message === "refreshSession") {
-			if (!event.data.userId) {
-				console.warn("[contentScript] event object does not contain userId", event.data);
+	chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+		window.addEventListener("message", (event) => {
+			if (event.origin !== websiteUrl) return;
+			if (event.data.message === "refreshSession") {
+				if (!event.data.userId) {
+					console.warn("[contentScript] event object does not contain userId", event.data);
+				}
+				chrome.storage.sync.set({
+					userId: event.data.userId,
+					userName: event.data.userName,
+					userImage: event.data.userImage
+				}).then(() => {
+					console.debug(`[contentScript] userId has been set from ${userId} to ${event.data.userId}`);
+				}).catch(err => {
+					console.error(`[contentScript] Sync storage could not be set. initial userId: ${userId}; final userId: ${event.data.userId}`, err);
+				})
 			}
-			chrome.storage.sync.set({
-				userId: event.data.userId,
-				userName: event.data.userName,
-				userImage: event.data.userImage
-			}).then(() => {
-				console.debug(`[contentScript] userId has been set from ${userId} to ${event.data.userId}`);
-			}).catch(err => {
-				console.error(`[contentScript] Sync storage could not be set. initial userId: ${userId}; final userId: ${event.data.userId}`, err);
-			})
-		}
-	}, false)
-})
+		}, false)
+	});
