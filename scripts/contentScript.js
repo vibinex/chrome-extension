@@ -4,9 +4,40 @@ console.log('[vibinex] Running content script');
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
 	'important': "Important"
-})
+});
 
-async function cssForGithubTrackRepo(trackedRepos) {
+async function apiCall(url, body) {
+	try {
+		let dataFromAPI;
+		await fetch(url, {
+			method: "POST",
+			headers: {
+				"Access-Control-Allow-Origin": "no-cors",
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+			},
+			body: JSON.stringify(body)
+		})
+			.then((response) => response.json())
+			.then((data) => dataFromAPI = data);
+		return dataFromAPI;
+	} catch (e) {
+		console.error('[vibinex] Error while getting data from API', e)
+	}
+}
+
+// for showing all tracked/ untrack pr in a organization
+async function getTrackedRepos(orgName) {
+	const body = { "org": `${orgName}` }
+	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/setup/repos';
+	const trackedRepos = await apiCall(url, body);
+	if (trackedRepos) {
+		return trackedRepos;
+	};
+}
+
+async function updateTrackedReposInOrgGitHub(orgName) {
+	const trackedRepos = await getTrackedRepos(orgName);
 	const allOrgRepo = document.getElementById('org-repositories');
 	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
 
@@ -59,7 +90,6 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 	}
 };
 
-
 function addCssElementToBitbucket(highlightedPRIds, userId) {
 
 	// To do : remove this setTimeout method once data is coming from api 
@@ -99,26 +129,6 @@ function addCssElementToBitbucket(highlightedPRIds, userId) {
 	}, 1500);
 }
 
-async function apiCall(url, body) {
-	try {
-		let dataFromAPI;
-		await fetch(url, {
-			method: "POST",
-			headers: {
-				"Access-Control-Allow-Origin": "no-cors",
-				"Content-Type": "application/json",
-				"Accept": "application/json",
-			},
-			body: JSON.stringify(body)
-		})
-			.then((response) => response.json())
-			.then((data) => dataFromAPI = data);
-		return dataFromAPI;
-	} catch (e) {
-		console.error('[vibinex] Error while getting data from API', e)
-	}
-}
-
 // adding css elements based up the data getting from api
 async function getHighlightedPR(repoOwner, repoName, userId) {
 	const body = {
@@ -138,26 +148,11 @@ async function getHighlightedPR(repoOwner, repoName, userId) {
 	}
 };
 
-// for showing all tracked/ untrack pr in a organization
-async function getRepoInfo(orgName) {
-	const body = { "org": `${orgName}` }
-	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/setup/repos';
-	const trackedRepos = await apiCall(url, body);
-	if (trackedRepos) {
-		return trackedRepos;
-	};
-}
-
-async function getTrackedRepo(orgName) {
-	const data = await getRepoInfo(orgName);
-	if (data) cssForGithubTrackRepo(data);
-}
-
 
 // adding favButton
-async function addButton(orgName, orgRepo) {
+async function showFloatingActionButton(orgName, orgRepo) {
 
-	const addedRepoList = await getRepoInfo(orgName);
+	const addedRepoList = await getTrackedRepos(orgName);
 
 	if (!addedRepoList.includes(orgRepo)) {
 		const PrSection = document.getElementById('repo-content-pjax-container');
@@ -171,12 +166,15 @@ async function addButton(orgName, orgRepo) {
 		img.style.position = 'fixed';
 		img.style.left = '30px';
 		img.style.bottom = '50px';
-		img.style.cursor = 'pointer'
+		img.style.cursor = 'pointer';
+		// img.style={
+
+		// };
 		// for redirecting if the repo is not added 
 		const redirectLink = document.createElement('a');
 		redirectLink.href = 'https://www.vibinex.com';
 		redirectLink.style.position = 'fixed';
-		redirectLink.style.left = '50px';
+		redirectLink.style.left = '58px';
 		redirectLink.style.bottom = '45px';
 		redirectLink.style.zIndex = '101';
 		// for adding plusIcon
@@ -187,15 +185,16 @@ async function addButton(orgName, orgRepo) {
 		plusIcon.style.borderRadius = '35px';
 		plusIcon.style.cursor = 'pointer';
 		redirectLink.appendChild(plusIcon);
+		redirectLink.appendChild(img);
 
 		const infoBanner = document.createElement('div');
-		infoBanner.setAttribute('id', 'vibinex-info');
+		infoBanner.setAttribute('title', 'vibinex-info');
 		// tooltip value on hover 
 		function changeCss(value) {
+			infoBanner.innerHTML = 'Add to Vibinex';
 			infoBanner.style.backgroundColor = 'black';
 			infoBanner.style.color = 'white';
 			infoBanner.style.padding = '10px';
-			infoBanner.innerHTML = 'Add to Vibinex';
 			infoBanner.style.display = value ? 'block' : 'none';
 			infoBanner.style.position = 'fixed';
 			infoBanner.style.left = '30px';
@@ -209,11 +208,9 @@ async function addButton(orgName, orgRepo) {
 		plusIcon.addEventListener('mouseout', () => changeCss(false));
 
 		PrSection.appendChild(redirectLink);
-		PrSection.appendChild(img);
 		PrSection.appendChild(infoBanner);
 	}
 }
-
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
@@ -236,10 +233,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			addCssElementToBitbucket(highlightedIds, request.userId);
 		}
 		if (request.message === 'trackRepo') {
-			getTrackedRepo(request.org_name);
+			updateTrackedReposInOrgGitHub(request.org_name);
 		}
 		if (request.message == 'checkRepo') {
-			addButton(request.org_name, request.org_repo);
+			showFloatingActionButton(request.org_name, request.org_repo);
 		}
 	})
 });
