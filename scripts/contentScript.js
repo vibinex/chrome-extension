@@ -152,13 +152,13 @@ async function getHighlightedPR(repoOwner, repoName, userId) {
 // adding favButton
 async function showFloatingActionButton(orgName, orgRepo) {
 
-	const addedRepoList = await getTrackedRepos(orgName);
+	const trackedRepoList = await getTrackedRepos(orgName);
 
-	if (!addedRepoList.includes(orgRepo)) {
+	if (!trackedRepoList.includes(orgRepo)) {
 		const PrSection = document.getElementById('repo-content-pjax-container');
 		// for vibinex logo
 		const img = document.createElement("img");
-		img.setAttribute('id', 'vibinexWarningLogo')
+		img.setAttribute('id', 'vibinexLogo')
 		img.src = "https://vibinex.com/favicon.ico";
 		img.style.width = '35px';
 		img.style.height = '35px';
@@ -167,9 +167,6 @@ async function showFloatingActionButton(orgName, orgRepo) {
 		img.style.left = '30px';
 		img.style.bottom = '50px';
 		img.style.cursor = 'pointer';
-		// img.style={
-
-		// };
 		// for redirecting if the repo is not added 
 		const redirectLink = document.createElement('a');
 		redirectLink.href = 'https://www.vibinex.com';
