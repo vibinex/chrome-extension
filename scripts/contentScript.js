@@ -185,7 +185,7 @@ async function showFloatingActionButton(orgName, orgRepo) {
 		redirectLink.appendChild(img);
 
 		const infoBanner = document.createElement('div');
-		infoBanner.setAttribute('title', 'vibinex-info');
+		infoBanner.setAttribute('id', 'vibinex-info');
 		// tooltip value on hover 
 		function changeCss(value) {
 			infoBanner.innerHTML = 'Add to Vibinex';
