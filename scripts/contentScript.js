@@ -18,9 +18,9 @@ async function cssForGithubTrackRepo(trackedRepos) {
 			const img = document.createElement("img");
 			const beforePsuedoElement = document.createElement('a');
 			img.src = "https://vibinex.com/favicon.ico";
-			img.style.width='15px'
-			img.style.height='15px'
-		
+			img.style.width = '15px'
+			img.style.height = '15px'
+
 			beforePsuedoElement.appendChild(img);
 			beforePsuedoElement.href = "#";
 			beforePsuedoElement.style.display = 'inline-block';
@@ -120,55 +120,58 @@ async function apiCall(url, body) {
 }
 
 // adding css elements based up the data getting from api
-async function getHighlightedPR(repoOwner, repoName, userId) {
-	const body = {
-		"repo_owner": repoOwner,
-		"repo_name": repoName,
-		"user_id": userId,
-		"is_github": true
-	}
-	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/relevance/pr';
-	const highlightedPRIds = await apiCall(url, body);
-	if (highlightedPRIds) {
-		for (const priorityLevel in highlightedPRIds) {
-			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed'])
+function getHighlightedPR(repoOwner, repoName, userId) {
+	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
+		const body = {
+			"repo_owner": repoOwner,
+			"repo_name": repoName,
+			"user_id": userId,
+			"is_github": true
+		}
+		const url = `${backendUrl}/relevance/pr`;
+		const highlightedPRIds = await apiCall(url, body);
+		if (highlightedPRIds) {
+			for (const priorityLevel in highlightedPRIds) {
+				for (const prNumber in highlightedPRIds[priorityLevel]) {
+					addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed'])
+				}
 			}
 		}
-	}
+	})
 };
 
 // for showing all tracked/ untrack pr in a organization
-async function getTrackedPR(orgName) {
-	const body = { "org": `${orgName}` }
-	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/setup/repos';
-	const trackedRepos = await apiCall(url, body);
-	if(trackedRepos){
-		cssForGithubTrackRepo(trackedRepos);
-	};
+function getTrackedPR(orgName) {
+	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
+		const body = { "org": `${orgName}` }
+		const url = `${backendUrl}/setup/repos`;
+		const trackedRepos = await apiCall(url, body);
+		if (trackedRepos) {
+			cssForGithubTrackRepo(trackedRepos);
+		};
+	})
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
-	// FIXME: we are getting userId from storage as well in the request object. This should be optimized
-	chrome.storage.sync.get(["userId"]).then(({ userId }) => {
+	chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
 		if (!userId && (request.message === 'githubUrl' || request.message === 'bitbucketUrl')) {
-			console.warn("[Vibinex] You are not logged in. Head to https://vibinex.com to log in");
+			console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 			// TODO: create a UI element on the screen with CTA to login to Vibinex
 		}
 		if (request.message === 'githubUrl') {
 			if (request.repo_function === 'pulls') {
-				getHighlightedPR(request.repo_owner, request.repo_name, request.userId);
+				getHighlightedPR(request.repo_owner, request.repo_name, userId);
 			}
 		}
-	
+
 		if (request.message === 'bitbucketUrl') {
 			// testing data 
 			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
 			// todo : making a api call for fething the data for bitBucket. 
-			addCssElementToBitbucket(highlightedIds, request.userId);
+			addCssElementToBitbucket(highlightedIds, userId);
 		}
-	
+
 		if (request.message === 'trackRepo') {
 			getTrackedPR(request.org_name);
 		}
