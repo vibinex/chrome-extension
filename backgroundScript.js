@@ -43,6 +43,15 @@ chrome.tabs.onUpdated.addListener(
 							urls: tab.url,
 							org_name: url[4],
 						})
+					}
+					// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
+					else if (url[3] && url[4]){
+						chrome.tabs.sendMessage(tabId, {
+							message: 'checkRepo',
+							urls: tab.url,
+							org_name: url[3],
+							org_repo:url[4]
+						})
 					}	
 				}
 			}

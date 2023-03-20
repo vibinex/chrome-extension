@@ -4,9 +4,40 @@ console.log('[vibinex] Running content script');
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
 	'important': "Important"
-})
+});
 
-async function cssForGithubTrackRepo(trackedRepos) {
+async function apiCall(url, body) {
+	try {
+		let dataFromAPI;
+		await fetch(url, {
+			method: "POST",
+			headers: {
+				"Access-Control-Allow-Origin": "no-cors",
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+			},
+			body: JSON.stringify(body)
+		})
+			.then((response) => response.json())
+			.then((data) => dataFromAPI = data);
+		return dataFromAPI;
+	} catch (e) {
+		console.error('[vibinex] Error while getting data from API', e)
+	}
+}
+
+// for showing all tracked/ untrack pr in a organization
+async function getTrackedRepos(orgName) {
+	const body = { "org": `${orgName}` }
+	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/setup/repos';
+	const trackedRepos = await apiCall(url, body);
+	if (trackedRepos) {
+		return trackedRepos;
+	};
+}
+
+async function updateTrackedReposInOrgGitHub(orgName) {
+	const trackedRepos = await getTrackedRepos(orgName);
 	const allOrgRepo = document.getElementById('org-repositories');
 	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
 
@@ -18,11 +49,11 @@ async function cssForGithubTrackRepo(trackedRepos) {
 			const img = document.createElement("img");
 			const beforePsuedoElement = document.createElement('a');
 			img.src = "https://vibinex.com/favicon.ico";
-			img.style.width='15px'
-			img.style.height='15px'
-		
+			img.style.width = '15px'
+			img.style.height = '15px'
+
 			beforePsuedoElement.appendChild(img);
-			beforePsuedoElement.href = "#";
+			beforePsuedoElement.href = "";
 			beforePsuedoElement.style.display = 'inline-block';
 			beforePsuedoElement.style.marginRight = '2px';
 			beforePsuedoElement.style.color = 'white';
@@ -58,7 +89,6 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 		padding-bottom: 2px;;}`;
 	}
 };
-
 
 function addCssElementToBitbucket(highlightedPRIds, userId) {
 
@@ -99,26 +129,6 @@ function addCssElementToBitbucket(highlightedPRIds, userId) {
 	}, 1500);
 }
 
-async function apiCall(url, body) {
-	try {
-		let dataFromAPI;
-		await fetch(url, {
-			method: "POST",
-			headers: {
-				"Access-Control-Allow-Origin": "no-cors",
-				"Content-Type": "application/json",
-				"Accept": "application/json",
-			},
-			body: JSON.stringify(body)
-		})
-			.then((response) => response.json())
-			.then((data) => dataFromAPI = data);
-		return dataFromAPI;
-	} catch (e) {
-		console.error('[vibinex] Error while getting data from API', e)
-	}
-}
-
 // adding css elements based up the data getting from api
 async function getHighlightedPR(repoOwner, repoName, userId) {
 	const body = {
@@ -138,14 +148,65 @@ async function getHighlightedPR(repoOwner, repoName, userId) {
 	}
 };
 
-// for showing all tracked/ untrack pr in a organization
-async function getTrackedPR(orgName) {
-	const body = { "org": `${orgName}` }
-	const url = 'https://gcscruncsql-k7jns52mtq-el.a.run.app/setup/repos';
-	const trackedRepos = await apiCall(url, body);
-	if(trackedRepos){
-		cssForGithubTrackRepo(trackedRepos);
-	};
+
+// adding favButton
+async function showFloatingActionButton(orgName, orgRepo) {
+
+	const trackedRepoList = await getTrackedRepos(orgName);
+
+	if (!trackedRepoList.includes(orgRepo)) {
+		const PrSection = document.getElementById('repo-content-pjax-container');
+		// for vibinex logo
+		const img = document.createElement("img");
+		img.setAttribute('id', 'vibinexLogo')
+		img.src = "https://vibinex.com/favicon.ico";
+		img.style.width = '35px';
+		img.style.height = '35px';
+		img.style.borderRadius = '35px';
+		img.style.position = 'fixed';
+		img.style.left = '30px';
+		img.style.bottom = '50px';
+		img.style.cursor = 'pointer';
+		// for redirecting if the repo is not added 
+		const redirectLink = document.createElement('a');
+		redirectLink.href = 'https://www.vibinex.com';
+		redirectLink.style.position = 'fixed';
+		redirectLink.style.left = '58px';
+		redirectLink.style.bottom = '45px';
+		redirectLink.style.zIndex = '101';
+		// for adding plusIcon
+		const plusIcon = document.createElement('img');
+		plusIcon.src = "https://img.freepik.com/free-icon/add-button-with-plus-symbol-black-circle_318-48599.jpg";
+		plusIcon.style.width = '35px';
+		plusIcon.style.height = '35px';
+		plusIcon.style.borderRadius = '35px';
+		plusIcon.style.cursor = 'pointer';
+		redirectLink.appendChild(plusIcon);
+		redirectLink.appendChild(img);
+
+		const infoBanner = document.createElement('div');
+		infoBanner.setAttribute('id', 'vibinex-info');
+		// tooltip value on hover 
+		function changeCss(value) {
+			infoBanner.innerHTML = 'Add to Vibinex';
+			infoBanner.style.backgroundColor = 'black';
+			infoBanner.style.color = 'white';
+			infoBanner.style.padding = '10px';
+			infoBanner.style.display = value ? 'block' : 'none';
+			infoBanner.style.position = 'fixed';
+			infoBanner.style.left = '30px';
+			infoBanner.style.bottom = '85px';
+			infoBanner.style.borderColor = 'red';
+			infoBanner.style.border = "thin solid #D6D6D6";
+			infoBanner.style.borderRadius = '5px';
+			infoBanner.style.zIndex = '100'
+		}
+		plusIcon.addEventListener('mouseover', () => changeCss(true));
+		plusIcon.addEventListener('mouseout', () => changeCss(false));
+
+		PrSection.appendChild(redirectLink);
+		PrSection.appendChild(infoBanner);
+	}
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -161,16 +222,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				getHighlightedPR(request.repo_owner, request.repo_name, request.userId);
 			}
 		}
-	
+
 		if (request.message === 'bitbucketUrl') {
 			// testing data 
 			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
 			// todo : making a api call for fething the data for bitBucket. 
 			addCssElementToBitbucket(highlightedIds, request.userId);
 		}
-	
 		if (request.message === 'trackRepo') {
-			getTrackedPR(request.org_name);
+			updateTrackedReposInOrgGitHub(request.org_name);
+		}
+		if (request.message == 'checkRepo') {
+			showFloatingActionButton(request.org_name, request.org_repo);
 		}
 	})
 });
