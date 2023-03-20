@@ -42,6 +42,34 @@ chrome.tabs.onUpdated.addListener(
 						org_name: url[4],
 					})
 				}
+				// for showing all tracked repo
+				else if (url[2] == 'github.com' && url[3]) {
+					// for woking on this url https://github.com/Alokit-Innovations type
+					if (url[3] && url[4] == undefined) {
+						chrome.tabs.sendMessage(tabId, {
+							message: 'trackRepo',
+							urls: tab.url,
+							org_name: url[3],
+						})
+					}
+					// for working on this url https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
+					else if (url[3] == 'orgs' && url[4]) {
+						chrome.tabs.sendMessage(tabId, {
+							message: 'trackRepo',
+							urls: tab.url,
+							org_name: url[4],
+						})
+					}
+					// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
+					else if (url[3] && url[4]) {
+						chrome.tabs.sendMessage(tabId, {
+							message: 'checkRepo',
+							urls: tab.url,
+							org_name: url[3],
+							org_repo: url[4]
+						})
+					}
+				}
 			}
 		}
 	}
