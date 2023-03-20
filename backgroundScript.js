@@ -2,15 +2,15 @@ chrome.runtime.onInstalled.addListener(() => {
 	const environment = "prod";
 	// const environment = "dev";
 	const websiteUrl = (environment === "dev") ? "http://localhost:3000" : "https://vibinex.com";
-	const backedUrl = (environment === "dev") ? "http://localhost:8080" : "https://gcscruncsql-k7jns52mtq-el.a.run.app";
-	chrome.storage.sync.set({ websiteUrl, backedUrl }).then(_ => console.log(`Website URL set to ${websiteUrl};`));
+	const backendUrl = (environment === "dev") ? "http://localhost:8080" : "https://gcscruncsql-k7jns52mtq-el.a.run.app";
+	chrome.storage.sync.set({ websiteUrl, backendUrl }).then(_ => console.log(`Website URL set to ${websiteUrl};`));
 })
 
 chrome.tabs.onUpdated.addListener(
 	function (tabId, changeInfo, tab) {
 		if (tab.status === "complete") {
-			let url = tab.url.split('/');
-			if (url[2] == 'github.com' && url[3] && url[4] && url[5]) {
+			let url = tab.url.split('?')[0].split('/');
+			if (url[2] == 'github.com' && url[3] && url[4] && url[5] === 'pulls') {
 				chrome.tabs.sendMessage(tabId, {
 					message: 'githubUrl',
 					urls: tab.url,
@@ -35,7 +35,7 @@ chrome.tabs.onUpdated.addListener(
 					})
 				}
 				// for working on this url https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
-				else if (url[3] == 'orgs' && url[4]) {
+				else if (url[3] == 'orgs' && url[4] && url[5] === 'repositories') {
 					chrome.tabs.sendMessage(tabId, {
 						message: 'trackRepo',
 						urls: tab.url,
