@@ -26,6 +26,15 @@ async function apiCall(url, body) {
 	}
 }
 
+async function sha256(value) {
+	const buffer = new TextEncoder().encode(value);
+	const hash = await crypto.subtle.digest('SHA-256', buffer);
+	const hexString = Array.from(new Uint8Array(hash))
+		.map((byte) => byte.toString(16).padStart(2, '0'))
+		.join('');
+	return hexString;
+}
+
 // for showing all tracked/ untrack pr in a organization
 async function getTrackedRepos(orgName) {
 	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
@@ -212,6 +221,46 @@ async function showFloatingActionButton(orgName, orgRepo) {
 	}
 }
 
+// showing the important files in a pr
+async function showImpFileInPr(repoOwner,repoName,userId) {
+	const body = {
+		"repo_owner": repoOwner,
+		"repo_name": repoName,
+		"user_id": userId,
+		"is_github": true
+	}
+	let hashList = await apiCall(url,body);
+	// check the hashString and the last extension 
+	function checkString(hashString, lastExtension) {
+		let value = false;
+		hashList.forEach(item => {
+			let fileString = item.split('.');
+			let language = fileString.pop();
+			item = fileString.join(".");
+			if (hashString === item && lastExtension === language) {
+				return value = true;
+			}
+		})
+		return value;
+	}
+
+	const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
+	const fileList = Array.from(fileNav.getElementsByTagName('li'));
+	fileList.forEach(async (item) => {
+		let elements = item.getElementsByClassName('ActionList-item-label');
+		if (elements.length == 1) {
+			let text = elements[0].innerHTML.trim();
+			let fileString = text.split('.');
+			let languageString = fileString.pop();
+			text = fileString.join(".");
+			const hashedValue = await sha256(text);
+			if (checkString(hashedValue, languageString)) {
+				item.style.backgroundColor = '#7a7e00';
+			}
+		}
+	})
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	console.log("[contentScript] message received", request)
 	chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
@@ -223,6 +272,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			if (request.repo_function === 'pulls') {
 				getHighlightedPR(request.repo_owner, request.repo_name, userId);
 			}
+		}
+
+		if (request.message === 'showImpFileInPR') {
+			showImpFileInPr(request.repo_owner, request.repo_name, request.userId);
 		}
 
 		if (request.message === 'bitbucketUrl') {
