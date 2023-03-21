@@ -11,7 +11,6 @@
         "default_icon": "resources/vibinex-logo.png"
     },
     "permissions": [
-        "tabs",
         "storage"
     ],
     "icons": {
