@@ -37,17 +37,14 @@ async function sha256(value) {
 
 // for showing all tracked/ untrack pr in a organization
 async function getTrackedRepos(orgName) {
-	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
-		const body = { "org": `${orgName}` }
-		const url = `${backendUrl}/setup/repos`;
-		const trackedRepos = await apiCall(url, body);
-		if (trackedRepos) {
-			return trackedRepos;
-		};
-	})
+	const { backendUrl } = await chrome.storage.sync.get(["backendUrl"]);
+	const body = { "org": `${orgName}` }
+	const url = `${backendUrl}/setup/repos`;
+	const trackedRepos = await apiCall(url, body);
+	return trackedRepos['repos'];
 }
 
-async function updateTrackedReposInOrgGitHub(orgName) {
+async function updateTrackedReposInOrgGitHub(orgName, websiteUrl) {
 	const trackedRepos = await getTrackedRepos(orgName);
 	const allOrgRepo = document.getElementById('org-repositories');
 	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
@@ -64,7 +61,8 @@ async function updateTrackedReposInOrgGitHub(orgName) {
 			img.style.height = '15px'
 
 			beforePsuedoElement.appendChild(img);
-			beforePsuedoElement.href = "";
+			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${orgRepoName}`;
+			beforePsuedoElement.target = '_blank';
 			beforePsuedoElement.style.display = 'inline-block';
 			beforePsuedoElement.style.marginRight = '2px';
 			beforePsuedoElement.style.color = 'white';
@@ -261,37 +259,60 @@ async function showImpFileInPr(repoOwner,repoName,userId) {
 	})
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log("[contentScript] message received", request)
-	chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
-		if (!userId && (request.message === 'githubUrl' || request.message === 'bitbucketUrl')) {
-			console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
-			// TODO: create a UI element on the screen with CTA to login to Vibinex
-		}
-		if (request.message === 'githubUrl') {
-			if (request.repo_function === 'pulls') {
-				getHighlightedPR(request.repo_owner, request.repo_name, userId);
+const orchestrator = (tab_url, websiteUrl, userId) => {
+	console.debug(`[vibinex-orchestrator] updated url: ${tab_url}`);
+	let urlObj = tab_url.split('?')[0].split('/');
+	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
+		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
+		// TODO: create a UI element on the screen with CTA to login to Vibinex
+	}
+	if (urlObj[2] == 'github.com') {
+		if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
+			// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
+			const owner_name = urlObj[3];
+			const repo_name = urlObj[4];
+			showFloatingActionButton(owner_name, repo_name);
+
+			if (urlObj[5] === 'pulls') {
+				// show relevant PRs
+				getHighlightedPR(owner_name, repo_name, userId);
+			}
+			if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
+				showImpFileInPr(owner_name, repo_name, userId);
 			}
 		}
+		// for showing all tracked repo
+		else if (
+			(urlObj[3] && urlObj[4] == undefined) ||
+			(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
+			// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
+			const org_name = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
+			updateTrackedReposInOrgGitHub(org_name, websiteUrl);
+		}
+	}
 
-		if (request.message === 'showImpFileInPR') {
-			showImpFileInPr(request.repo_owner, request.repo_name, request.userId);
-		}
+	if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
+		// testing data 
+		const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
+		// todo : making a api call for fething the data for bitBucket. 
+		addCssElementToBitbucket(highlightedIds, userId);
+	}
+};
 
-		if (request.message === 'bitbucketUrl') {
-			// testing data 
-			const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
-			// todo : making a api call for fething the data for bitBucket. 
-			addCssElementToBitbucket(highlightedIds, userId);
-		}
-		if (request.message === 'trackRepo') {
-			updateTrackedReposInOrgGitHub(request.org_name);
-		}
-		if (request.message == 'checkRepo') {
-			showFloatingActionButton(request.org_name, request.org_repo);
-		}
-	})
-});
+window.onload = () => {
+	chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+		let oldHref = document.location.href;
+		orchestrator(oldHref, websiteUrl, userId);
+		return new MutationObserver(mutations => {
+			mutations.forEach(() => {
+				if (oldHref !== document.location.href) {
+					oldHref = document.location.href;
+					orchestrator(oldHref, websiteUrl, userId);
+				}
+			})
+		}).observe(document.querySelector("body"), { childList: true, subtree: true });
+	});
+}
 
 chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
 	window.addEventListener("message", (event) => {
