@@ -31,34 +31,13 @@
                 <li><span class="list_item">Get PR review coverage</span></li>
             </ul>
         </div>
-        <form id="google-form" target="_blank" method="POST">
-            <input id="csrfToken-google" type="hidden" name="csrfToken" />
-            <button type="submit" class="button">
-                <img src="/resources/google.svg" alt="Google" />
-                <span>Log in with Google</span>
-            </button>
-        </form>
-        <form id="github-form" target="_blank" method="POST">
-            <input id="csrfToken-github" type="hidden" name="csrfToken" />
-            <button class="button" type="submit">
-                <img src="/resources/github.svg" alt="GitHub" />
-                <span>Log in with GitHub</span>
-            </button>
-        </form>
-        <form id="bitbucket-form" target="_blank" method="POST">
-            <input id="csrfToken-bitbucket" type="hidden" name="csrfToken" />
-            <button class="button" type="submit">
-                <img src="/resources/bitbucket.svg" alt="BitBucket" />
-                <span>Log in with BitBucket</span>
-            </button>
-        </form>
     </div>
     <div id="session-div" class="container">
         <div class="heading">
             <img src="../resources/vibinex-logo.png" class="heading_logo" alt="Vibinex logo" />
             <p class="heading_text">Vibinex</p>
-            <form id="signout-form" method="POST">
-                <input id="csrfToken-signout" type="hidden" name="csrfToken" />
+            <form id="signout-form" method="POST" target="_blank">
+                <input class="csrfToken" type="hidden" name="csrfToken" />
                 <button type="submit" class="button">
                     <span>Logout</span>
                 </button>

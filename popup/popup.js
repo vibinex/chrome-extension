@@ -1,16 +1,35 @@
 chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
+	fetch(`${websiteUrl}/api/auth/providers`).then(async (res) => {
+		const providers = await res.json();
+		const loginDiv = document.getElementById("login-div");
+		for (const provider of Object.values(providers)) {
+			const new_form = document.createElement("form")
+			new_form.setAttribute('action', provider.signinUrl);
+			new_form.setAttribute('target', "_blank")
+			new_form.setAttribute('method', "POST")
+			new_form.style.width = '100%';
+			new_form.innerHTML = `			    
+			<input class="csrfToken" type="hidden" name="csrfToken" />
+			<button type="submit" class="button">
+				<img src="/resources/${provider.id}.svg" alt="${provider.name}" />
+				<span>Log in with ${provider.name}</span>
+			</button>`
+			loginDiv.appendChild(new_form);
+		}
+	})
+
 	fetch(`${websiteUrl}/api/auth/csrf`).then(async (res) => {
 		const json = await res.json();
 		const csrf = json.csrfToken;
-		document.querySelector("#csrfToken-signout").value = csrf;
-		document.querySelector("#csrfToken-google").value = csrf;
-		document.querySelector("#csrfToken-github").value = csrf;
-		document.querySelector("#csrfToken-bitbucket").value = csrf;
+		const csrf_input_elements = document.getElementsByClassName("csrfToken");
+		for (const element of csrf_input_elements) {
+			element.value = csrf;
+		}
 	});
 
 	fetch(`${websiteUrl}/api/auth/session`).then(async (res) => {
 		const json = await res.json();
-		console.log("[session fetch]", json);
+		console.log("[session fetch]", JSON.stringify(json));
 		document.querySelector("#loading-div").style.display = "none";
 		if (json.user) {
 			//user is logged in
@@ -28,16 +47,13 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				userName: user.name,
 				userImage: user.image
 			}).then(() => {
-				console.debug(`[contentScript] userId has been set from ${userId} to ${event.data.userId}`);
+				console.debug(`[contentScript] userId has been set to ${user.userId}`);
 			}).catch(err => {
-				console.error(`[contentScript] Sync storage could not be set. initial userId: ${userId}; final userId: ${event.data.userId}`, err);
+				console.error(`[contentScript] Sync storage could not be set. userId: ${user.userId}`, err);
 			})
 		} else {
 			// no session means user not logged in
 			document.querySelector("#login-div").style.display = "flex";
-			document.getElementById("google-form").setAttribute('action', `${websiteUrl}/api/auth/signin/google`)
-			document.getElementById("github-form").setAttribute('action', `${websiteUrl}/api/auth/signin/github`)
-			document.getElementById("bitbucket-form").setAttribute('action', `${websiteUrl}/api/auth/signin/bitbucket`)
 		}
 	});
 });

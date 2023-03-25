@@ -98,12 +98,6 @@ li {
 	justify-content: space-evenly;
 }
 
-#google-form,
-#github-form,
-#bitbucket-form {
-	width: 100%;
-}
-
 .button {
 	border: 1px solid #e4e4e7;
 	color: #333333;
