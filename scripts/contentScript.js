@@ -220,43 +220,31 @@ async function showFloatingActionButton(orgName, orgRepo) {
 }
 
 // showing the important files in a pr
-async function showImpFileInPr(repoOwner,repoName,userId) {
+async function showImpFileInPr(repoOwner,repoName,userId, pr_number) {
 	const body = {
 		"repo_owner": repoOwner,
 		"repo_name": repoName,
 		"user_id": userId,
+		"pr_number": pr_number,
 		"is_github": true
 	}
-	let hashList = await apiCall(url,body);
-	// check the hashString and the last extension 
-	function checkString(hashString, lastExtension) {
-		let value = false;
-		hashList.forEach(item => {
-			let fileString = item.split('.');
-			let language = fileString.pop();
-			item = fileString.join(".");
-			if (hashString === item && lastExtension === language) {
-				return value = true;
+	const url = `${backendUrl}/relevance/pr/files`;
+	let response = await apiCall(url,body);
+	if ("relevant" in response) {
+		const encryptedFileNames = new Set(response['relevant']);
+		const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
+		const fileList = Array.from(fileNav.getElementsByTagName('li'));
+		fileList.forEach(async (item) => {
+			let elements = item.getElementsByClassName('ActionList-item-label');
+			if (elements.length == 1) {
+				let filename = elements[0].innerHTML.trim();
+				const hashedFilename = await sha256(filename);
+				if (encryptedFileNames.has(hashedFilename)) {
+					item.style.backgroundColor = '#7a7e00';
+				}
 			}
 		})
-		return value;
 	}
-
-	const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
-	const fileList = Array.from(fileNav.getElementsByTagName('li'));
-	fileList.forEach(async (item) => {
-		let elements = item.getElementsByClassName('ActionList-item-label');
-		if (elements.length == 1) {
-			let text = elements[0].innerHTML.trim();
-			let fileString = text.split('.');
-			let languageString = fileString.pop();
-			text = fileString.join(".");
-			const hashedValue = await sha256(text);
-			if (checkString(hashedValue, languageString)) {
-				item.style.backgroundColor = '#7a7e00';
-			}
-		}
-	})
 }
 
 const orchestrator = (tab_url, websiteUrl, userId) => {
@@ -278,7 +266,8 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				getHighlightedPR(owner_name, repo_name, userId);
 			}
 			if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
-				showImpFileInPr(owner_name, repo_name, userId);
+				const pr_number = urlObj[6]
+				showImpFileInPr(owner_name, repo_name, userId, pr_number);
 			}
 		}
 		// for showing all tracked repo
