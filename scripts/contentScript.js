@@ -9,11 +9,13 @@ const keyToLabel = Object.freeze({
 });
 
 function createElement(loading = false) {
-	let loadingIconID = loading ? "vibinexLoadingGif" : "vibinexLoadingIcon";
+	let loadingIconID = loading ? "vibinexLoadingGif" : "vibinexPlusIcon";
 	let imgUrl = loading ?
 		"https://media.tenor.com/wpSo-8CrXqUAAAAi/loading-loading-forever.gif"
 		:
 		"https://img.freepik.com/free-icon/add-button-with-plus-symbol-black-circle_318-48599.jpg";
+
+	let bannerMessage = loading ? "Please wait. Vibinex is loading." : "Add to Vibinex."
 	// for vibinex logo
 	const img = document.createElement("img");
 	img.setAttribute('id', 'vibinexLogo')
@@ -25,13 +27,7 @@ function createElement(loading = false) {
 	img.style.left = '30px';
 	img.style.bottom = '50px';
 	img.style.cursor = 'pointer';
-	// for redirecting to the our website
-	const redirectLink = document.createElement('a');
-	redirectLink.href = 'https://www.vibinex.com';
-	redirectLink.style.position = 'fixed';
-	redirectLink.style.left = '58px';
-	redirectLink.style.bottom = '45px';
-	redirectLink.style.zIndex = '101';
+	
 	// for adding plusIcon
 	const loadingGif = document.createElement('img');
 	loadingGif.setAttribute('id', loadingIconID)
@@ -40,6 +36,16 @@ function createElement(loading = false) {
 	loadingGif.style.height = '35px';
 	loadingGif.style.borderRadius = '35px';
 	loadingGif.style.cursor = 'pointer';
+	
+	// for redirecting to the our website
+	const redirectLink = document.createElement('a');
+	redirectLink.style.position = 'fixed';
+	redirectLink.style.left = '58px';
+	redirectLink.style.bottom = '45px';
+	redirectLink.style.zIndex = '101';
+	if (!loading) {
+		redirectLink.href = 'https://www.vibinex.com';
+	}
 	redirectLink.appendChild(loadingGif);
 	redirectLink.appendChild(img);
 
@@ -47,7 +53,7 @@ function createElement(loading = false) {
 	infoBanner.setAttribute('id', 'loading-info');
 	// tooltip value on hover 
 	function changeCss(value) {
-		infoBanner.innerHTML = 'Please wait vibinex is loading';
+		infoBanner.innerHTML = bannerMessage;
 		infoBanner.style.backgroundColor = 'black';
 		infoBanner.style.color = 'white';
 		infoBanner.style.padding = '10px';
@@ -60,8 +66,8 @@ function createElement(loading = false) {
 		infoBanner.style.borderRadius = '5px';
 		infoBanner.style.zIndex = '100'
 	}
-	loadingGif.addEventListener('mouseover', () => changeCss(true));
-	loadingGif.addEventListener('mouseout', () => changeCss(false));
+	redirectLink.addEventListener('mouseover', () => changeCss(true));
+	redirectLink.addEventListener('mouseout', () => changeCss(false));
 
 	if (loading) {
 		document.body.appendChild(redirectLink);
@@ -84,6 +90,7 @@ async function showLoading() {
 }
 
 async function apiCall(url, body) {
+	// TODO : doesn't handle multiple api calls on a single page. 
 	try {
 		loadingState = true;
 		showLoading();
