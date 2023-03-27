@@ -1,13 +1,79 @@
 console.log('[vibinex] Running content script');
 'use strict';
 
+let loadingState = false;
+
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
 	'important': "Important"
 });
 
+async function showLoading() {
+	if (loadingState) {
+		// for vibinex logo
+		const img = document.createElement("img");
+		img.setAttribute('id', 'vibinexLogo')
+		img.src = "https://vibinex.com/favicon.ico";
+		img.style.width = '35px';
+		img.style.height = '35px';
+		img.style.borderRadius = '35px';
+		img.style.position = 'fixed';
+		img.style.left = '30px';
+		img.style.bottom = '50px';
+		img.style.cursor = 'pointer';
+		// for redirecting to the our website
+		const redirectLink = document.createElement('a');
+		redirectLink.href = 'https://www.vibinex.com';
+		redirectLink.style.position = 'fixed';
+		redirectLink.style.left = '58px';
+		redirectLink.style.bottom = '45px';
+		redirectLink.style.zIndex = '101';
+		// for adding plusIcon
+		const loadingGif = document.createElement('img');
+		loadingGif.setAttribute('id','vibinexLoadingGif')
+		loadingGif.src = "https://media.tenor.com/wpSo-8CrXqUAAAAi/loading-loading-forever.gif";
+		loadingGif.style.width = '35px';
+		loadingGif.style.height = '35px';
+		loadingGif.style.borderRadius = '35px';
+		loadingGif.style.cursor = 'pointer';
+		redirectLink.appendChild(loadingGif);
+		redirectLink.appendChild(img);
+
+		const infoBanner = document.createElement('div');
+		infoBanner.setAttribute('id','loading-info');
+		// tooltip value on hover 
+		function changeCss(value) {
+			infoBanner.innerHTML = 'Please wait vibinex is loading';
+			infoBanner.style.backgroundColor = 'black';
+			infoBanner.style.color = 'white';
+			infoBanner.style.padding = '10px';
+			infoBanner.style.display = value ? 'block' : 'none';
+			infoBanner.style.position = 'fixed';
+			infoBanner.style.left = '30px';
+			infoBanner.style.bottom = '85px';
+			infoBanner.style.borderColor = 'red';
+			infoBanner.style.border = "thin solid #D6D6D6";
+			infoBanner.style.borderRadius = '5px';
+			infoBanner.style.zIndex = '100'
+		}
+		loadingGif.addEventListener('mouseover', () => changeCss(true));
+		loadingGif.addEventListener('mouseout', () => changeCss(false));
+
+		document.body.appendChild(redirectLink);
+		document.body.appendChild(infoBanner);
+	}else {	
+		document.getElementById('vibinexLogo').remove();
+		document.getElementById('loading-info').remove();
+		document.getElementById('vibinexLoadingGif').remove();
+	}
+}
+
 async function apiCall(url, body) {
 	try {
+
+		loadingState = true;
+		showLoading();
+
 		let dataFromAPI;
 		await fetch(url, {
 			method: "POST",
@@ -20,6 +86,9 @@ async function apiCall(url, body) {
 		})
 			.then((response) => response.json())
 			.then((data) => dataFromAPI = data);
+
+		loadingState = false;
+		showLoading();
 		return dataFromAPI;
 	} catch (e) {
 		console.error('[vibinex] Error while getting data from API', e)
