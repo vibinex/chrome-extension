@@ -1,13 +1,100 @@
 console.log('[vibinex] Running content script');
 'use strict';
 
+let loadingState = false;
+
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
 	'important': "Important"
 });
 
+function createElement(loading = false) {
+	let loadingIconID = loading ? "vibinexLoadingGif" : "vibinexPlusIcon";
+	let imgUrl = loading ?
+		"https://media.tenor.com/wpSo-8CrXqUAAAAi/loading-loading-forever.gif"
+		:
+		"https://img.freepik.com/free-icon/add-button-with-plus-symbol-black-circle_318-48599.jpg";
+
+	let bannerMessage = loading ? "Please wait. Vibinex is loading." : "Add to Vibinex."
+	// for vibinex logo
+	const img = document.createElement("img");
+	img.setAttribute('id', 'vibinexLogo')
+	img.src = "https://vibinex.com/favicon.ico";
+	img.style.width = '35px';
+	img.style.height = '35px';
+	img.style.borderRadius = '35px';
+	img.style.position = 'fixed';
+	img.style.left = '30px';
+	img.style.bottom = '50px';
+	img.style.cursor = 'pointer';
+	
+	// for adding plusIcon
+	const loadingGif = document.createElement('img');
+	loadingGif.setAttribute('id', loadingIconID)
+	loadingGif.src = imgUrl;
+	loadingGif.style.width = '35px';
+	loadingGif.style.height = '35px';
+	loadingGif.style.borderRadius = '35px';
+	loadingGif.style.cursor = 'pointer';
+	
+	// for redirecting to the our website
+	const redirectLink = document.createElement('a');
+	redirectLink.style.position = 'fixed';
+	redirectLink.style.left = '58px';
+	redirectLink.style.bottom = '45px';
+	redirectLink.style.zIndex = '101';
+	if (!loading) {
+		redirectLink.href = 'https://www.vibinex.com';
+	}
+	redirectLink.appendChild(loadingGif);
+	redirectLink.appendChild(img);
+
+	const infoBanner = document.createElement('div');
+	infoBanner.setAttribute('id', 'loading-info');
+	// tooltip value on hover 
+	function changeCss(value) {
+		infoBanner.innerHTML = bannerMessage;
+		infoBanner.style.backgroundColor = 'black';
+		infoBanner.style.color = 'white';
+		infoBanner.style.padding = '10px';
+		infoBanner.style.display = value ? 'block' : 'none';
+		infoBanner.style.position = 'fixed';
+		infoBanner.style.left = '30px';
+		infoBanner.style.bottom = '85px';
+		infoBanner.style.borderColor = 'red';
+		infoBanner.style.border = "thin solid #D6D6D6";
+		infoBanner.style.borderRadius = '5px';
+		infoBanner.style.zIndex = '100'
+	}
+	redirectLink.addEventListener('mouseover', () => changeCss(true));
+	redirectLink.addEventListener('mouseout', () => changeCss(false));
+
+	if (loading) {
+		document.body.appendChild(redirectLink);
+		document.body.appendChild(infoBanner);
+	} else {
+		const PrSection = document.getElementById('repo-content-pjax-container');
+		PrSection.appendChild(redirectLink);
+		PrSection.appendChild(infoBanner);
+	}
+}
+
+async function showLoading() {
+	if (loadingState) {
+		createElement(true);
+	} else {
+		document.getElementById('vibinexLogo').remove();
+		document.getElementById('loading-info').remove();
+		document.getElementById('vibinexLoadingGif').remove();
+	}
+}
+
 async function apiCall(url, body) {
+	// TODO : doesn't handle multiple api calls on a single page. 
 	try {
+		loadingState = true;
+		showLoading();
+
 		let dataFromAPI;
 		await fetch(url, {
 			method: "POST",
@@ -20,6 +107,9 @@ async function apiCall(url, body) {
 		})
 			.then((response) => response.json())
 			.then((data) => dataFromAPI = data);
+
+		loadingState = false;
+		showLoading();
 		return dataFromAPI;
 	} catch (e) {
 		console.error('[vibinex] Error while getting data from API', e)
@@ -45,7 +135,13 @@ async function updateTrackedReposInOrgGitHub(orgName, websiteUrl) {
 		const orgRepoName = link[link.length - 1];
 
 		if (trackedRepos.includes(orgRepoName)) {
+			const checkElement = item.getElementsByClassName('trackLogo')[0];
+			if (checkElement) {
+				// TODO: Ideally, we should only need to add the element when there is none present
+				checkElement.remove();
+			}
 			const img = document.createElement("img");
+			img.setAttribute('class', 'trackLogo');
 			const beforePsuedoElement = document.createElement('a');
 			img.src = "https://vibinex.com/favicon.ico";
 			img.style.width = '15px'
@@ -91,7 +187,6 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 };
 
 function addCssElementToBitbucket(highlightedPRIds, userId) {
-
 	// To do : remove this setTimeout method once data is coming from api 
 	setTimeout(() => {
 		const tables = document.getElementsByTagName('table')[0];
@@ -156,57 +251,7 @@ async function showFloatingActionButton(orgName, orgRepo) {
 	const trackedRepoList = await getTrackedRepos(orgName);
 
 	if (!trackedRepoList.includes(orgRepo)) {
-		const PrSection = document.getElementById('repo-content-pjax-container');
-		// for vibinex logo
-		const img = document.createElement("img");
-		img.setAttribute('id', 'vibinexLogo')
-		img.src = "https://vibinex.com/favicon.ico";
-		img.style.width = '35px';
-		img.style.height = '35px';
-		img.style.borderRadius = '35px';
-		img.style.position = 'fixed';
-		img.style.left = '30px';
-		img.style.bottom = '50px';
-		img.style.cursor = 'pointer';
-		// for redirecting if the repo is not added 
-		const redirectLink = document.createElement('a');
-		redirectLink.href = 'https://www.vibinex.com';
-		redirectLink.style.position = 'fixed';
-		redirectLink.style.left = '58px';
-		redirectLink.style.bottom = '45px';
-		redirectLink.style.zIndex = '101';
-		// for adding plusIcon
-		const plusIcon = document.createElement('img');
-		plusIcon.src = "https://img.freepik.com/free-icon/add-button-with-plus-symbol-black-circle_318-48599.jpg";
-		plusIcon.style.width = '35px';
-		plusIcon.style.height = '35px';
-		plusIcon.style.borderRadius = '35px';
-		plusIcon.style.cursor = 'pointer';
-		redirectLink.appendChild(plusIcon);
-		redirectLink.appendChild(img);
-
-		const infoBanner = document.createElement('div');
-		infoBanner.setAttribute('id', 'vibinex-info');
-		// tooltip value on hover 
-		function changeCss(value) {
-			infoBanner.innerHTML = 'Add to Vibinex';
-			infoBanner.style.backgroundColor = 'black';
-			infoBanner.style.color = 'white';
-			infoBanner.style.padding = '10px';
-			infoBanner.style.display = value ? 'block' : 'none';
-			infoBanner.style.position = 'fixed';
-			infoBanner.style.left = '30px';
-			infoBanner.style.bottom = '85px';
-			infoBanner.style.borderColor = 'red';
-			infoBanner.style.border = "thin solid #D6D6D6";
-			infoBanner.style.borderRadius = '5px';
-			infoBanner.style.zIndex = '100'
-		}
-		plusIcon.addEventListener('mouseover', () => changeCss(true));
-		plusIcon.addEventListener('mouseout', () => changeCss(false));
-
-		PrSection.appendChild(redirectLink);
-		PrSection.appendChild(infoBanner);
+		createElement(false);
 	}
 }
 
