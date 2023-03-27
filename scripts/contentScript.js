@@ -128,26 +128,28 @@ async function updateTrackedReposInOrgGitHub(orgName, websiteUrl) {
 		const orgRepoName = link[link.length - 1];
 
 		if (trackedRepos.includes(orgRepoName)) {
-			const checkElement = item.getElementsByTagName('img'); 
-			if (!checkElement[0]) {
-				const img = document.createElement("img");
-				img.setAttribute('id', 'trackLogo');
-				const beforePsuedoElement = document.createElement('a');
-				img.src = "https://vibinex.com/favicon.ico";
-				img.style.width = '15px'
-				img.style.height = '15px'
-
-				beforePsuedoElement.appendChild(img);
-				beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${orgRepoName}`;
-				beforePsuedoElement.target = '_blank';
-				beforePsuedoElement.style.display = 'inline-block';
-				beforePsuedoElement.style.marginRight = '2px';
-				beforePsuedoElement.style.color = 'white';
-				beforePsuedoElement.style.borderRadius = '2px';
-				beforePsuedoElement.style.fontSize = '15px';
-				beforePsuedoElement.style.textDecoration = 'none';
-				item.insertBefore(beforePsuedoElement, item.firstChild);
+			const checkElement = item.getElementsByClassName('trackLogo')[0];
+			if (checkElement) {
+				// TODO: Ideally, we should only need to add the element when there is none present
+				checkElement.remove();
 			}
+			const img = document.createElement("img");
+			img.setAttribute('class', 'trackLogo');
+			const beforePsuedoElement = document.createElement('a');
+			img.src = "https://vibinex.com/favicon.ico";
+			img.style.width = '15px'
+			img.style.height = '15px'
+
+			beforePsuedoElement.appendChild(img);
+			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${orgRepoName}`;
+			beforePsuedoElement.target = '_blank';
+			beforePsuedoElement.style.display = 'inline-block';
+			beforePsuedoElement.style.marginRight = '2px';
+			beforePsuedoElement.style.color = 'white';
+			beforePsuedoElement.style.borderRadius = '2px';
+			beforePsuedoElement.style.fontSize = '15px';
+			beforePsuedoElement.style.textDecoration = 'none';
+			item.insertBefore(beforePsuedoElement, item.firstChild);
 		}
 
 	})
