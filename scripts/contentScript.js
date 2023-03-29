@@ -93,7 +93,7 @@ async function apiCall(url, body) {
 		await fetch(url, {
 			method: "POST",
 			headers: {
-				"Access-Control-Allow-Origin": "no-cors",
+				"Access-Control-Allow-Origin": "chrome-extension://jafgelpkkkopeaefadkdjcmnicgpcncc",
 				"Content-Type": "application/json",
 				"Accept": "application/json",
 			},
@@ -120,16 +120,16 @@ async function sha256(value) {
 }
 
 // for showing all tracked/ untrack pr in a organization
-async function getTrackedRepos(orgName) {
+async function getTrackedRepos(orgName, userId) {
 	const { backendUrl } = await chrome.storage.sync.get(["backendUrl"]);
-	const body = { "org": `${orgName}` }
+	const body = { "org": orgName, "userId": userId }
 	const url = `${backendUrl}/setup/repos`;
 	const trackedRepos = await apiCall(url, body);
 	return trackedRepos['repos'];
 }
 
-async function updateTrackedReposInOrgGitHub(orgName, websiteUrl) {
-	const trackedRepos = await getTrackedRepos(orgName);
+async function updateTrackedReposInOrgGitHub(orgName, websiteUrl, userId) {
+	const trackedRepos = await getTrackedRepos(orgName, userId);
 	const allOrgRepo = document.getElementById('org-repositories');
 	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
 
@@ -249,9 +249,9 @@ function getHighlightedPR(repoOwner, repoName, userId) {
 };
 
 // adding favButton
-async function showFloatingActionButton(orgName, orgRepo, websiteUrl) {
+async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl) {
 
-	const trackedRepoList = await getTrackedRepos(orgName);
+	const trackedRepoList = await getTrackedRepos(orgName, userId);
 
 	if (!trackedRepoList.includes(orgRepo)) {
 		createElement(false, websiteUrl);
@@ -301,7 +301,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 			// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
 			const owner_name = urlObj[3];
 			const repo_name = urlObj[4];
-			showFloatingActionButton(owner_name, repo_name, websiteUrl);
+			showFloatingActionButton(owner_name, repo_name, userId, websiteUrl);
 
 			if (urlObj[5] === 'pulls') {
 				// show relevant PRs
@@ -318,7 +318,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 			(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
 			// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
 			const org_name = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
-			updateTrackedReposInOrgGitHub(org_name, websiteUrl);
+			updateTrackedReposInOrgGitHub(org_name, websiteUrl, userId);
 		}
 	}
 
