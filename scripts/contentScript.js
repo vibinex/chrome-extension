@@ -93,7 +93,7 @@ async function apiCall(url, body) {
 		await fetch(url, {
 			method: "POST",
 			headers: {
-				"Access-Control-Allow-Origin": "no-cors",
+				"Access-Control-Allow-Origin": "chrome-extension://jafgelpkkkopeaefadkdjcmnicgpcncc",
 				"Content-Type": "application/json",
 				"Accept": "application/json",
 			},
