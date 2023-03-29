@@ -68,7 +68,7 @@ function createElement(loading = false) {
 	}
 	redirectLink.addEventListener('mouseover', () => changeCss(true));
 	redirectLink.addEventListener('mouseout', () => changeCss(false));
-	
+
 	document.body.appendChild(redirectLink);
 	document.body.appendChild(infoBanner);
 }
@@ -259,31 +259,34 @@ async function showFloatingActionButton(orgName, orgRepo) {
 }
 
 // showing the important files in a pr
-async function showImpFileInPr(repoOwner,repoName,userId, pr_number) {
-	const body = {
-		"repo_owner": repoOwner,
-		"repo_name": repoName,
-		"user_id": userId,
-		"pr_number": pr_number,
-		"is_github": true
-	}
-	const url = `${backendUrl}/relevance/pr/files`;
-	let response = await apiCall(url,body);
-	if ("relevant" in response) {
-		const encryptedFileNames = new Set(response['relevant']);
-		const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
-		const fileList = Array.from(fileNav.getElementsByTagName('li'));
-		fileList.forEach(async (item) => {
-			let elements = item.getElementsByClassName('ActionList-item-label');
-			if (elements.length == 1) {
-				let filename = elements[0].innerHTML.trim();
-				const hashedFilename = await sha256(filename);
-				if (encryptedFileNames.has(hashedFilename)) {
-					item.style.backgroundColor = '#7a7e00';
+async function showImpFileInPr(repoOwner, repoName, userId, pr_number) {
+	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
+		const body = {
+			"repo_owner": repoOwner,
+			"repo_name": repoName,
+			"user_id": userId,
+			"pr_number": pr_number,
+			"is_github": true
+		}
+		const url = `${backendUrl}/relevance/pr/files`;
+		let response = await apiCall(url, body);
+		if ("relevant" in response) {
+			const encryptedFileNames = new Set(response['relevant']);
+			const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
+			if (!fileNav) return;
+			const fileList = Array.from(fileNav.getElementsByTagName('li'));
+			fileList.forEach(async (item) => {
+				let elements = item.getElementsByClassName('ActionList-item-label');
+				if (elements.length == 1) {
+					let filename = elements[0].innerHTML.trim();
+					const hashedFilename = await sha256(filename);
+					if (encryptedFileNames.has(hashedFilename)) {
+						item.style.backgroundColor = '#7a7e00';
+					}
 				}
-			}
-		})
-	}
+			})
+		}
+	});
 }
 
 const orchestrator = (tab_url, websiteUrl, userId) => {
