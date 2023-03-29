@@ -8,7 +8,7 @@ const keyToLabel = Object.freeze({
 	'important': "Important"
 });
 
-function createElement(loading = false) {
+function createElement(loading = false, websiteUrl = "https://vibinex.com") {
 	let loadingIconID = loading ? "vibinexLoadingGif" : "vibinexPlusIcon";
 	let imgUrl = loading ?
 		"https://media.tenor.com/wpSo-8CrXqUAAAAi/loading-loading-forever.gif"
@@ -19,7 +19,7 @@ function createElement(loading = false) {
 	// for vibinex logo
 	const img = document.createElement("img");
 	img.setAttribute('id', 'vibinexLogo')
-	img.src = "https://vibinex.com/favicon.ico";
+	img.src = `${websiteUrl}/favicon.ico`;
 	img.style.width = '35px';
 	img.style.height = '35px';
 	img.style.borderRadius = '35px';
@@ -44,7 +44,7 @@ function createElement(loading = false) {
 	redirectLink.style.bottom = '45px';
 	redirectLink.style.zIndex = '101';
 	if (!loading) {
-		redirectLink.href = 'https://www.vibinex.com';
+		redirectLink.href = `${websiteUrl}/instruction_to_setup`;
 	}
 	redirectLink.appendChild(loadingGif);
 	redirectLink.appendChild(img);
@@ -146,7 +146,7 @@ async function updateTrackedReposInOrgGitHub(orgName, websiteUrl) {
 			const img = document.createElement("img");
 			img.setAttribute('class', 'trackLogo');
 			const beforePsuedoElement = document.createElement('a');
-			img.src = "https://vibinex.com/favicon.ico";
+			img.src = `${websiteUrl}/favicon.ico`;
 			img.style.width = '15px'
 			img.style.height = '15px'
 
@@ -249,12 +249,12 @@ function getHighlightedPR(repoOwner, repoName, userId) {
 };
 
 // adding favButton
-async function showFloatingActionButton(orgName, orgRepo) {
+async function showFloatingActionButton(orgName, orgRepo, websiteUrl) {
 
 	const trackedRepoList = await getTrackedRepos(orgName);
 
 	if (!trackedRepoList.includes(orgRepo)) {
-		createElement(false);
+		createElement(false, websiteUrl);
 	}
 }
 
@@ -301,7 +301,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 			// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
 			const owner_name = urlObj[3];
 			const repo_name = urlObj[4];
-			showFloatingActionButton(owner_name, repo_name);
+			showFloatingActionButton(owner_name, repo_name, websiteUrl);
 
 			if (urlObj[5] === 'pulls') {
 				// show relevant PRs
