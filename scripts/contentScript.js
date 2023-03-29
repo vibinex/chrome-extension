@@ -110,6 +110,15 @@ async function apiCall(url, body) {
 	}
 }
 
+async function sha256(value) {
+	const buffer = new TextEncoder().encode(value);
+	const hash = await crypto.subtle.digest('SHA-256', buffer);
+	const hexString = Array.from(new Uint8Array(hash))
+		.map((byte) => byte.toString(16).padStart(2, '0'))
+		.join('');
+	return hexString;
+}
+
 // for showing all tracked/ untrack pr in a organization
 async function getTrackedRepos(orgName) {
 	const { backendUrl } = await chrome.storage.sync.get(["backendUrl"]);
@@ -249,9 +258,37 @@ async function showFloatingActionButton(orgName, orgRepo) {
 	}
 }
 
+// showing the important files in a pr
+async function showImpFileInPr(repoOwner,repoName,userId, pr_number) {
+	const body = {
+		"repo_owner": repoOwner,
+		"repo_name": repoName,
+		"user_id": userId,
+		"pr_number": pr_number,
+		"is_github": true
+	}
+	const url = `${backendUrl}/relevance/pr/files`;
+	let response = await apiCall(url,body);
+	if ("relevant" in response) {
+		const encryptedFileNames = new Set(response['relevant']);
+		const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
+		const fileList = Array.from(fileNav.getElementsByTagName('li'));
+		fileList.forEach(async (item) => {
+			let elements = item.getElementsByClassName('ActionList-item-label');
+			if (elements.length == 1) {
+				let filename = elements[0].innerHTML.trim();
+				const hashedFilename = await sha256(filename);
+				if (encryptedFileNames.has(hashedFilename)) {
+					item.style.backgroundColor = '#7a7e00';
+				}
+			}
+		})
+	}
+}
+
 const orchestrator = (tab_url, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tab_url}`);
-	let urlObj = tab_url.split('/');
+	let urlObj = tab_url.split('?')[0].split('/');
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
@@ -259,13 +296,17 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 	if (urlObj[2] == 'github.com') {
 		if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 			// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
-			const org_name = urlObj[3];
-			const org_repo = urlObj[4];
-			showFloatingActionButton(org_name, org_repo);
+			const owner_name = urlObj[3];
+			const repo_name = urlObj[4];
+			showFloatingActionButton(owner_name, repo_name);
 
 			if (urlObj[5] === 'pulls') {
 				// show relevant PRs
-				getHighlightedPR(org_name, org_repo, userId);
+				getHighlightedPR(owner_name, repo_name, userId);
+			}
+			if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
+				const pr_number = urlObj[6]
+				showImpFileInPr(owner_name, repo_name, userId, pr_number);
 			}
 		}
 		// for showing all tracked repo
