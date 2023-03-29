@@ -29,7 +29,6 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 
 	fetch(`${websiteUrl}/api/auth/session`).then(async (res) => {
 		const json = await res.json();
-		console.log("[session fetch]", JSON.stringify(json));
 		document.querySelector("#loading-div").style.display = "none";
 		if (json.user) {
 			//user is logged in
@@ -41,15 +40,14 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 			document.querySelector("#session-name").innerHTML = user.name;
 			document.querySelector("#session-email").innerHTML = user.email;
 
-			console.log(user);
 			chrome.storage.sync.set({
-				userId: user.userId,
+				userId: user.id,
 				userName: user.name,
 				userImage: user.image
 			}).then(() => {
-				console.debug(`[contentScript] userId has been set to ${user.userId}`);
+				console.debug(`[contentScript] userId has been set to ${user.id}`);
 			}).catch(err => {
-				console.error(`[contentScript] Sync storage could not be set. userId: ${user.userId}`, err);
+				console.error(`[contentScript] Sync storage could not be set. userId: ${user.id}`, err);
 			})
 		} else {
 			// no session means user not logged in

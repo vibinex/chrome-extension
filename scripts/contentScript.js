@@ -112,7 +112,7 @@ async function apiCall(url, body) {
 		showLoading();
 		return dataFromAPI;
 	} catch (e) {
-		console.error('[vibinex] Error while getting data from API', e)
+		console.error(`[vibinex] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
 	}
 }
 
@@ -294,6 +294,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 
 window.onload = () => {
 	chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+		console.log("We have the userId:", userId) // FIXME: remove this console.log
 		let oldHref = document.location.href;
 		orchestrator(oldHref, websiteUrl, userId);
 		return new MutationObserver(mutations => {
