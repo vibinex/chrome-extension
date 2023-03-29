@@ -27,7 +27,7 @@ function createElement(loading = false) {
 	img.style.left = '30px';
 	img.style.bottom = '50px';
 	img.style.cursor = 'pointer';
-	
+
 	// for adding plusIcon
 	const loadingGif = document.createElement('img');
 	loadingGif.setAttribute('id', loadingIconID)
@@ -36,7 +36,7 @@ function createElement(loading = false) {
 	loadingGif.style.height = '35px';
 	loadingGif.style.borderRadius = '35px';
 	loadingGif.style.cursor = 'pointer';
-	
+
 	// for redirecting to the our website
 	const redirectLink = document.createElement('a');
 	redirectLink.style.position = 'fixed';
@@ -68,15 +68,9 @@ function createElement(loading = false) {
 	}
 	redirectLink.addEventListener('mouseover', () => changeCss(true));
 	redirectLink.addEventListener('mouseout', () => changeCss(false));
-
-	if (loading) {
-		document.body.appendChild(redirectLink);
-		document.body.appendChild(infoBanner);
-	} else {
-		const PrSection = document.getElementById('repo-content-pjax-container');
-		PrSection.appendChild(redirectLink);
-		PrSection.appendChild(infoBanner);
-	}
+	
+	document.body.appendChild(redirectLink);
+	document.body.appendChild(infoBanner);
 }
 
 async function showLoading() {
