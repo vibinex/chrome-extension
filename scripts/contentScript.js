@@ -189,8 +189,9 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 	}
 };
 
-function addCssElementToBitbucket(highlightedPRIds, userId) {
+async function addCssElementToBitbucket(highlightedPRIds) {
 	// To do : remove this setTimeout method once data is coming from api 
+
 	setTimeout(() => {
 		const tables = document.getElementsByTagName('table')[0];
 		const allLinks = Array.from(tables.getElementsByTagName('a'));
@@ -228,24 +229,14 @@ function addCssElementToBitbucket(highlightedPRIds, userId) {
 }
 
 // adding css elements based up the data getting from api
-function getHighlightedPR(repoOwner, repoName, userId) {
-	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
-		const body = {
-			"repo_owner": repoOwner,
-			"repo_name": repoName,
-			"user_id": userId,
-			"is_github": true
-		}
-		const url = `${backendUrl}/relevance/pr`;
-		const highlightedPRIds = await apiCall(url, body);
-		if (highlightedPRIds) {
-			for (const priorityLevel in highlightedPRIds) {
-				for (const prNumber in highlightedPRIds[priorityLevel]) {
-					addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed'])
-				}
+function getHighlightedPR(highlightedPRIds) {
+	if (highlightedPRIds) {
+		for (const priorityLevel in highlightedPRIds) {
+			for (const prNumber in highlightedPRIds[priorityLevel]) {
+				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed'])
 			}
 		}
-	})
+	}
 };
 
 // adding favButton
@@ -305,11 +296,17 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 
 			if (urlObj[5] === 'pulls') {
 				// show relevant PRs
-				getHighlightedPR(owner_name, repo_name, userId);
-			}
-			if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
-				const pr_number = urlObj[6]
-				showImpFileInPr(owner_name, repo_name, userId, pr_number);
+				chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
+					const body = {
+						"repo_owner": org_name,
+						"repo_name": org_repo,
+						"user_id": userId,
+						"is_github": true
+					}
+					const url = `${backendUrl}/relevance/pr`;
+					let highlightedPRIds = await apiCall(url, body);
+					getHighlightedPR(highlightedPRIds);
+				});
 			}
 		}
 		// for showing all tracked repo
@@ -323,10 +320,17 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 	}
 
 	if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
-		// testing data 
-		const highlightedIds = { Important: [1, 2, 3], Relevant: [4, 5, 6] }
-		// todo : making a api call for fething the data for bitBucket. 
-		addCssElementToBitbucket(highlightedIds, userId);
+		chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
+			const body = {
+				"repo_owner": urlObj[3],
+				"repo_name": urlObj[4],
+				"user_id": userId,
+				"is_github": false
+			}
+			const url = `${backendUrl}/relevance/pr`;
+			let highlightedPRIds = await apiCall(url, body);
+			addCssElementToBitbucket(highlightedPRIds);
+		});
 	}
 };
 
