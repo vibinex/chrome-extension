@@ -1,21 +1,34 @@
 console.log('[vibinex] Running content script');
 'use strict';
 
-let loadingState = false;
-
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
 	'important': "Important"
 });
 
-function createElement(loading = false, websiteUrl = "https://vibinex.com") {
-	let loadingIconID = loading ? "vibinexLoadingGif" : "vibinexPlusIcon";
-	let imgUrl = loading ?
-		"https://media.tenor.com/wpSo-8CrXqUAAAAi/loading-loading-forever.gif"
-		:
-		"https://img.freepik.com/free-icon/add-button-with-plus-symbol-black-circle_318-48599.jpg";
-
-	let bannerMessage = loading ? "Please wait. Vibinex is loading." : "Add to Vibinex."
+function createElement(type = "add", websiteUrl = "https://vibinex.com") {
+	let loadingIconID;
+	let imgUrl;
+	let bannerMessage;
+	switch (type) {
+		case "loading":
+			loadingIconID = "vibinexLoadingGif";
+			imgUrl = "https://media.tenor.com/wpSo-8CrXqUAAAAi/loading-loading-forever.gif";
+			bannerMessage = "Please wait. Vibinex is loading...";
+			break;
+		case "add":
+			loadingIconID = "vibinexPlusIcon";
+			imgUrl = "https://img.freepik.com/free-icon/add-button-with-plus-symbol-black-circle_318-48599.jpg";
+			bannerMessage = "Add to Vibinex";
+			break;
+		case "error":
+			loadingIconID = "vibinexErrorIcon";
+			imgUrl = "https://cdn-icons-png.flaticon.com/512/1243/1243911.png?w=740&t=st=1680153899~exp=1680154499~hmac=be129e6a5a3dd4b9a362138086907f3330050f0a300473c5ed0e7e9541ece2de"
+			bannerMessage = "Something went wrong";
+			break;
+		default:
+			break;
+	}
 	// for vibinex logo
 	const img = document.createElement("img");
 	img.setAttribute('id', 'vibinexLogo')
@@ -43,14 +56,14 @@ function createElement(loading = false, websiteUrl = "https://vibinex.com") {
 	redirectLink.style.left = '58px';
 	redirectLink.style.bottom = '45px';
 	redirectLink.style.zIndex = '101';
-	if (!loading) {
+	if (type === "add") {
 		redirectLink.href = `${websiteUrl}/instruction_to_setup`;
 	}
 	redirectLink.appendChild(loadingGif);
 	redirectLink.appendChild(img);
 
 	const infoBanner = document.createElement('div');
-	infoBanner.setAttribute('id', 'loading-info');
+	infoBanner.setAttribute('id', 'floating-info');
 	// tooltip value on hover 
 	function changeCss(value) {
 		infoBanner.innerHTML = bannerMessage;
@@ -73,21 +86,21 @@ function createElement(loading = false, websiteUrl = "https://vibinex.com") {
 	document.body.appendChild(infoBanner);
 }
 
-async function showLoading() {
-	if (loadingState) {
-		createElement(true);
-	} else {
-		document.getElementById('vibinexLogo').remove();
-		document.getElementById('loading-info').remove();
+function destroyElement(type) {
+	document.getElementById('vibinexLogo').remove();
+	document.getElementById('floating-info').remove();
+	if (type === "loading")
 		document.getElementById('vibinexLoadingGif').remove();
-	}
+	else if (type === "add")
+		document.getElementById('vibinexPlusIcon').remove();
+	else if (type === "error")
+		document.getElementById('vibinexErrorIcon').remove();
 }
 
 async function apiCall(url, body) {
 	// TODO : doesn't handle multiple api calls on a single page. 
 	try {
-		loadingState = true;
-		showLoading();
+		createElement("loading")
 
 		let dataFromAPI;
 		await fetch(url, {
@@ -102,11 +115,15 @@ async function apiCall(url, body) {
 			.then((response) => response.json())
 			.then((data) => dataFromAPI = data);
 
-		loadingState = false;
-		showLoading();
+		destroyElement("loading")
 		return dataFromAPI;
 	} catch (e) {
 		console.error(`[vibinex] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
+		destroyElement("loading");
+		createElement("error");
+		setTimeout(() => {
+			destroyElement("error");
+		}, 2000);
 	}
 }
 
@@ -254,7 +271,7 @@ async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl) {
 	const trackedRepoList = await getTrackedRepos(orgName, userId);
 
 	if (!trackedRepoList.includes(orgRepo)) {
-		createElement(false, websiteUrl);
+		createElement("add", websiteUrl);
 	}
 }
 
