@@ -3,6 +3,12 @@
 	margin: 0px;
 }
 
+#version {
+	text-align: right;
+	font-size: xx-small;
+	color: darkgray;
+}
+
 a {
 	text-decoration: none;
 }
@@ -10,12 +16,12 @@ a {
 body {
 	margin: 0px !important;
 	width: 300px;
-	min-height: 200px;
-	padding: 20px;
+	padding: 10px 20px;
 	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 .container {
+	min-height: 200px;
 	height: 100%;
 	width: 100%;
 	display: flex;
@@ -143,9 +149,9 @@ li {
 	border: 3px solid #f3f3f3;
 	border-top: 3px solid #414141;
 	border-radius: 50%;
-	width: 20px;
-	height: 20px;
-	animation: spin 0.3s linear infinite;
+	width: 50px;
+	height: 50px;
+	animation: spin 0.5s linear infinite;
 }
 
 @keyframes spin {

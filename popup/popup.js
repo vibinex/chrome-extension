@@ -55,3 +55,10 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 		}
 	});
 });
+
+window.addEventListener('load', () => {
+	console.log(document.readyState);
+	const manifestData = chrome.runtime.getManifest();
+	const version_p = document.getElementById("version")
+	version_p.innerHTML = "v" + manifestData.version;
+})
