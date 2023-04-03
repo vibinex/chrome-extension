@@ -40,7 +40,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	img.style.left = '30px';
 	img.style.bottom = '50px';
 	img.style.cursor = 'pointer';
-	img.style.zIndex='200';
+	img.style.zIndex = '200';
 
 	// for adding plusIcon
 	const loadingGif = document.createElement('img');
@@ -146,8 +146,44 @@ async function getTrackedRepos(orgName, userId) {
 	return trackedRepos['repos'];
 }
 
-async function updateTrackedReposInOrgGitHub(orgName, websiteUrl, userId) {
-	const trackedRepos = await getTrackedRepos(orgName, userId);
+
+
+function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
+	let tbody = document.querySelector('tbody');
+	let trs = tbody.querySelectorAll('td');
+
+	trs.forEach((item) => {
+		let text = Array.from(item.getElementsByTagName('a'));
+		console.log(text[1].innerHTML)
+
+		if (trackedRepos.includes(text[1].innerHTML)) {
+
+			const img = document.createElement("img");
+			img.setAttribute('class', 'trackLogo');
+			const beforePsuedoElement = document.createElement('a');
+			img.src = `${websiteUrl}/favicon.ico`;
+			img.style.width = '15px'
+			img.style.height = '15px'
+			img.style.marginBottom = '-3px',
+			img.style.marginRight = '3px'
+
+			beforePsuedoElement.appendChild(img);
+			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${text[1].innerHTML}`;
+			beforePsuedoElement.target = '_blank';
+			beforePsuedoElement.style.display = 'inline-block';
+			beforePsuedoElement.style.marginRight = '2px';
+			beforePsuedoElement.style.color = 'white';
+			beforePsuedoElement.style.borderRadius = '2px';
+			beforePsuedoElement.style.fontSize = '15px';
+			beforePsuedoElement.style.textDecoration = 'none';
+			text[1].insertBefore(beforePsuedoElement, text[1].firstChild)
+		}
+
+	});
+}
+
+
+function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 	const allOrgRepo = document.getElementById('org-repositories');
 	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
 
@@ -177,11 +213,10 @@ async function updateTrackedReposInOrgGitHub(orgName, websiteUrl, userId) {
 			beforePsuedoElement.style.borderRadius = '2px';
 			beforePsuedoElement.style.fontSize = '15px';
 			beforePsuedoElement.style.textDecoration = 'none';
+
 			item.insertBefore(beforePsuedoElement, item.firstChild);
 		}
-
 	})
-
 }
 
 function addingCssElementToGithub(elementId, status, numRelevantFiles) {
@@ -374,34 +409,54 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
 				// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
 				const org_name = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
-				updateTrackedReposInOrgGitHub(org_name, websiteUrl, userId);
+				const body = { "org": org_name, "userId": userId, "is_github": true }
+				const url = `${backendUrl}/setup/repos`;
+				let response = await apiCall(url, body);
+				updateTrackedReposInOrgGitHub(response['repos'], websiteUrl);
 			}
 		}
 
-		if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
+		if (urlObj[2] == 'bitbucket.org') {
 
-			const body = {
-				"repo_owner": owner_name,
-				"repo_name": repo_name,
-				"user_id": userId,
-				"is_github": false
+			// for showing tracked repo of a organization 
+			if (urlObj[4] == 'workspace' && urlObj[5] == 'repositories') {
+				const org_name = urlObj[3];
+				const body = { "org": org_name, "userId": userId, "is_github": false }
+				const url = `${backendUrl}/setup/repos`;
+
+				let response = await apiCall(url, body);
+				updateTrackedReposInBitbucketOrg(response, websiteUrl);
+				console.log('funciton called');
 			}
-			const url = `${backendUrl}/relevance/pr`;
-			let highlightedPRIds = await apiCall(url, body);
-			addCssElementToBitbucket(highlightedPRIds);
 
-			if (urlObj[6]) {
-				const pr_number = urlObj[6];
+
+			// for showing tracked pr of a repo 
+			if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
+
 				const body = {
 					"repo_owner": owner_name,
 					"repo_name": repo_name,
 					"user_id": userId,
-					"pr_number": pr_number,
 					"is_github": false
 				}
-				const url = `${backendUrl}/relevance/pr/files`;
-				let response = await apiCall(url, body);
-				FilesInPrBitbucket(response);
+				const url = `${backendUrl}/relevance/pr`;
+				let highlightedPRIds = await apiCall(url, body);
+				addCssElementToBitbucket(highlightedPRIds);
+
+				// for showing highlighted file in single pr
+				if (urlObj[6]) {
+					const pr_number = urlObj[6];
+					const body = {
+						"repo_owner": owner_name,
+						"repo_name": repo_name,
+						"user_id": userId,
+						"pr_number": pr_number,
+						"is_github": false
+					}
+					const url = `${backendUrl}/relevance/pr/files`;
+					let response = await apiCall(url, body);
+					FilesInPrBitbucket(response);
+				}
 			}
 		}
 	})
