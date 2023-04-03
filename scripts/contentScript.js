@@ -40,6 +40,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	img.style.left = '30px';
 	img.style.bottom = '50px';
 	img.style.cursor = 'pointer';
+	img.style.zIndex='200';
 
 	// for adding plusIcon
 	const loadingGif = document.createElement('img');
@@ -55,7 +56,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	redirectLink.style.position = 'fixed';
 	redirectLink.style.left = '58px';
 	redirectLink.style.bottom = '45px';
-	redirectLink.style.zIndex = '101';
+	redirectLink.style.zIndex = '200';
 	if (type === "add") {
 		redirectLink.href = `${websiteUrl}/instruction_to_setup`;
 	}
@@ -77,7 +78,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 		infoBanner.style.borderColor = 'red';
 		infoBanner.style.border = "thin solid #D6D6D6";
 		infoBanner.style.borderRadius = '5px';
-		infoBanner.style.zIndex = '100'
+		infoBanner.style.zIndex = '200'
 	}
 	redirectLink.addEventListener('mouseover', () => changeCss(true));
 	redirectLink.addEventListener('mouseout', () => changeCss(false));
