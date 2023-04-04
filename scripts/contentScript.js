@@ -149,12 +149,11 @@ async function getTrackedRepos(orgName, userId) {
 
 
 function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
-	let tbody = document.querySelector('tbody');
-	let trs = tbody.querySelectorAll('td');
+	const tbody = document.querySelector('tbody');
+	const trs = tbody.querySelectorAll('td');
 
 	trs.forEach((item) => {
-		let text = Array.from(item.getElementsByTagName('a'));
-		console.log(text[1].innerHTML)
+		const text = Array.from(item.getElementsByTagName('a'));
 
 		if (trackedRepos.includes(text[1].innerHTML)) {
 
@@ -165,7 +164,7 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
 			img.style.width = '15px'
 			img.style.height = '15px'
 			img.style.marginBottom = '-3px',
-			img.style.marginRight = '3px'
+				img.style.marginRight = '3px'
 
 			beforePsuedoElement.appendChild(img);
 			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${text[1].innerHTML}`;
@@ -225,7 +224,7 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 	const row_element = document.getElementById(`issue_${elementId}`);
 	if (row_element && row_element != null) {
 		row_element.style.backgroundColor = backgroundColor;
-		let element = document.head.appendChild(document.createElement("style"));
+		const element = document.head.appendChild(document.createElement("style"));
 		// TODO: a better approach would be create a constant CSS for a class, and add the class to the elements in consideration
 		element.innerHTML = `#issue_${elementId}_link::before{
 		background-color:${tagBackgroundColor};
@@ -243,45 +242,42 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 };
 
 function addCssElementToBitbucket(highlightedPRIds) {
-	// To do : remove this setTimeout method once data is coming from api 
-	setTimeout(() => {
-		const tables = document.getElementsByTagName('table')[0];
-		const allLinks = Array.from(tables.getElementsByTagName('a'));
+	const tables = document.getElementsByTagName('table')[0];
+	const allLinks = Array.from(tables.getElementsByTagName('a'));
 
-		function changingCss(id, status, numRelevantFiles = 1) {
-			const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
-			const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
-			allLinks.forEach((item) => {
-				const link = item.getAttribute('href').split('/');
-				const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
-				if (prId == id) {
-					const beforePsuedoElement = document.createElement('span');
-					beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
-					beforePsuedoElement.style.display = 'inline-block';
-					beforePsuedoElement.style.marginRight = '5px';
-					beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
-					beforePsuedoElement.style.color = 'white';
-					beforePsuedoElement.style.padding = '2px';
-					beforePsuedoElement.style.paddingLeft = '5px';
-					beforePsuedoElement.style.paddingRight = '5px'
-					beforePsuedoElement.style.borderRadius = '3px';
-					const parent = item.closest('tr');
-					parent.style.backgroundColor = `${backgroundColor}`;
-					parent.style.borderRadius = '2px';
-					item.insertBefore(beforePsuedoElement, item.firstChild);
-				};
-			});
+	function changingCss(id, status, numRelevantFiles = 1) {
+		const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
+		const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
+		allLinks.forEach((item) => {
+			const link = item.getAttribute('href').split('/');
+			const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
+			if (prId == id) {
+				const beforePsuedoElement = document.createElement('span');
+				beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
+				beforePsuedoElement.style.display = 'inline-block';
+				beforePsuedoElement.style.marginRight = '5px';
+				beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
+				beforePsuedoElement.style.color = 'white';
+				beforePsuedoElement.style.padding = '2px';
+				beforePsuedoElement.style.paddingLeft = '5px';
+				beforePsuedoElement.style.paddingRight = '5px'
+				beforePsuedoElement.style.borderRadius = '3px';
+				const parent = item.closest('tr');
+				parent.style.backgroundColor = `${backgroundColor}`;
+				parent.style.borderRadius = '2px';
+				item.insertBefore(beforePsuedoElement, item.firstChild);
+			};
+		});
+	}
+	for (const priorityLevel in highlightedPRIds) {
+		for (const prNumber in highlightedPRIds[priorityLevel]) {
+			changingCss(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed']);
 		}
-		for (const priorityLevel in highlightedPRIds) {
-			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				changingCss(highlightedPRIds[priorityLevel][prNumber], priorityLevel);
-			}
-		}
-	}, 1500);
+	}
 }
 
 // adding css elements based up the data getting from api
-function getHighlightedPR(highlightedPRIds) {
+function highlightRelevantPRs(highlightedPRIds) {
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
@@ -307,9 +303,9 @@ async function showImpFileInPr(response) {
 		if (!fileNav) return;
 		const fileList = Array.from(fileNav.getElementsByTagName('li'));
 		fileList.forEach(async (item) => {
-			let elements = item.getElementsByClassName('ActionList-item-label');
+			const elements = item.getElementsByClassName('ActionList-item-label');
 			if (elements.length == 1) {
-				let filename = elements[0].innerHTML.trim();
+				const filename = elements[0].innerHTML.trim();
 				const hashedFilename = await sha256(filename);
 				if (encryptedFileNames.has(hashedFilename)) {
 					item.style.backgroundColor = '#7a7e00';
@@ -331,7 +327,6 @@ async function FilesInPrBitbucket(response) {
 				if (currentScrollPosition - lastKnownScrollPosition > 100) {
 					if ("relevant" in response) {
 						const encryptedFileNames = new Set(response['relevant']);
-						console.log(`[scroll] ticking: ${ticking}; currentScrollPosition: ${currentScrollPosition}, lastKnownScrollPosition: ${lastKnownScrollPosition}`)
 						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"))
 						lastKnownScrollPosition = currentScrollPosition;
 						fileNav.forEach(async (element) => {
@@ -340,14 +335,14 @@ async function FilesInPrBitbucket(response) {
 							const elementHeading = spanElement.length == 1 ? spanElement[0] : spanElement[spanElement.length - 1];
 							const spanText = elementHeading.textContent;
 
-							let hashFileName = await sha256(spanText);
+							const hashFileName = await sha256(spanText);
 							if (encryptedFileNames.includes(hashFileName)) {
 								if (spanElement.length == 1) {
-									let changeBgColor = element.getElementsByClassName('css-10sfmq2')[0];
+									const changeBgColor = element.getElementsByClassName('css-10sfmq2')[0];
 									changeBgColor.style.backgroundColor = '#c5cc02';
 								} else {
-									let value = elementHeading.parentNode.parentNode.parentNode.parentNode.parentNode;
-									let value2 = value.children[0];
+									const value = elementHeading.parentNode.parentNode.parentNode.parentNode.parentNode;
+									const value2 = value.children[0];
 									value2.style.backgroundColor = '#c5cc02';
 								}
 							}
@@ -364,17 +359,17 @@ async function FilesInPrBitbucket(response) {
 
 const orchestrator = (tab_url, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tab_url}`);
-	let urlObj = tab_url.split('?')[0].split('/');
+	const urlObj = tab_url.split('?')[0].split('/');
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
 	}
 	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
-		const owner_name = urlObj[3];
-		const repo_name = urlObj[4];
 		if (urlObj[2] == 'github.com') {
 			if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 				// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
+				const owner_name = urlObj[3];
+				const repo_name = urlObj[4];
 				showFloatingActionButton(owner_name, repo_name, userId, websiteUrl);
 
 				if (urlObj[5] === 'pulls') {
@@ -387,7 +382,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 					}
 					const url = `${backendUrl}/relevance/pr`;
 					const highlightedPRIds = await apiCall(url, body);
-					getHighlightedPR(highlightedPRIds);
+					highlightRelevantPRs(highlightedPRIds);
 				}
 				if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
 					const pr_number = urlObj[6];
@@ -399,7 +394,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 						"is_github": true
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
-					let response = await apiCall(url, body);
+					const response = await apiCall(url, body);
 					showImpFileInPr(response);
 				}
 			}
@@ -411,40 +406,39 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				const org_name = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
 				const body = { "org": org_name, "userId": userId, "is_github": true }
 				const url = `${backendUrl}/setup/repos`;
-				let response = await apiCall(url, body);
+				const response = await apiCall(url, body);
 				updateTrackedReposInOrgGitHub(response['repos'], websiteUrl);
 			}
 		}
 
-		if (urlObj[2] == 'bitbucket.org') {
-
+		if (urlObj[2] === 'bitbucket.org') {
 			// for showing tracked repo of a organization 
-			if (urlObj[4] == 'workspace' && urlObj[5] == 'repositories') {
-				const org_name = urlObj[3];
-				const body = { "org": org_name, "userId": userId, "is_github": false }
+			if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
+				const workspace_slug = urlObj[3];
+				const body = { "org": workspace_slug, "userId": userId, "is_github": false }
 				const url = `${backendUrl}/setup/repos`;
 
-				let response = await apiCall(url, body);
+				const response = await apiCall(url, body);
 				updateTrackedReposInBitbucketOrg(response, websiteUrl);
-				console.log('funciton called');
 			}
 
-
-			// for showing tracked pr of a repo 
-			if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
-
-				const body = {
-					"repo_owner": owner_name,
-					"repo_name": repo_name,
-					"user_id": userId,
-					"is_github": false
+			if (urlObj[5] === "pull-requests") {
+				const owner_name = urlObj[3];
+				const repo_name = urlObj[4];
+				// for showing tracked pr of a repo 
+				if (!urlObj[6]) {
+					const body = {
+						"repo_owner": owner_name,
+						"repo_name": repo_name,
+						"user_id": userId,
+						"is_github": false
+					}
+					const url = `${backendUrl}/relevance/pr`;
+					const highlightedPRIds = await apiCall(url, body);
+					addCssElementToBitbucket(highlightedPRIds);
 				}
-				const url = `${backendUrl}/relevance/pr`;
-				let highlightedPRIds = await apiCall(url, body);
-				addCssElementToBitbucket(highlightedPRIds);
-
 				// for showing highlighted file in single pr
-				if (urlObj[6]) {
+				else if (urlObj[6]) {
 					const pr_number = urlObj[6];
 					const body = {
 						"repo_owner": owner_name,
@@ -454,7 +448,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 						"is_github": false
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
-					let response = await apiCall(url, body);
+					const response = await apiCall(url, body);
 					FilesInPrBitbucket(response);
 				}
 			}
