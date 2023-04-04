@@ -207,41 +207,38 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 };
 
 function addCssElementToBitbucket(highlightedPRIds) {
-	// To do : remove this setTimeout method once data is coming from api 
-	setTimeout(() => {
-		const tables = document.getElementsByTagName('table')[0];
-		const allLinks = Array.from(tables.getElementsByTagName('a'));
+	const tables = document.getElementsByTagName('table')[0];
+	const allLinks = Array.from(tables.getElementsByTagName('a'));
 
-		function changingCss(id, status, numRelevantFiles = 1) {
-			const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
-			const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
-			allLinks.forEach((item) => {
-				const link = item.getAttribute('href').split('/');
-				const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
-				if (prId == id) {
-					const beforePsuedoElement = document.createElement('span');
-					beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
-					beforePsuedoElement.style.display = 'inline-block';
-					beforePsuedoElement.style.marginRight = '5px';
-					beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
-					beforePsuedoElement.style.color = 'white';
-					beforePsuedoElement.style.padding = '2px';
-					beforePsuedoElement.style.paddingLeft = '5px';
-					beforePsuedoElement.style.paddingRight = '5px'
-					beforePsuedoElement.style.borderRadius = '3px';
-					const parent = item.closest('tr');
-					parent.style.backgroundColor = `${backgroundColor}`;
-					parent.style.borderRadius = '2px';
-					item.insertBefore(beforePsuedoElement, item.firstChild);
-				};
-			});
+	function changingCss(id, status, numRelevantFiles = 1) {
+		const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
+		const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
+		allLinks.forEach((item) => {
+			const link = item.getAttribute('href').split('/');
+			const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
+			if (prId == id) {
+				const beforePsuedoElement = document.createElement('span');
+				beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
+				beforePsuedoElement.style.display = 'inline-block';
+				beforePsuedoElement.style.marginRight = '5px';
+				beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
+				beforePsuedoElement.style.color = 'white';
+				beforePsuedoElement.style.padding = '2px';
+				beforePsuedoElement.style.paddingLeft = '5px';
+				beforePsuedoElement.style.paddingRight = '5px'
+				beforePsuedoElement.style.borderRadius = '3px';
+				const parent = item.closest('tr');
+				parent.style.backgroundColor = `${backgroundColor}`;
+				parent.style.borderRadius = '2px';
+				item.insertBefore(beforePsuedoElement, item.firstChild);
+			};
+		});
+	}
+	for (const priorityLevel in highlightedPRIds) {
+		for (const prNumber in highlightedPRIds[priorityLevel]) {
+			changingCss(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed']);
 		}
-		for (const priorityLevel in highlightedPRIds) {
-			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				changingCss(highlightedPRIds[priorityLevel][prNumber], priorityLevel);
-			}
-		}
-	}, 1500);
+	}
 }
 
 // adding css elements based up the data getting from api
@@ -282,6 +279,48 @@ async function showImpFileInPr(response) {
 		})
 	}
 }
+
+// highlighting the files in pr for bitbucket 
+async function FilesInPrBitbucket(response) {
+	let lastKnownScrollPosition = 0;
+	let currentScrollPosition = 0;
+	let ticking = false;
+	document.addEventListener('scroll', () => {
+		currentScrollPosition = window.scrollY;
+		if (!ticking) {
+			window.requestAnimationFrame(() => {
+				if (currentScrollPosition - lastKnownScrollPosition > 100) {
+					if ("relevant" in response) {
+						const encryptedFileNames = new Set(response['relevant']);
+						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"))
+						lastKnownScrollPosition = currentScrollPosition;
+						fileNav.forEach(async (element) => {
+							const h3Element = element.querySelector('h3');
+							const spanElement = Array.from(h3Element.querySelectorAll('span'));
+							const elementHeading = spanElement.length == 1 ? spanElement[0] : spanElement[spanElement.length - 1];
+							const spanText = elementHeading.textContent;
+
+							let hashFileName = await sha256(spanText);
+							if (encryptedFileNames.includes(hashFileName)) {
+								if (spanElement.length == 1) {
+									let changeBgColor = element.getElementsByClassName('css-10sfmq2')[0];
+									changeBgColor.style.backgroundColor = '#c5cc02';
+								} else {
+									let value = elementHeading.parentNode.parentNode.parentNode.parentNode.parentNode;
+									let value2 = value.children[0];
+									value2.style.backgroundColor = '#c5cc02';
+								}
+							}
+						})
+					}
+				}
+				ticking = false;
+			});
+			ticking = true;
+		}
+	});
+}
+
 
 const orchestrator = (tab_url, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tab_url}`);
@@ -335,15 +374,32 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 		}
 
 		if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
-			const body = {
-				"repo_owner": urlObj[3],
-				"repo_name": urlObj[4],
-				"user_id": userId,
-				"is_github": false
+			const owner_name = urlObj[3];
+			const repo_name = urlObj[4];
+			if (!urlObj[6]) {
+				const body = {
+					"repo_owner": owner_name,
+					"repo_name": repo_name,
+					"user_id": userId,
+					"is_github": false
+				}
+				const url = `${backendUrl}/relevance/pr`;
+				let highlightedPRIds = await apiCall(url, body);
+				addCssElementToBitbucket(highlightedPRIds);
 			}
-			const url = `${backendUrl}/relevance/pr`;
-			let highlightedPRIds = await apiCall(url, body);
-			addCssElementToBitbucket(highlightedPRIds);
+			else if (urlObj[6]) {
+				const pr_number = urlObj[6];
+				const body = {
+					"repo_owner": owner_name,
+					"repo_name": repo_name,
+					"user_id": userId,
+					"pr_number": pr_number,
+					"is_github": false
+				}
+				const url = `${backendUrl}/relevance/pr/files`;
+				let response = await apiCall(url, body);
+				FilesInPrBitbucket(response);
+			}
 		}
 	})
 };
