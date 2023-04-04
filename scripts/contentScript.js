@@ -146,25 +146,21 @@ async function getTrackedRepos(orgName, userId) {
 	return trackedRepos['repos'];
 }
 
-
-
 function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
 	const tbody = document.querySelector('tbody');
 	const trs = tbody.querySelectorAll('td');
 
 	trs.forEach((item) => {
 		const text = Array.from(item.getElementsByTagName('a'));
-
 		if (trackedRepos.includes(text[1].innerHTML)) {
-
 			const img = document.createElement("img");
 			img.setAttribute('class', 'trackLogo');
 			const beforePsuedoElement = document.createElement('a');
 			img.src = `${websiteUrl}/favicon.ico`;
 			img.style.width = '15px'
 			img.style.height = '15px'
-			img.style.marginBottom = '-3px',
-				img.style.marginRight = '3px'
+			img.style.marginBottom = '-3px'
+			img.style.marginRight = '3px'
 
 			beforePsuedoElement.appendChild(img);
 			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${text[1].innerHTML}`;
@@ -180,7 +176,6 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
 
 	});
 }
-
 
 function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 	const allOrgRepo = document.getElementById('org-repositories');
