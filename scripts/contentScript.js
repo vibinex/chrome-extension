@@ -207,41 +207,38 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 };
 
 function addCssElementToBitbucket(highlightedPRIds) {
-	// To do : remove this setTimeout method once data is coming from api 
-	setTimeout(() => {
-		const tables = document.getElementsByTagName('table')[0];
-		const allLinks = Array.from(tables.getElementsByTagName('a'));
+	const tables = document.getElementsByTagName('table')[0];
+	const allLinks = Array.from(tables.getElementsByTagName('a'));
 
-		function changingCss(id, status, numRelevantFiles = 1) {
-			const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
-			const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
-			allLinks.forEach((item) => {
-				const link = item.getAttribute('href').split('/');
-				const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
-				if (prId == id) {
-					const beforePsuedoElement = document.createElement('span');
-					beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
-					beforePsuedoElement.style.display = 'inline-block';
-					beforePsuedoElement.style.marginRight = '5px';
-					beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
-					beforePsuedoElement.style.color = 'white';
-					beforePsuedoElement.style.padding = '2px';
-					beforePsuedoElement.style.paddingLeft = '5px';
-					beforePsuedoElement.style.paddingRight = '5px'
-					beforePsuedoElement.style.borderRadius = '3px';
-					const parent = item.closest('tr');
-					parent.style.backgroundColor = `${backgroundColor}`;
-					parent.style.borderRadius = '2px';
-					item.insertBefore(beforePsuedoElement, item.firstChild);
-				};
-			});
+	function changingCss(id, status, numRelevantFiles = 1) {
+		const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
+		const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
+		allLinks.forEach((item) => {
+			const link = item.getAttribute('href').split('/');
+			const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
+			if (prId == id) {
+				const beforePsuedoElement = document.createElement('span');
+				beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
+				beforePsuedoElement.style.display = 'inline-block';
+				beforePsuedoElement.style.marginRight = '5px';
+				beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
+				beforePsuedoElement.style.color = 'white';
+				beforePsuedoElement.style.padding = '2px';
+				beforePsuedoElement.style.paddingLeft = '5px';
+				beforePsuedoElement.style.paddingRight = '5px'
+				beforePsuedoElement.style.borderRadius = '3px';
+				const parent = item.closest('tr');
+				parent.style.backgroundColor = `${backgroundColor}`;
+				parent.style.borderRadius = '2px';
+				item.insertBefore(beforePsuedoElement, item.firstChild);
+			};
+		});
+	}
+	for (const priorityLevel in highlightedPRIds) {
+		for (const prNumber in highlightedPRIds[priorityLevel]) {
+			changingCss(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed']);
 		}
-		for (const priorityLevel in highlightedPRIds) {
-			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				changingCss(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed']);
-			}
-		}
-	}, 1500);
+	}
 }
 
 // adding css elements based up the data getting from api
@@ -379,17 +376,18 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 		if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
 			const owner_name = urlObj[3];
 			const repo_name = urlObj[4];
-			const body = {
-				"repo_owner": owner_name,
-				"repo_name": repo_name,
-				"user_id": userId,
-				"is_github": false
+			if (!urlObj[6]) {
+				const body = {
+					"repo_owner": owner_name,
+					"repo_name": repo_name,
+					"user_id": userId,
+					"is_github": false
+				}
+				const url = `${backendUrl}/relevance/pr`;
+				let highlightedPRIds = await apiCall(url, body);
+				addCssElementToBitbucket(highlightedPRIds);
 			}
-			const url = `${backendUrl}/relevance/pr`;
-			let highlightedPRIds = await apiCall(url, body);
-			addCssElementToBitbucket(highlightedPRIds);
-
-			if (urlObj[6]) {
+			else if (urlObj[6]) {
 				const pr_number = urlObj[6];
 				const body = {
 					"repo_owner": owner_name,
