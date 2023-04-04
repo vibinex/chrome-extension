@@ -267,13 +267,33 @@ async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl) {
 async function showImpFileInPr(response) {
 	if ("relevant" in response) {
 		const encryptedFileNames = new Set(response['relevant']);
+		console.log('The Response is', response);
 		const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
 		if (!fileNav) return;
 		const fileList = Array.from(fileNav.getElementsByTagName('li'));
+
 		fileList.forEach(async (item) => {
 			let elements = item.getElementsByClassName('ActionList-item-label');
 			if (elements.length == 1) {
 				let filename = elements[0].innerHTML.trim();
+				let element = elements[0];
+				let depth = 1;
+				// FIXME : Need to improve while condition 
+				while (true) {
+					const anc = element.closest("ul");
+					if (anc == null) break;
+					for (const child of anc.parentElement.childNodes) {
+						if (child.nodeName.toLowerCase() == "button") {
+							let folders = child.getElementsByClassName('ActionList-item-label');
+							if (folders.length == 1) {
+								const folder_name = folders[0].innerHTML.trim();
+								filename = folder_name + "/" + filename;
+							}
+						}
+					}
+					depth++;
+					element = anc.parentElement;
+				}
 				const hashedFilename = await sha256(filename);
 				if (encryptedFileNames.has(hashedFilename)) {
 					item.style.backgroundColor = '#7a7e00';
