@@ -297,16 +297,32 @@ async function showImpFileInPr(response) {
 		const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
 		if (!fileNav) return;
 		const fileList = Array.from(fileNav.getElementsByTagName('li'));
-		fileList.forEach(async (item) => {
+
+		for (const item of fileList) {
 			const elements = item.getElementsByClassName('ActionList-item-label');
-			if (elements.length == 1) {
-				const filename = elements[0].innerHTML.trim();
+			if (elements.length === 1) {
+				let filename = elements[0].innerHTML.trim();
+				let element = elements[0];
+				let anc = element.closest("ul");
+				while (anc !== null) {
+					for (const child of anc.parentElement.childNodes) {
+						if (child.nodeName.toLowerCase() === "button") {
+							let folders = child.getElementsByClassName('ActionList-item-label');
+							if (folders.length === 1) {
+								const folderName = folders[0].innerHTML.trim();
+								filename = `${folderName}/${filename}`;
+							}
+						}
+					}
+					element = anc.parentElement;
+					anc = element.closest("ul");
+				}
 				const hashedFilename = await sha256(filename);
 				if (encryptedFileNames.has(hashedFilename)) {
 					item.style.backgroundColor = '#7a7e00';
 				}
 			}
-		})
+		}
 	}
 }
 
