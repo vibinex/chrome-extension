@@ -238,7 +238,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 		}
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				changingCss(highlightedPRIds[priorityLevel][prNumber], priorityLevel);
+				changingCss(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed']);
 			}
 		}
 	}, 1500);
@@ -295,7 +295,6 @@ async function FilesInPrBitbucket(response) {
 				if (currentScrollPosition - lastKnownScrollPosition > 100) {
 					if ("relevant" in response) {
 						const encryptedFileNames = new Set(response['relevant']);
-						console.log(`[scroll] ticking: ${ticking}; currentScrollPosition: ${currentScrollPosition}, lastKnownScrollPosition: ${lastKnownScrollPosition}`)
 						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"))
 						lastKnownScrollPosition = currentScrollPosition;
 						fileNav.forEach(async (element) => {
@@ -378,6 +377,8 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 		}
 
 		if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
+			const owner_name = urlObj[3];
+			const repo_name = urlObj[4];
 			const body = {
 				"repo_owner": owner_name,
 				"repo_name": repo_name,
