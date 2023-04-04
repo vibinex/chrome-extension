@@ -40,6 +40,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	img.style.left = '30px';
 	img.style.bottom = '50px';
 	img.style.cursor = 'pointer';
+	img.style.zIndex = '200';
 
 	// for adding plusIcon
 	const loadingGif = document.createElement('img');
@@ -55,7 +56,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	redirectLink.style.position = 'fixed';
 	redirectLink.style.left = '58px';
 	redirectLink.style.bottom = '45px';
-	redirectLink.style.zIndex = '101';
+	redirectLink.style.zIndex = '200';
 	if (type === "add") {
 		redirectLink.href = `${websiteUrl}/instruction_to_setup`;
 	}
@@ -77,7 +78,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 		infoBanner.style.borderColor = 'red';
 		infoBanner.style.border = "thin solid #D6D6D6";
 		infoBanner.style.borderRadius = '5px';
-		infoBanner.style.zIndex = '100'
+		infoBanner.style.zIndex = '200'
 	}
 	redirectLink.addEventListener('mouseover', () => changeCss(true));
 	redirectLink.addEventListener('mouseout', () => changeCss(false));
@@ -145,8 +146,38 @@ async function getTrackedRepos(orgName, userId) {
 	return trackedRepos['repos'];
 }
 
-async function updateTrackedReposInOrgGitHub(orgName, websiteUrl, userId) {
-	const trackedRepos = await getTrackedRepos(orgName, userId);
+function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
+	const tbody = document.querySelector('tbody');
+	const trs = tbody.querySelectorAll('td');
+
+	trs.forEach((item) => {
+		const text = Array.from(item.getElementsByTagName('a'));
+		if (trackedRepos.includes(text[1].innerHTML)) {
+			const img = document.createElement("img");
+			img.setAttribute('class', 'trackLogo');
+			const beforePsuedoElement = document.createElement('a');
+			img.src = `${websiteUrl}/favicon.ico`;
+			img.style.width = '15px'
+			img.style.height = '15px'
+			img.style.marginBottom = '-3px'
+			img.style.marginRight = '3px'
+
+			beforePsuedoElement.appendChild(img);
+			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${text[1].innerHTML}`;
+			beforePsuedoElement.target = '_blank';
+			beforePsuedoElement.style.display = 'inline-block';
+			beforePsuedoElement.style.marginRight = '2px';
+			beforePsuedoElement.style.color = 'white';
+			beforePsuedoElement.style.borderRadius = '2px';
+			beforePsuedoElement.style.fontSize = '15px';
+			beforePsuedoElement.style.textDecoration = 'none';
+			text[1].insertBefore(beforePsuedoElement, text[1].firstChild)
+		}
+
+	});
+}
+
+function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 	const allOrgRepo = document.getElementById('org-repositories');
 	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
 
@@ -176,11 +207,10 @@ async function updateTrackedReposInOrgGitHub(orgName, websiteUrl, userId) {
 			beforePsuedoElement.style.borderRadius = '2px';
 			beforePsuedoElement.style.fontSize = '15px';
 			beforePsuedoElement.style.textDecoration = 'none';
+
 			item.insertBefore(beforePsuedoElement, item.firstChild);
 		}
-
 	})
-
 }
 
 function addingCssElementToGithub(elementId, status, numRelevantFiles) {
@@ -189,7 +219,7 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 	const row_element = document.getElementById(`issue_${elementId}`);
 	if (row_element && row_element != null) {
 		row_element.style.backgroundColor = backgroundColor;
-		let element = document.head.appendChild(document.createElement("style"));
+		const element = document.head.appendChild(document.createElement("style"));
 		// TODO: a better approach would be create a constant CSS for a class, and add the class to the elements in consideration
 		element.innerHTML = `#issue_${elementId}_link::before{
 		background-color:${tagBackgroundColor};
@@ -207,41 +237,38 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 };
 
 function addCssElementToBitbucket(highlightedPRIds) {
-	// To do : remove this setTimeout method once data is coming from api 
-	setTimeout(() => {
-		const tables = document.getElementsByTagName('table')[0];
-		const allLinks = Array.from(tables.getElementsByTagName('a'));
+	const tables = document.getElementsByTagName('table')[0];
+	const allLinks = Array.from(tables.getElementsByTagName('a'));
 
-		function changingCss(id, status, numRelevantFiles = 1) {
-			const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
-			const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
-			allLinks.forEach((item) => {
-				const link = item.getAttribute('href').split('/');
-				const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
-				if (prId == id) {
-					const beforePsuedoElement = document.createElement('span');
-					beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
-					beforePsuedoElement.style.display = 'inline-block';
-					beforePsuedoElement.style.marginRight = '5px';
-					beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
-					beforePsuedoElement.style.color = 'white';
-					beforePsuedoElement.style.padding = '2px';
-					beforePsuedoElement.style.paddingLeft = '5px';
-					beforePsuedoElement.style.paddingRight = '5px'
-					beforePsuedoElement.style.borderRadius = '3px';
-					const parent = item.closest('tr');
-					parent.style.backgroundColor = `${backgroundColor}`;
-					parent.style.borderRadius = '2px';
-					item.insertBefore(beforePsuedoElement, item.firstChild);
-				};
-			});
+	function changingCss(id, status, numRelevantFiles = 1) {
+		const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
+		const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
+		allLinks.forEach((item) => {
+			const link = item.getAttribute('href').split('/');
+			const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
+			if (prId == id) {
+				const beforePsuedoElement = document.createElement('span');
+				beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
+				beforePsuedoElement.style.display = 'inline-block';
+				beforePsuedoElement.style.marginRight = '5px';
+				beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
+				beforePsuedoElement.style.color = 'white';
+				beforePsuedoElement.style.padding = '2px';
+				beforePsuedoElement.style.paddingLeft = '5px';
+				beforePsuedoElement.style.paddingRight = '5px'
+				beforePsuedoElement.style.borderRadius = '3px';
+				const parent = item.closest('tr');
+				parent.style.backgroundColor = `${backgroundColor}`;
+				parent.style.borderRadius = '2px';
+				item.insertBefore(beforePsuedoElement, item.firstChild);
+			};
+		});
+	}
+	for (const priorityLevel in highlightedPRIds) {
+		for (const prNumber in highlightedPRIds[priorityLevel]) {
+			changingCss(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed']);
 		}
-		for (const priorityLevel in highlightedPRIds) {
-			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				changingCss(highlightedPRIds[priorityLevel][prNumber], priorityLevel);
-			}
-		}
-	}, 1500);
+	}
 }
 
 // adding css elements based up the data getting from api
@@ -272,40 +299,79 @@ async function showImpFileInPr(response) {
 		if (!fileNav) return;
 		const fileList = Array.from(fileNav.getElementsByTagName('li'));
 
-		fileList.forEach(async (item) => {
-			let elements = item.getElementsByClassName('ActionList-item-label');
-			if (elements.length == 1) {
+		for (const item of fileList) {
+			const elements = item.getElementsByClassName('ActionList-item-label');
+			if (elements.length === 1) {
 				let filename = elements[0].innerHTML.trim();
 				let element = elements[0];
-				let depth = 1;
-				// FIXME : Need to improve while condition 
-				while (true) {
-					const anc = element.closest("ul");
-					if (anc == null) break;
+				let anc = element.closest("ul");
+				while (anc !== null) {
 					for (const child of anc.parentElement.childNodes) {
-						if (child.nodeName.toLowerCase() == "button") {
+						if (child.nodeName.toLowerCase() === "button") {
 							let folders = child.getElementsByClassName('ActionList-item-label');
-							if (folders.length == 1) {
-								const folder_name = folders[0].innerHTML.trim();
-								filename = folder_name + "/" + filename;
+							if (folders.length === 1) {
+								const folderName = folders[0].innerHTML.trim();
+								filename = `${folderName}/${filename}`;
 							}
 						}
 					}
-					depth++;
 					element = anc.parentElement;
+					anc = element.closest("ul");
 				}
 				const hashedFilename = await sha256(filename);
 				if (encryptedFileNames.has(hashedFilename)) {
 					item.style.backgroundColor = '#7a7e00';
 				}
 			}
-		})
+		}
 	}
 }
 
+// highlighting the files in pr for bitbucket 
+async function FilesInPrBitbucket(response) {
+	let lastKnownScrollPosition = 0;
+	let currentScrollPosition = 0;
+	let ticking = false;
+	document.addEventListener('scroll', () => {
+		currentScrollPosition = window.scrollY;
+		if (!ticking) {
+			window.requestAnimationFrame(() => {
+				if (currentScrollPosition - lastKnownScrollPosition > 100) {
+					if ("relevant" in response) {
+						const encryptedFileNames = new Set(response['relevant']);
+						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"))
+						lastKnownScrollPosition = currentScrollPosition;
+						fileNav.forEach(async (element) => {
+							const h3Element = element.querySelector('h3');
+							const spanElement = Array.from(h3Element.querySelectorAll('span'));
+							const elementHeading = spanElement.length == 1 ? spanElement[0] : spanElement[spanElement.length - 1];
+							const spanText = elementHeading.textContent;
+
+							const hashFileName = await sha256(spanText);
+							if (encryptedFileNames.includes(hashFileName)) {
+								if (spanElement.length == 1) {
+									const changeBgColor = element.getElementsByClassName('css-10sfmq2')[0];
+									changeBgColor.style.backgroundColor = '#c5cc02';
+								} else {
+									const value = elementHeading.parentNode.parentNode.parentNode.parentNode.parentNode;
+									const value2 = value.children[0];
+									value2.style.backgroundColor = '#c5cc02';
+								}
+							}
+						})
+					}
+				}
+				ticking = false;
+			});
+			ticking = true;
+		}
+	});
+}
+
+
 const orchestrator = (tab_url, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tab_url}`);
-	let urlObj = tab_url.split('?')[0].split('/');
+	const urlObj = tab_url.split('?')[0].split('/');
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
@@ -340,7 +406,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 						"is_github": true
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
-					let response = await apiCall(url, body);
+					const response = await apiCall(url, body);
 					showImpFileInPr(response);
 				}
 			}
@@ -350,20 +416,54 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
 				// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
 				const org_name = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
-				updateTrackedReposInOrgGitHub(org_name, websiteUrl, userId);
+				const body = { "org": org_name, "userId": userId, "is_github": true }
+				const url = `${backendUrl}/setup/repos`;
+				const response = await apiCall(url, body);
+				updateTrackedReposInOrgGitHub(response['repos'], websiteUrl);
 			}
 		}
 
-		if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
-			const body = {
-				"repo_owner": urlObj[3],
-				"repo_name": urlObj[4],
-				"user_id": userId,
-				"is_github": false
+		if (urlObj[2] === 'bitbucket.org') {
+			// for showing tracked repo of a organization 
+			if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
+				const workspace_slug = urlObj[3];
+				const body = { "org": workspace_slug, "userId": userId, "is_github": false }
+				const url = `${backendUrl}/setup/repos`;
+
+				const response = await apiCall(url, body);
+				updateTrackedReposInBitbucketOrg(response, websiteUrl);
 			}
-			const url = `${backendUrl}/relevance/pr`;
-			let highlightedPRIds = await apiCall(url, body);
-			addCssElementToBitbucket(highlightedPRIds);
+
+			if (urlObj[5] === "pull-requests") {
+				const owner_name = urlObj[3];
+				const repo_name = urlObj[4];
+				// for showing tracked pr of a repo 
+				if (!urlObj[6]) {
+					const body = {
+						"repo_owner": owner_name,
+						"repo_name": repo_name,
+						"user_id": userId,
+						"is_github": false
+					}
+					const url = `${backendUrl}/relevance/pr`;
+					const highlightedPRIds = await apiCall(url, body);
+					addCssElementToBitbucket(highlightedPRIds);
+				}
+				// for showing highlighted file in single pr
+				else if (urlObj[6]) {
+					const pr_number = urlObj[6];
+					const body = {
+						"repo_owner": owner_name,
+						"repo_name": repo_name,
+						"user_id": userId,
+						"pr_number": pr_number,
+						"is_github": false
+					}
+					const url = `${backendUrl}/relevance/pr/files`;
+					const response = await apiCall(url, body);
+					FilesInPrBitbucket(response);
+				}
+			}
 		}
 	})
 };
