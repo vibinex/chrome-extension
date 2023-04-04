@@ -294,7 +294,6 @@ async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl) {
 async function showImpFileInPr(response) {
 	if ("relevant" in response) {
 		const encryptedFileNames = new Set(response['relevant']);
-		console.log('The Response is', response);
 		const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
 		if (!fileNav) return;
 		const fileList = Array.from(fileNav.getElementsByTagName('li'));
