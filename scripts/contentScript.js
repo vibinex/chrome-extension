@@ -245,7 +245,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 }
 
 // adding css elements based up the data getting from api
-function getHighlightedPR(highlightedPRIds) {
+function highlightRelevantPRs(highlightedPRIds) {
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
@@ -334,11 +334,11 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
 	}
 	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
-		const owner_name = urlObj[3];
-		const repo_name = urlObj[4];
 		if (urlObj[2] == 'github.com') {
 			if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 				// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
+				const owner_name = urlObj[3];
+				const repo_name = urlObj[4];
 				showFloatingActionButton(owner_name, repo_name, userId, websiteUrl);
 
 				if (urlObj[5] === 'pulls') {
@@ -351,7 +351,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 					}
 					const url = `${backendUrl}/relevance/pr`;
 					const highlightedPRIds = await apiCall(url, body);
-					getHighlightedPR(highlightedPRIds);
+					highlightRelevantPRs(highlightedPRIds);
 				}
 				if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
 					const pr_number = urlObj[6];
@@ -378,7 +378,6 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 		}
 
 		if (urlObj[2] === "bitbucket.org" && urlObj[5] === "pull-requests") {
-
 			const body = {
 				"repo_owner": owner_name,
 				"repo_name": repo_name,
