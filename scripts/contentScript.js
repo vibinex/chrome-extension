@@ -138,10 +138,17 @@ async function sha256(value) {
 }
 
 // for showing all tracked/ untrack pr in a organization
-async function getTrackedRepos(orgName, userId) {
+async function getTrackedRepos(orgName, userId, is_github) {
 	const { backendUrl } = await chrome.storage.sync.get(["backendUrl"]);
-	const body = { "org": orgName, "userId": userId }
-	const url = `${backendUrl}/setup/repos`;
+	let body = {};
+	let url = ''
+	if (is_github != null && is_github) {
+		body = { "org": orgName, "userId": userId }
+		url = `${backendUrl}/github/setup/repos`;
+	} else {
+		body = { "workspace_slug": orgName, "userId": userId }
+		url = `${backendUrl}/bitbucket/setup/repos`;
+	}
 	const trackedRepos = await apiCall(url, body);
 	return trackedRepos['repos'];
 }
@@ -283,8 +290,8 @@ function highlightRelevantPRs(highlightedPRIds) {
 };
 
 // adding favButton
-async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl) {
-	const trackedRepoList = await getTrackedRepos(orgName, userId);
+async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl, is_github) {
+	const trackedRepoList = await getTrackedRepos(orgName, userId, is_github);
 	if (!trackedRepoList.includes(orgRepo)) {
 		createElement("add", websiteUrl);
 	}
@@ -381,7 +388,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
 				const owner_name = urlObj[3];
 				const repo_name = urlObj[4];
-				showFloatingActionButton(owner_name, repo_name, userId, websiteUrl);
+				showFloatingActionButton(owner_name, repo_name, userId, websiteUrl, is_github=true);
 
 				if (urlObj[5] === 'pulls') {
 					// show relevant PRs
@@ -416,7 +423,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
 				const org_name = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
 				const body = { "org": org_name, "userId": userId, "is_github": true }
-				const url = `${backendUrl}/setup/repos`;
+				const url = `${backendUrl}/github/setup/repos`;
 				const response = await apiCall(url, body);
 				updateTrackedReposInOrgGitHub(response['repos'], websiteUrl);
 			}
@@ -426,8 +433,8 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 			// for showing tracked repo of a organization 
 			if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
 				const workspace_slug = urlObj[3];
-				const body = { "org": workspace_slug, "userId": userId, "is_github": false }
-				const url = `${backendUrl}/setup/repos`;
+				const body = { "workspace_slug": workspace_slug, "userId": userId, "is_github": false }
+				const url = `${backendUrl}/bitbucket/setup/repos`;
 
 				const response = await apiCall(url, body);
 				updateTrackedReposInBitbucketOrg(response.repos, websiteUrl);
