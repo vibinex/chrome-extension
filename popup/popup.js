@@ -45,9 +45,9 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				userName: user.name,
 				userImage: user.image
 			}).then(() => {
-				console.debug(`[session] userId has been set to ${user.id}`);
+				console.debug(`[popup] userId has been set to ${user.id}`);
 			}).catch(err => {
-				console.error(`[session] Sync storage could not be set. userId: ${user.id}`, err);
+				console.error(`[popup] Sync storage could not be set. userId: ${user.id}`, err);
 			})
 		} else {
 			// no session means user not logged in
