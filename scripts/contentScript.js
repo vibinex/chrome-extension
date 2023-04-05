@@ -152,7 +152,7 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
 
 	trs.forEach((item) => {
 		const text = Array.from(item.getElementsByTagName('a'));
-		if (trackedRepos.length >= 2 && trackedRepos.includes(text[1].innerHTML)) {
+		if (text.length >= 2 && trackedRepos.includes(text[1].innerHTML)) {
 			const img = document.createElement("img");
 			img.setAttribute('class', 'trackLogo');
 			const beforePsuedoElement = document.createElement('a');
