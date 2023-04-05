@@ -45,9 +45,9 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				userName: user.name,
 				userImage: user.image
 			}).then(() => {
-				console.debug(`[contentScript] userId has been set to ${user.id}`);
+				console.debug(`[popup] userId has been set to ${user.id}`);
 			}).catch(err => {
-				console.error(`[contentScript] Sync storage could not be set. userId: ${user.id}`, err);
+				console.error(`[popup] Sync storage could not be set. userId: ${user.id}`, err);
 			})
 		} else {
 			// no session means user not logged in
@@ -57,7 +57,6 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 });
 
 window.addEventListener('load', () => {
-	console.log(document.readyState);
 	const manifestData = chrome.runtime.getManifest();
 	const version_p = document.getElementById("version")
 	version_p.innerHTML = "v" + manifestData.version;

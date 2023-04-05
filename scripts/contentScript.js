@@ -58,7 +58,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	redirectLink.style.bottom = '45px';
 	redirectLink.style.zIndex = '200';
 	if (type === "add") {
-		redirectLink.href = `${websiteUrl}/instruction_to_setup`;
+		redirectLink.href = `${websiteUrl}/docs/setup`;
 	}
 	redirectLink.appendChild(loadingGif);
 	redirectLink.appendChild(img);
@@ -152,7 +152,7 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
 
 	trs.forEach((item) => {
 		const text = Array.from(item.getElementsByTagName('a'));
-		if (trackedRepos.includes(text[1].innerHTML)) {
+		if (text.length >= 2 && trackedRepos.includes(text[1].innerHTML)) {
 			const img = document.createElement("img");
 			img.setAttribute('class', 'trackLogo');
 			const beforePsuedoElement = document.createElement('a');
@@ -430,7 +430,7 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				const url = `${backendUrl}/setup/repos`;
 
 				const response = await apiCall(url, body);
-				updateTrackedReposInBitbucketOrg(response, websiteUrl);
+				updateTrackedReposInBitbucketOrg(response.repos, websiteUrl);
 			}
 
 			if (urlObj[5] === "pull-requests") {
