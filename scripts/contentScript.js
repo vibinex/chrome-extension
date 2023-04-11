@@ -138,10 +138,23 @@ async function sha256(value) {
 }
 
 // for showing all tracked/ untrack pr in a organization
-async function getTrackedRepos(orgName, userId) {
+async function getTrackedRepos(orgName, userId, repoHost) {
 	const { backendUrl } = await chrome.storage.sync.get(["backendUrl"]);
-	const body = { "org": orgName, "userId": userId }
-	const url = `${backendUrl}/setup/repos`;
+	let body = {};
+	let url = ''
+	switch (repoHost) {
+		case 'github':
+			body = { org: orgName, userId: userId, is_github: true }
+			url = `${backendUrl}/github/setup/repos`;
+			break;
+		case 'bitbucket':
+			body = { workspace_slug: orgName, userId: userId, is_github: false }
+			url = `${backendUrl}/bitbucket/setup/repos`;
+			break;
+		default:
+			console.warn(`[getTrackedRepos] Invalid repoHost provided: ${repoHost}`);
+			break;
+	}
 	const trackedRepos = await apiCall(url, body);
 	return trackedRepos['repos'];
 }
@@ -216,9 +229,9 @@ function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(86, 88, 0)';
 	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
-	const row_element = document.getElementById(`issue_${elementId}`);
-	if (row_element && row_element != null) {
-		row_element.style.backgroundColor = backgroundColor;
+	const rowElement = document.getElementById(`issue_${elementId}`);
+	if (rowElement && rowElement != null) {
+		rowElement.style.backgroundColor = backgroundColor;
 		const element = document.head.appendChild(document.createElement("style"));
 		// TODO: a better approach would be create a constant CSS for a class, and add the class to the elements in consideration
 		element.innerHTML = `#issue_${elementId}_link::before{
@@ -283,8 +296,8 @@ function highlightRelevantPRs(highlightedPRIds) {
 };
 
 // adding favButton
-async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl) {
-	const trackedRepoList = await getTrackedRepos(orgName, userId);
+async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl, repoHost) {
+	const trackedRepoList = await getTrackedRepos(orgName, userId, repoHost);
 	if (!trackedRepoList.includes(orgRepo)) {
 		createElement("add", websiteUrl);
 	}
@@ -368,9 +381,9 @@ async function FilesInPrBitbucket(response) {
 }
 
 
-const orchestrator = (tab_url, websiteUrl, userId) => {
-	console.debug(`[vibinex-orchestrator] updated url: ${tab_url}`);
-	const urlObj = tab_url.split('?')[0].split('/');
+const orchestrator = (tabUrl, websiteUrl, userId) => {
+	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
+	const urlObj = tabUrl.split('?')[0].split('/');
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
@@ -379,15 +392,15 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 		if (urlObj[2] == 'github.com') {
 			if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 				// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
-				const owner_name = urlObj[3];
-				const repo_name = urlObj[4];
-				showFloatingActionButton(owner_name, repo_name, userId, websiteUrl);
+				const ownerName = urlObj[3];
+				const repoName = urlObj[4];
+				showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'github');
 
 				if (urlObj[5] === 'pulls') {
 					// show relevant PRs
 					const body = {
-						"repo_owner": owner_name,
-						"repo_name": repo_name,
+						"repo_owner": ownerName,
+						"repo_name": repoName,
 						"user_id": userId,
 						"is_github": true
 					}
@@ -396,12 +409,12 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 					highlightRelevantPRs(highlightedPRIds);
 				}
 				if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
-					const pr_number = urlObj[6];
+					const prNumber = urlObj[6];
 					const body = {
-						"repo_owner": owner_name,
-						"repo_name": repo_name,
+						"repo_owner": ownerName,
+						"repo_name": repoName,
 						"user_id": userId,
-						"pr_number": pr_number,
+						"pr_number": prNumber,
 						"is_github": true
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
@@ -414,33 +427,28 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				(urlObj[3] && urlObj[4] == undefined) ||
 				(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
 				// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
-				const org_name = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
-				const body = { "org": org_name, "userId": userId, "is_github": true }
-				const url = `${backendUrl}/setup/repos`;
-				const response = await apiCall(url, body);
-				updateTrackedReposInOrgGitHub(response['repos'], websiteUrl);
+				const orgName = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
+				const trackedRepos = await getTrackedRepos(orgName, userId, 'github')
+				updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl);
 			}
 		}
 
 		if (urlObj[2] === 'bitbucket.org') {
 			// for showing tracked repo of a organization 
 			if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
-				const workspace_slug = urlObj[3];
-				const body = { "org": workspace_slug, "userId": userId, "is_github": false }
-				const url = `${backendUrl}/setup/repos`;
-
-				const response = await apiCall(url, body);
-				updateTrackedReposInBitbucketOrg(response.repos, websiteUrl);
+				const workspaceSlug = urlObj[3];
+				const trackedRepos = await getTrackedRepos(workspaceSlug, userId, 'bitbucket')
+				updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl);
 			}
 
 			if (urlObj[5] === "pull-requests") {
-				const owner_name = urlObj[3];
-				const repo_name = urlObj[4];
+				const ownerName = urlObj[3];
+				const repoName = urlObj[4];
 				// for showing tracked pr of a repo 
 				if (!urlObj[6]) {
 					const body = {
-						"repo_owner": owner_name,
-						"repo_name": repo_name,
+						"repo_owner": ownerName,
+						"repo_name": repoName,
 						"user_id": userId,
 						"is_github": false
 					}
@@ -450,12 +458,12 @@ const orchestrator = (tab_url, websiteUrl, userId) => {
 				}
 				// for showing highlighted file in single pr
 				else if (urlObj[6]) {
-					const pr_number = urlObj[6];
+					const prNumber = urlObj[6];
 					const body = {
-						"repo_owner": owner_name,
-						"repo_name": repo_name,
+						"repo_owner": ownerName,
+						"repo_name": repoName,
 						"user_id": userId,
-						"pr_number": pr_number,
+						"pr_number": prNumber,
 						"is_github": false
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
