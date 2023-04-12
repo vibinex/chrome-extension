@@ -3,10 +3,16 @@
 	margin: 0px;
 }
 
-#version {
-	text-align: right;
+footer {
+	display: flex;
+	flex-direction: row;
+	margin-top: 4px;
 	font-size: xx-small;
 	color: darkgray;
+}
+
+#rate_us_anchor {
+	flex-grow: 1;
 }
 
 a {
