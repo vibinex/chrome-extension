@@ -1,5 +1,5 @@
 chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
-	fetch(`${websiteUrl}/api/auth/providers`).then(async (res) => {
+	fetch(`${websiteUrl}/api/auth/providers`, { cache: 'no-store' }).then(async (res) => {
 		const providers = await res.json();
 		const loginDiv = document.getElementById("login-div");
 		for (const provider of Object.values(providers)) {
@@ -18,7 +18,7 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 		}
 	})
 
-	fetch(`${websiteUrl}/api/auth/csrf`).then(async (res) => {
+	fetch(`${websiteUrl}/api/auth/csrf`, { cache: 'no-store' }).then(async (res) => {
 		const json = await res.json();
 		const csrf = json.csrfToken;
 		const csrf_input_elements = document.getElementsByClassName("csrfToken");
@@ -27,7 +27,7 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 		}
 	});
 
-	fetch(`${websiteUrl}/api/auth/session`).then(async (res) => {
+	fetch(`${websiteUrl}/api/auth/session`, { cache: 'no-store' }).then(async (res) => {
 		const json = await res.json();
 		document.querySelector("#loading-div").style.display = "none";
 		if (json.user) {
