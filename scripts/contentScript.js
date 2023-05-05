@@ -380,6 +380,35 @@ async function FilesInPrBitbucket(response) {
 	});
 }
 
+const githubLineHighlight = (apiResponses) => {
+
+	let getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
+	getFileName.forEach(async (item, index) => {
+		let fileName = item.getAttribute('data-tagsearch-path');
+		if (fileName) {
+
+			let matchEncrypted = await sha256(fileName);
+			let foundFile = apiResponses.some(item => item.filepath === matchEncrypted)
+
+			if (foundFile) {
+				let value = Array.from(item.getElementsByTagName('tr'));
+				value.forEach((items, index) => {
+					let secondRow = Array.from(items.getElementsByTagName('td'));
+					secondRow.forEach((item, index) => {
+						let buttonId = item.querySelector('button[data-line]');
+						if (buttonId) {
+							let dataLineValue = buttonId.getAttribute('data-line');
+							if (dataLineValue == foundFile.line) {
+								items.style.backgroundColor = 'rgb(86, 88, 0)';
+							}
+						}
+					})
+				})
+			}
+		}
+	})
+
+}
 
 const orchestrator = (tabUrl, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
@@ -420,6 +449,20 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
 					showImpFileInPr(response);
+				}
+
+				if (urlObj[5] = 'pull' && (urlObj[7] == 'commits' || urlObj[7] == 'files' || urlObj[7] == 'file')) {
+					const prNumber = urlObj[6];
+					const body = {
+						"repo_owner": ownerName,
+						"repo_name": repoName,
+						"user_id": userId,
+						"pr_number": prNumber,
+						"is_github": true
+					}
+					const url = `${backendUrl}/relevance/hunkinfo`;
+					const response = await apiCall(url, body);
+					githubLineHighlight(response);
 				}
 			}
 			// for showing all tracked repo
