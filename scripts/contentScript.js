@@ -380,26 +380,45 @@ async function FilesInPrBitbucket(response) {
 	});
 }
 
-const githubLineHighlight = (apiResponses) => {
+const githubHunkHighlight = async (apiResponses) => {
 
+	// Todo : optomization needed to not highlight next deleted line space if not present in response. 
 	let getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
-	getFileName.forEach(async (item, index) => {
-		let fileName = item.getAttribute('data-tagsearch-path');
-		if (fileName) {
+	getFileName.forEach(async (item) => {
+		let FileContent = item.getAttribute('data-tagsearch-path');
+		if (FileContent) {
 
-			let matchEncrypted = await sha256(fileName);
-			let foundFile = apiResponses.some(item => item.filepath === matchEncrypted)
+			let matchEncrypted = await sha256(FileContent);
+			let foundFile = apiResponses.some(item => item.filepath === matchEncrypted);
 
 			if (foundFile) {
 				let value = Array.from(item.getElementsByTagName('tr'));
-				value.forEach((items, index) => {
+				let changeBg = false;
+
+				value.forEach((items) => {
 					let secondRow = Array.from(items.getElementsByTagName('td'));
-					secondRow.forEach((item, index) => {
+					secondRow.forEach((item) => {
 						let buttonId = item.querySelector('button[data-line]');
 						if (buttonId) {
 							let dataLineValue = buttonId.getAttribute('data-line');
-							if (dataLineValue == foundFile.line) {
-								items.style.backgroundColor = 'rgb(86, 88, 0)';
+							let tableContent = items.querySelector("td[data-split-side='left']");
+							if (tableContent) {
+								let checkDelete = tableContent.querySelector("span[data-code-marker='-']");
+								if (checkDelete) {
+									if (dataLineValue == foundFile.line) {
+										changeBg = true;
+										items.style.backgroundColor = 'rgb(86, 88, 0)';
+									}
+								}
+							}
+
+							if (tableContent) {
+								if (tableContent.innerHTML === '') {
+									if (changeBg) {
+										items.style.backgroundColor = 'rgb(86, 88, 0)';
+									}
+
+								}
 							}
 						}
 					})
@@ -407,7 +426,6 @@ const githubLineHighlight = (apiResponses) => {
 			}
 		}
 	})
-
 }
 
 const orchestrator = (tabUrl, websiteUrl, userId) => {
@@ -462,7 +480,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					}
 					const url = `${backendUrl}/relevance/hunkinfo`;
 					const response = await apiCall(url, body);
-					githubLineHighlight(response);
+					githubHunkHighlight(response);
 				}
 			}
 			// for showing all tracked repo
