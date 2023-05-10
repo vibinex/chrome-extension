@@ -428,6 +428,47 @@ const githubHunkHighlight = async (apiResponses) => {
 	})
 }
 
+const bitBucketHunkHighlight = (apiResponses) => {
+
+	const articles = document.querySelectorAll('article[aria-label^="Diff of file"]');
+	articles.forEach(async (article) => {
+		const ariaLabel = article.getAttribute('aria-label');
+		const fileName = ariaLabel.substring(13);
+
+		let matchEncrypted = await sha256(fileName);
+		let foundFile = apiResponses.some(item => item.filepath === matchEncrypted);
+
+		if (foundFile) {
+			const linesWrappe = article.querySelectorAll('.lines-wrapper');
+			linesWrappe.forEach((item) => {
+				const toLineElements = item.querySelectorAll('a[aria-label^="To line"]');
+				const FromLineElements = item.querySelectorAll('a[aria-label^="From line"]');
+
+				FromLineElements.forEach((FromLineElement) => {
+					const ariaLabel = FromLineElement.getAttribute('aria-label');
+					const lineNumber = ariaLabel.substring(8);
+					console.log(lineNumber);
+					if (lineNumber == `e ${foundFile.line}`) {
+						FromLineElement.style.backgroundColor = '#c9cbff';
+					}
+				});
+
+				toLineElements.forEach((toLineElement) => {
+					const ariaLabel = toLineElement.getAttribute('aria-label');
+					const lineNumber = ariaLabel.substring(8);
+					console.log(lineNumber);
+					if (lineNumber == foundFile.line) {
+						toLineElement.style.backgroundColor = '#c9cbff';
+					}
+				});
+
+			})
+
+		}
+	});
+}
+
+
 const orchestrator = (tabUrl, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
 	const urlObj = tabUrl.split('?')[0].split('/');
@@ -517,7 +558,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const highlightedPRIds = await apiCall(url, body);
 					addCssElementToBitbucket(highlightedPRIds);
 				}
-				// for showing highlighted file in single pr
+				// for showing highlighted file in single pr and also for hunkLevel highlight 
 				else if (urlObj[6]) {
 					const prNumber = urlObj[6];
 					const body = {
@@ -530,6 +571,10 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
 					FilesInPrBitbucket(response);
+					// for hunk level high light of each file 
+					const hunkUrl = `${backendUrl}/relevance/hunkinfo`;
+					const hunkResponse = await apiCall(hunkUrl, body);
+					bitBucketHunkHighlight(hunkResponse);
 				}
 			}
 		}
