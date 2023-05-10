@@ -382,15 +382,24 @@ async function FilesInPrBitbucket(response) {
 
 const githubHunkHighlight = async (apiResponses) => {
 
-	// Todo : optomization needed to not highlight next deleted line space if not present in response. 
+	// Todo : optomization needed to not highlight next deleted line space if not present in response.
+	console.log("api responses = ", apiResponses);
 	let getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
 	getFileName.forEach(async (item) => {
 		let FileContent = item.getAttribute('data-tagsearch-path');
 		if (FileContent) {
 
 			let matchEncrypted = await sha256(FileContent);
-			let foundFile = apiResponses.some(item => item.filepath === matchEncrypted);
-
+			let foundFile = null;
+			console.log(matchEncrypted);
+			for (k in apiResponses["hunkinfo"]) {
+				let item = apiResponses["hunkinfo"][k];
+				console.log("item file = ", item.file);
+				if (item.file === matchEncrypted) {
+					foundFile = item;
+				}
+			}
+			console.log("foundfile line= ", foundFile.line);
 			if (foundFile) {
 				let value = Array.from(item.getElementsByTagName('tr'));
 				let changeBg = false;
@@ -405,6 +414,11 @@ const githubHunkHighlight = async (apiResponses) => {
 							if (tableContent) {
 								let checkDelete = tableContent.querySelector("span[data-code-marker='-']");
 								if (checkDelete) {
+									console.log("secondRow = ", secondRow);
+									console.log("buttonid = ", buttonId);
+									console.log("tableContent = ", tableContent);
+									console.log("checkDelete = ", checkDelete);
+									console.log("dataLineValue = ", dataLineValue);
 									if (dataLineValue == foundFile.line) {
 										changeBg = true;
 										items.style.backgroundColor = 'rgb(86, 88, 0)';
@@ -516,8 +530,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"pr_number": prNumber,
-						"is_github": true
+						"pr_number": parseInt(prNumber),
+						"repo_provider": "github"
 					}
 					const url = `${backendUrl}/relevance/hunkinfo`;
 					const response = await apiCall(url, body);
