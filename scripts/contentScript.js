@@ -570,7 +570,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					showImpFileInPr(response);
 				}
 
-				if (urlObj[5] = 'pull' && (urlObj[7] == 'commits' || urlObj[7] == 'files' || urlObj[7] == 'file')) {
+				if (urlObj[5] = 'pull' && urlObj[6] && urlObj[7] == 'files') {
 					const prNumber = urlObj[6];
 					const body = {
 						"repo_owner": ownerName,
