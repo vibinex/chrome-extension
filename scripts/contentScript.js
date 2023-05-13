@@ -382,95 +382,150 @@ async function FilesInPrBitbucket(response) {
 
 const githubHunkHighlight = async (apiResponses) => {
 
-	// Todo : optomization needed to not highlight next deleted line space if not present in response.
+	// TODO: optimization  needed to not highlight next deleted line space if not present in response.
 	let getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
 	getFileName.forEach(async (item) => {
-		let FileContent = item.getAttribute('data-tagsearch-path');
-		if (FileContent) {
+		let fileContent = item.getAttribute('data-tagsearch-path');
+		if (fileContent) {
 
-			let matchEncrypted = await sha256(FileContent);
-			let foundFile = null;
-			for (k in apiResponses["hunkinfo"]) {
-				let item = apiResponses["hunkinfo"][k];
-				if (item.file === matchEncrypted) {
-					foundFile = item;
-				}
-			}
+			const matchEncrypted = await sha256(fileContent);
+			const foundFile = apiResponses.find(item => item.filepath === matchEncrypted);
+
 			if (foundFile) {
-				let value = Array.from(item.getElementsByTagName('tr'));
-				let changeBg = false;
+				// checking for Diff view either undefined or split 
+				const deletedLines = document.querySelectorAll('input[value]');
+				let diffView = false;
+				deletedLines.forEach((item) => {
+					const getValue = item.getAttribute('value');
+					const getName = item.getAttribute('checked');
 
-				value.forEach((items) => {
-					let secondRow = Array.from(items.getElementsByTagName('td'));
-					secondRow.forEach((item) => {
-						let buttonId = item.querySelector('button[data-line]');
-						if (buttonId) {
-							let dataLineValue = buttonId.getAttribute('data-line');
-							let tableContent = items.querySelector("td[data-split-side='left']");
-							if (tableContent) {
-								let checkDelete = tableContent.querySelector("span[data-code-marker='-']");
-								if (checkDelete) {
-									if (dataLineValue >= foundFile.line_start && dataLineValue <= foundFile.line_end) {
-										changeBg = true;
-										items.style.backgroundColor = 'rgb(86, 88, 0)';
-									}
-								}
-							}
-
-							if (tableContent) {
-								if (tableContent.innerHTML === '') {
-									if (changeBg) {
-										items.style.backgroundColor = 'rgb(86, 88, 0)';
-									}
-
-								}
-							}
+					if (getValue == 'unified' || getValue == 'split') {
+						if (getName == 'checked' && getValue == 'unified') {
+							diffView = true; // for undefined View
 						}
+
+					}
+
+				});
+
+				const value = Array.from(item.getElementsByTagName('tr'));
+
+				if (diffView) {
+					// for undefined View 
+					let flag = false;
+					value.forEach((item, index) => {
+						const deletedLines = item.querySelector('button[data-original-line]')
+						if (deletedLines !== null) {
+							const originalLine = deletedLines.getAttribute('data-original-line');
+							const signature = originalLine.charAt(0);
+							const tableNumber = item.querySelector('td[data-line-number]');
+							const checkNumber = tableNumber.getAttribute('data-line-number');
+							if ((signature == '-' || signature == '+') && checkNumber >= foundFile.line_start && checkNumber <= foundFile.line_end) {
+								flag = true;
+							} else {
+								flag = false;
+							}
+
+							if (flag) {
+								item.style.backgroundColor = 'rgb(86, 88, 0)';
+							}
+
+						}
+					});
+
+				} else {
+					// for split view 
+					let changeBg = false;
+					value.forEach((items) => {
+						const secondRow = Array.from(items.getElementsByTagName('td'));
+						secondRow.forEach((item) => {
+							const buttonId = item.querySelector('button[data-line]');
+							if (buttonId) {
+								const dataLineValue = buttonId.getAttribute('data-line');
+								const tableContent = items.querySelector("td[data-split-side='left']");
+								if (tableContent) {
+									const checkDelete = tableContent.querySelector("span[data-code-marker='-']");
+									if (checkDelete) {
+										if (dataLineValue >= foundFile.line_start && dataLineValue <= foundFile.line_end) {
+											changeBg = true;
+											items.style.backgroundColor = 'rgb(86, 88, 0)';
+										}
+									}
+								}
+
+								if (tableContent) {
+									if (tableContent.innerHTML === '') {
+										if (changeBg) {
+											items.style.backgroundColor = 'rgb(86, 88, 0)';
+										}
+
+									}
+								}
+							}
+						})
 					})
-				})
+				}
+
+
 			}
 		}
 	})
 }
 
 const bitBucketHunkHighlight = (apiResponses) => {
+	let lastKnownScrollPosition = 0;
+	let currentScrollPosition = 0;
+	let ticking = false;
+	document.addEventListener('scroll', () => {
+		currentScrollPosition = window.scrollY;
+		if (!ticking) {
+			window.requestAnimationFrame(() => {
+				if (currentScrollPosition - lastKnownScrollPosition > 100) {
 
-	const articles = document.querySelectorAll('article[aria-label^="Diff of file"]');
-	articles.forEach(async (article) => {
-		const ariaLabel = article.getAttribute('aria-label');
-		const fileName = ariaLabel.substring(13);
+					const articles = document.querySelectorAll('article[aria-label^="Diff of file"]');
+					articles.forEach(async (article) => {
+						const ariaLabel = article.getAttribute('aria-label');
+						const fileName = ariaLabel.substring(13); // beacuse ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
 
-		let matchEncrypted = await sha256(fileName);
-		let foundFile = apiResponses.some(item => item.filepath === matchEncrypted);
+						const matchEncrypted = await sha256(fileName);
+						const foundFile = apiResponses.some(item => item.filepath === matchEncrypted);
 
-		if (foundFile) {
-			const linesWrappe = article.querySelectorAll('.lines-wrapper');
-			linesWrappe.forEach((item) => {
-				const toLineElements = item.querySelectorAll('a[aria-label^="To line"]');
-				const FromLineElements = item.querySelectorAll('a[aria-label^="From line"]');
+						if (foundFile) {
+							const linesWrapper = article.querySelectorAll('.lines-wrapper');
+							linesWrapper.forEach((item) => {
+								const toLineElements = item.querySelectorAll('a[aria-label^="To line"]');
+								const fromLineElements = item.querySelectorAll('a[aria-label^="From line"]');
 
-				FromLineElements.forEach((FromLineElement) => {
-					const ariaLabel = FromLineElement.getAttribute('aria-label');
-					const lineNumber = ariaLabel.substring(8);
-					console.log(lineNumber);
-					if (lineNumber == `e ${foundFile.line}`) {
-						FromLineElement.style.backgroundColor = '#c9cbff';
-					}
-				});
+								fromLineElements.forEach((FromLineElement) => {
+									const ariaLabel = FromLineElement.getAttribute('aria-label');
+									const lineNumber = ariaLabel.substring(8); // because aria label = "To line 3273", so removing first 8 letters to get line number 
+									if (lineNumber == `e ${foundFile.line}`) {
+										FromLineElement.style.backgroundColor = '#c9cbff';
+									}
+								});
 
-				toLineElements.forEach((toLineElement) => {
-					const ariaLabel = toLineElement.getAttribute('aria-label');
-					const lineNumber = ariaLabel.substring(8);
-					console.log(lineNumber);
-					if (lineNumber == foundFile.line) {
-						toLineElement.style.backgroundColor = '#c9cbff';
-					}
-				});
+								toLineElements.forEach((toLineElement) => {
+									const ariaLabel = toLineElement.getAttribute('aria-label');
+									const lineNumber = ariaLabel.substring(8);// because aria label = "To line 3273", so removing first 8 letters to get line number 
+									if (lineNumber == foundFile.line) {
+										toLineElement.style.backgroundColor = '#c9cbff';
+									}
+								});
 
-			})
+							})
 
+						}
+					});
+				}
+				ticking = false;
+			});
+			ticking = true;
 		}
 	});
+
+
+
+
 }
 
 
