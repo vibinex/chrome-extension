@@ -6,6 +6,8 @@ const keyToLabel = Object.freeze({
 	'important': "Important"
 });
 
+const GH_RELEVANT_BG_COLOR = "rgb(86, 88, 0)";
+
 function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	let loadingIconID;
 	let imgUrl;
@@ -227,7 +229,7 @@ function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 }
 
 function addingCssElementToGithub(elementId, status, numRelevantFiles) {
-	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(86, 88, 0)';
+	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : GH_RELEVANT_BG_COLOR;
 	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
 	const rowElement = document.getElementById(`issue_${elementId}`);
 	if (rowElement && rowElement != null) {
@@ -380,6 +382,152 @@ async function FilesInPrBitbucket(response) {
 	});
 }
 
+const githubHunkHighlight = async (apiResponses) => {
+	// TODO: optimization needed to not highlight next deleted line space if not present in response.
+	const getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
+	getFileName.forEach(async (item) => {
+		let fileContent = item.getAttribute('data-tagsearch-path');
+		if (fileContent) {
+
+			const matchEncrypted = await sha256(fileContent);
+			const foundFile = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
+
+			if (foundFile) {
+				// checking for diff view either unified or split 
+				// TODO: We can identify the view once for all files at once instead of doing it for each file separately
+				const deletedLines = document.querySelectorAll('input[value]');
+				let diffView = false;
+				deletedLines.forEach((item) => {
+					const getValue = item.getAttribute('value');
+					const getName = item.getAttribute('checked');
+
+					if (getValue == 'unified' || getValue == 'split') {
+						if (getName == 'checked' && getValue == 'unified') {
+							diffView = true; // for unified view
+						}
+
+					}
+
+				});
+
+				const value = Array.from(item.getElementsByTagName('tr'));
+
+				if (diffView) {
+					// for unified view
+					let flag = false;
+					value.forEach((item, index) => {
+						const deletedLines = item.querySelector('button[data-original-line]')
+						if (deletedLines !== null) {
+							const originalLine = deletedLines.getAttribute('data-original-line');
+							const signature = originalLine.charAt(0);
+							const tableNumber = item.querySelector('td[data-line-number]');
+							const checkNumber = tableNumber.getAttribute('data-line-number');
+							if ((signature == '-' || signature == '+') && checkNumber >= foundFile.line_start && checkNumber <= foundFile.line_end) {
+								flag = true;
+							} else {
+								flag = false;
+							}
+
+							if (flag) {
+								item.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+							}
+
+						}
+					});
+
+				} else {
+					// for split view 
+					let changeBg = false;
+					value.forEach((items) => {
+						const secondRow = Array.from(items.getElementsByTagName('td'));
+						secondRow.forEach((item) => {
+							const buttonId = item.querySelector('button[data-line]');
+							if (buttonId) {
+								const dataLineValue = buttonId.getAttribute('data-line');
+								const tableContent = items.querySelector("td[data-split-side='left']");
+								if (tableContent) {
+									const checkDelete = tableContent.querySelector("span[data-code-marker='-']");
+									if (checkDelete) {
+										if (dataLineValue >= foundFile.line_start && dataLineValue <= foundFile.line_end) {
+											changeBg = true;
+											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+										}
+									}
+								}
+
+								if (tableContent) {
+									if (tableContent.innerHTML === '') {
+										if (changeBg) {
+											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+										}
+
+									}
+								}
+							}
+						})
+					})
+				}
+			}
+		}
+	})
+}
+
+const bitBucketHunkHighlight = (apiResponses) => {
+	let lastKnownScrollPosition = 0;
+	let currentScrollPosition = 0;
+	let ticking = false;
+	document.addEventListener('scroll', () => {
+		currentScrollPosition = window.scrollY;
+		if (!ticking) {
+			window.requestAnimationFrame(() => {
+				if (currentScrollPosition - lastKnownScrollPosition > 100) {
+
+					const articles = document.querySelectorAll('article[aria-label^="Diff of file"]');
+					articles.forEach(async (article) => {
+						const ariaLabel = article.getAttribute('aria-label');
+						const fileName = ariaLabel.substring(13); // beacuse ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
+
+						const matchEncrypted = await sha256(fileName);
+						const foundFile = apiResponses.some(item => item.filepath === matchEncrypted);
+
+						if (foundFile) {
+							const linesWrapper = article.querySelectorAll('.lines-wrapper');
+							linesWrapper.forEach((item) => {
+								const toLineElements = item.querySelectorAll('a[aria-label^="To line"]');
+								const fromLineElements = item.querySelectorAll('a[aria-label^="From line"]');
+
+								fromLineElements.forEach((FromLineElement) => {
+									const ariaLabel = FromLineElement.getAttribute('aria-label');
+									const lineNumber = ariaLabel.substring(8); // because aria label = "To line 3273", so removing first 8 letters to get line number 
+									if (lineNumber == `e ${foundFile.line}`) {
+										FromLineElement.style.backgroundColor = '#c9cbff';
+									}
+								});
+
+								toLineElements.forEach((toLineElement) => {
+									const ariaLabel = toLineElement.getAttribute('aria-label');
+									const lineNumber = ariaLabel.substring(8);// because aria label = "To line 3273", so removing first 8 letters to get line number 
+									if (lineNumber == foundFile.line) {
+										toLineElement.style.backgroundColor = '#c9cbff';
+									}
+								});
+
+							})
+
+						}
+					});
+				}
+				ticking = false;
+			});
+			ticking = true;
+		}
+	});
+
+
+
+
+}
+
 
 const orchestrator = (tabUrl, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
@@ -409,7 +557,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					highlightRelevantPRs(highlightedPRIds);
 				}
 				if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
-					const prNumber = urlObj[6];
+					const prNumber = parseInt(urlObj[6]);
 					const body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
@@ -420,6 +568,17 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
 					showImpFileInPr(response);
+
+					const hunk_info_body = {
+						"repo_owner": ownerName,
+						"repo_name": repoName,
+						"user_id": userId,
+						"pr_number": prNumber,
+						"repo_provider": "github"
+					}
+					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`;
+					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
+					githubHunkHighlight(hunk_info_response);
 				}
 			}
 			// for showing all tracked repo
@@ -456,7 +615,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const highlightedPRIds = await apiCall(url, body);
 					addCssElementToBitbucket(highlightedPRIds);
 				}
-				// for showing highlighted file in single pr
+				// for showing highlighted file in single pr and also for hunkLevel highlight 
 				else if (urlObj[6]) {
 					const prNumber = urlObj[6];
 					const body = {
@@ -469,6 +628,10 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
 					FilesInPrBitbucket(response);
+					// for hunk level high light of each file 
+					const hunkUrl = `${backendUrl}/relevance/hunkinfo`;
+					const hunkResponse = await apiCall(hunkUrl, body);
+					bitBucketHunkHighlight(hunkResponse);
 				}
 			}
 		}
