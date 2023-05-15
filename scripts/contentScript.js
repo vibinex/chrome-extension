@@ -488,7 +488,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 						const fileName = ariaLabel.substring(13); // beacuse ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
 
 						const matchEncrypted = await sha256(fileName);
-						const foundFile = apiResponses.some(item => item.filepath === matchEncrypted);
+						const foundFile = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
 
 						if (foundFile) {
 							const linesWrapper = article.querySelectorAll('.lines-wrapper');
@@ -623,6 +623,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_name": repoName,
 						"user_id": userId,
 						"pr_number": prNumber,
+						"repo_provider": 'bitbucket',
 						"is_github": false
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
