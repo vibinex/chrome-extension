@@ -228,7 +228,7 @@ function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 	})
 }
 
-function addingCssElementToGithub(elementId, status, numRelevantFiles) {
+function addingCssElementToGithub(elementId, status, changeInfo) {
 	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : GH_RELEVANT_BG_COLOR;
 	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
 	const rowElement = document.getElementById(`issue_${elementId}`);
@@ -238,7 +238,7 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 		// TODO: a better approach would be create a constant CSS for a class, and add the class to the elements in consideration
 		element.innerHTML = `#issue_${elementId}_link::before{
 		background-color:${tagBackgroundColor};
-		content: '${status} (${numRelevantFiles})';
+		content: '${changeInfo['num_hunks_changed']} changes';
 		color: white;
 		width: 12px;
 		height: 12px;
@@ -247,7 +247,7 @@ function addingCssElementToGithub(elementId, status, numRelevantFiles) {
 		margin-right: 10px;
 		padding-left: 5px;
 		padding-right: 5px;
-		padding-bottom: 2px;;}`;
+		padding-bottom: 2px;}`;
 	}
 };
 
@@ -255,7 +255,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 	const tables = document.getElementsByTagName('table')[0];
 	const allLinks = Array.from(tables.getElementsByTagName('a'));
 
-	function changingCss(id, status, numRelevantFiles = 1) {
+	function changingCss(id, status, changeInfo) {
 		const backgroundColor = status == 'Important' ? 'rgb(255, 186, 181)' : 'rgb(241, 245, 73)';
 		const tagBackgroundColor = status == 'Important' ? 'rgb(232, 15, 0)' : 'rgb(164, 167, 0)';
 		allLinks.forEach((item) => {
@@ -263,7 +263,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 			const prId = link[link.length - 1]; // getting the last element from url which is pr id. 
 			if (prId == id) {
 				const beforePsuedoElement = document.createElement('span');
-				beforePsuedoElement.innerText = `${status} (${numRelevantFiles})`;
+				beforePsuedoElement.innerText = `${status} (${changeInfo['num_hunks_changed']})`;
 				beforePsuedoElement.style.display = 'inline-block';
 				beforePsuedoElement.style.marginRight = '5px';
 				beforePsuedoElement.style.backgroundColor = `${tagBackgroundColor}`;
@@ -281,7 +281,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 	}
 	for (const priorityLevel in highlightedPRIds) {
 		for (const prNumber in highlightedPRIds[priorityLevel]) {
-			changingCss(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed']);
+			changingCss(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]);
 		}
 	}
 }
@@ -291,7 +291,7 @@ function highlightRelevantPRs(highlightedPRIds) {
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]['num_files_changed'])
+				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber])
 			}
 		}
 	}
@@ -617,7 +617,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				}
 				// for showing highlighted file in single pr and also for hunkLevel highlight 
 				else if (urlObj[6]) {
-					const prNumber = urlObj[6];
+					const prNumber = parstInt(urlObj[6]);
 					const body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
