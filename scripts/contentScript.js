@@ -557,7 +557,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					highlightRelevantPRs(highlightedPRIds);
 				}
 				if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
-					const prNumber = urlObj[6];
+					const prNumber = parseInt(urlObj[6]);
 					const body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
@@ -568,20 +568,17 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
 					showImpFileInPr(response);
-				}
 
-				if (urlObj[5] === 'pull' && urlObj[6] && urlObj[7] === 'files') {
-					const prNumber = parseInt(urlObj[6]);
-					const body = {
+					const hunk_info_body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
 						"pr_number": prNumber,
 						"repo_provider": "github"
 					}
-					const url = `${backendUrl}/relevance/hunkinfo`;
-					const response = await apiCall(url, body);
-					githubHunkHighlight(response);
+					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`;
+					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
+					githubHunkHighlight(hunk_info_response);
 				}
 			}
 			// for showing all tracked repo
