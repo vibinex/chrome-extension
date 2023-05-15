@@ -390,9 +390,9 @@ const githubHunkHighlight = async (apiResponses) => {
 		if (fileContent) {
 
 			const matchEncrypted = await sha256(fileContent);
-			const foundFile = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
+			const foundFiles = apiResponses["hunkinfo"].filter(item => item.file === matchEncrypted);
 
-			if (foundFile) {
+			if (foundFiles.length >= 0) {
 				// checking for diff view either unified or split 
 				// TODO: We can identify the view once for all files at once instead of doing it for each file separately
 				const deletedLines = document.querySelectorAll('input[value]');
@@ -422,22 +422,22 @@ const githubHunkHighlight = async (apiResponses) => {
 							const signature = originalLine.charAt(0);
 							const tableNumber = item.querySelector('td[data-line-number]');
 							const checkNumber = tableNumber.getAttribute('data-line-number');
-							if ((signature == '-' || signature == '+') && checkNumber >= foundFile.line_start && checkNumber <= foundFile.line_end) {
-								flag = true;
-							} else {
-								flag = false;
-							}
+							for (const foundFile of foundFiles) {
+								if ((signature == '-' || signature == '+') && checkNumber >= foundFile.line_start && checkNumber <= foundFile.line_end) {
+									flag = true;
+								} else {
+									flag = false;
+								}
 
-							if (flag) {
-								item.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+								if (flag) {
+									item.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+								}
 							}
-
 						}
 					});
 
 				} else {
 					// for split view 
-					let changeBg = false;
 					value.forEach((items) => {
 						const secondRow = Array.from(items.getElementsByTagName('td'));
 						secondRow.forEach((item) => {
@@ -445,22 +445,11 @@ const githubHunkHighlight = async (apiResponses) => {
 							if (buttonId) {
 								const dataLineValue = buttonId.getAttribute('data-line');
 								const tableContent = items.querySelector("td[data-split-side='left']");
-								if (tableContent) {
-									const checkDelete = tableContent.querySelector("span[data-code-marker='-']");
-									if (checkDelete) {
+								if ((tableContent.innerHTML === '') || (tableContent && tableContent.querySelector("span[data-code-marker='-']"))) {
+									for (const foundFile of foundFiles) {
 										if (dataLineValue >= foundFile.line_start && dataLineValue <= foundFile.line_end) {
-											changeBg = true;
 											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
 										}
-									}
-								}
-
-								if (tableContent) {
-									if (tableContent.innerHTML === '') {
-										if (changeBg) {
-											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
-										}
-
 									}
 								}
 							}
@@ -488,9 +477,9 @@ const bitBucketHunkHighlight = (apiResponses) => {
 						const fileName = ariaLabel.substring(13); // beacuse ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
 
 						const matchEncrypted = await sha256(fileName);
-						const foundFile = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
+						const foundFiles = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
 
-						if (foundFile) {
+						if (foundFiles) {
 							const linesWrapper = article.querySelectorAll('.lines-wrapper');
 							linesWrapper.forEach((item) => {
 								const toLineElements = item.querySelectorAll('a[aria-label^="To line"]');
@@ -499,7 +488,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 								fromLineElements.forEach((FromLineElement) => {
 									const ariaLabel = FromLineElement.getAttribute('aria-label');
 									const lineNumber = ariaLabel.substring(8); // because aria label = "To line 3273", so removing first 8 letters to get line number 
-									if (lineNumber == `e ${foundFile.line}`) {
+									if (lineNumber == `e ${foundFiles.line}`) {
 										FromLineElement.style.backgroundColor = '#c9cbff';
 									}
 								});
@@ -507,7 +496,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 								toLineElements.forEach((toLineElement) => {
 									const ariaLabel = toLineElement.getAttribute('aria-label');
 									const lineNumber = ariaLabel.substring(8);// because aria label = "To line 3273", so removing first 8 letters to get line number 
-									if (lineNumber == foundFile.line) {
+									if (lineNumber == foundFiles.line) {
 										toLineElement.style.backgroundColor = '#c9cbff';
 									}
 								});
