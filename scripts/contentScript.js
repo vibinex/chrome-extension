@@ -6,6 +6,8 @@ const keyToLabel = Object.freeze({
 	'important': "Important"
 });
 
+const GH_RELEVANT_BG_COLOR = "rgb(86, 88, 0)";
+
 function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	let loadingIconID;
 	let imgUrl;
@@ -227,7 +229,7 @@ function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 }
 
 function addingCssElementToGithub(elementId, status, numRelevantFiles) {
-	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(86, 88, 0)';
+	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : GH_RELEVANT_BG_COLOR;
 	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
 	const rowElement = document.getElementById(`issue_${elementId}`);
 	if (rowElement && rowElement != null) {
@@ -381,18 +383,18 @@ async function FilesInPrBitbucket(response) {
 }
 
 const githubHunkHighlight = async (apiResponses) => {
-
-	// TODO: optimization  needed to not highlight next deleted line space if not present in response.
-	let getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
+	// TODO: optimization needed to not highlight next deleted line space if not present in response.
+	const getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
 	getFileName.forEach(async (item) => {
 		let fileContent = item.getAttribute('data-tagsearch-path');
 		if (fileContent) {
 
 			const matchEncrypted = await sha256(fileContent);
-			const foundFile = apiResponses.find(item => item.filepath === matchEncrypted);
+			const foundFile = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
 
 			if (foundFile) {
-				// checking for Diff view either undefined or split 
+				// checking for diff view either unified or split 
+				// TODO: We can identify the view once for all files at once instead of doing it for each file separately
 				const deletedLines = document.querySelectorAll('input[value]');
 				let diffView = false;
 				deletedLines.forEach((item) => {
@@ -401,7 +403,7 @@ const githubHunkHighlight = async (apiResponses) => {
 
 					if (getValue == 'unified' || getValue == 'split') {
 						if (getName == 'checked' && getValue == 'unified') {
-							diffView = true; // for undefined View
+							diffView = true; // for unified view
 						}
 
 					}
@@ -411,7 +413,7 @@ const githubHunkHighlight = async (apiResponses) => {
 				const value = Array.from(item.getElementsByTagName('tr'));
 
 				if (diffView) {
-					// for undefined View 
+					// for unified view
 					let flag = false;
 					value.forEach((item, index) => {
 						const deletedLines = item.querySelector('button[data-original-line]')
@@ -427,7 +429,7 @@ const githubHunkHighlight = async (apiResponses) => {
 							}
 
 							if (flag) {
-								item.style.backgroundColor = 'rgb(86, 88, 0)';
+								item.style.backgroundColor = GH_RELEVANT_BG_COLOR;
 							}
 
 						}
@@ -448,7 +450,7 @@ const githubHunkHighlight = async (apiResponses) => {
 									if (checkDelete) {
 										if (dataLineValue >= foundFile.line_start && dataLineValue <= foundFile.line_end) {
 											changeBg = true;
-											items.style.backgroundColor = 'rgb(86, 88, 0)';
+											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
 										}
 									}
 								}
@@ -456,7 +458,7 @@ const githubHunkHighlight = async (apiResponses) => {
 								if (tableContent) {
 									if (tableContent.innerHTML === '') {
 										if (changeBg) {
-											items.style.backgroundColor = 'rgb(86, 88, 0)';
+											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
 										}
 
 									}
@@ -465,8 +467,6 @@ const githubHunkHighlight = async (apiResponses) => {
 						})
 					})
 				}
-
-
 			}
 		}
 	})
@@ -570,13 +570,13 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					showImpFileInPr(response);
 				}
 
-				if (urlObj[5] = 'pull' && urlObj[6] && urlObj[7] == 'files') {
-					const prNumber = urlObj[6];
+				if (urlObj[5] === 'pull' && urlObj[6] && urlObj[7] === 'files') {
+					const prNumber = parseInt(urlObj[6]);
 					const body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"pr_number": parseInt(prNumber),
+						"pr_number": prNumber,
 						"repo_provider": "github"
 					}
 					const url = `${backendUrl}/relevance/hunkinfo`;
