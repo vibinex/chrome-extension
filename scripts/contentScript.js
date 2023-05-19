@@ -60,7 +60,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	redirectLink.style.bottom = '45px';
 	redirectLink.style.zIndex = '200';
 	if (type === "add") {
-		redirectLink.href = `${websiteUrl}/docs/setup`;
+		redirectLink.href = `${websiteUrl}/docs`;
 	}
 	redirectLink.appendChild(loadingGif);
 	redirectLink.appendChild(img);
@@ -606,7 +606,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				}
 				// for showing highlighted file in single pr and also for hunkLevel highlight 
 				else if (urlObj[6]) {
-					const prNumber = parstInt(urlObj[6]);
+					const prNumber = parseInt(urlObj[6]);
 					const body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
