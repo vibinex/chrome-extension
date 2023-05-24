@@ -98,7 +98,7 @@ li {
 	width: 4rem;
 	height: 4rem;
 	border-radius: 50%;
-	margin-right: 0.5rem;
+	margin: 0.5rem;
 }
 
 #user_div {
@@ -138,6 +138,20 @@ li {
 
 .button:active {
 	background-color: #e4e4e7;
+}
+
+.producthunt_review_button {
+	width: 250px;
+	height: 54px;
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+.logout_button {
+	border: none;
+	background-color: transparent;
+	color: gray;
+	cursor: pointer;
 }
 
 .button>img {
