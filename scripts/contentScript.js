@@ -362,7 +362,7 @@ async function FilesInPrBitbucket(response) {
 							const spanText = elementHeading.textContent;
 
 							const hashFileName = await sha256(spanText);
-							if (encryptedFileNames.includes(hashFileName)) {
+							if (encryptedFileNames.has(hashFileName)) {
 								if (spanElement.length == 1) {
 									const changeBgColor = element.getElementsByClassName('css-10sfmq2')[0];
 									changeBgColor.style.backgroundColor = '#c5cc02';
@@ -484,11 +484,10 @@ const bitBucketHunkHighlight = (apiResponses) => {
 							linesWrapper.forEach((item) => {
 								const toLineElements = item.querySelectorAll('a[aria-label^="To line"]');
 								const fromLineElements = item.querySelectorAll('a[aria-label^="From line"]');
-
 								fromLineElements.forEach((FromLineElement) => {
 									const ariaLabel = FromLineElement.getAttribute('aria-label');
-									const lineNumber = ariaLabel.substring(8); // because aria label = "To line 3273", so removing first 8 letters to get line number 
-									if (lineNumber == `e ${foundFiles.line}`) {
+									const lineNumber = ariaLabel.substring(10); // because aria label = "From line 3273", so removing first 10 letters to get line number 
+									if (parseInt(lineNumber) >= parseInt(foundFiles.line_start) && parseInt(lineNumber) <= parseInt(foundFiles.line_end)) {
 										FromLineElement.style.backgroundColor = '#c9cbff';
 									}
 								});
@@ -496,7 +495,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 								toLineElements.forEach((toLineElement) => {
 									const ariaLabel = toLineElement.getAttribute('aria-label');
 									const lineNumber = ariaLabel.substring(8);// because aria label = "To line 3273", so removing first 8 letters to get line number 
-									if (lineNumber == foundFiles.line) {
+									if (parseInt(lineNumber) >= parseInt(foundFiles.line_start) && parseInt(lineNumber) <= parseInt(foundFiles.line_end)) {
 										toLineElement.style.backgroundColor = '#c9cbff';
 									}
 								});
