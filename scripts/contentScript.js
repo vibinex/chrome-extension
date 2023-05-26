@@ -488,7 +488,10 @@ const bitBucketHunkHighlight = (apiResponses) => {
 									const ariaLabel = FromLineElement.getAttribute('aria-label');
 									const lineNumber = ariaLabel.substring(10); // because aria label = "From line 3273", so removing first 10 letters to get line number 
 									if (parseInt(lineNumber) >= parseInt(foundFiles.line_start) && parseInt(lineNumber) <= parseInt(foundFiles.line_end)) {
-										FromLineElement.style.backgroundColor = '#c9cbff';
+										FromLineElement.style.backgroundColor = '#fce097'; // highlight line number 
+										let firstChild = item.firstElementChild;
+										firstChild.style.backgroundColor = '#fce097'; // highlight entire line 
+
 									}
 								});
 
@@ -497,6 +500,8 @@ const bitBucketHunkHighlight = (apiResponses) => {
 									const lineNumber = ariaLabel.substring(8);// because aria label = "To line 3273", so removing first 8 letters to get line number 
 									if (parseInt(lineNumber) >= parseInt(foundFiles.line_start) && parseInt(lineNumber) <= parseInt(foundFiles.line_end)) {
 										toLineElement.style.backgroundColor = '#c9cbff';
+										let firstChild = item.firstElementChild;
+										firstChild.style.backgroundColor = '#c9cbff'; // highlight entire line
 									}
 								});
 
