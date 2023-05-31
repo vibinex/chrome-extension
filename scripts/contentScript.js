@@ -480,33 +480,70 @@ const bitBucketHunkHighlight = (apiResponses) => {
 						const foundFiles = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
 
 						if (foundFiles) {
-							const linesWrapper = article.querySelectorAll('.lines-wrapper');
-							linesWrapper.forEach((item) => {
-								const toLineElements = item.querySelectorAll('a[aria-label^="To line"]');
-								const fromLineElements = item.querySelectorAll('a[aria-label^="From line"]');
-								fromLineElements.forEach((FromLineElement) => {
-									const ariaLabel = FromLineElement.getAttribute('aria-label');
-									const lineNumber = ariaLabel.substring(10); // because aria label = "From line 3273", so removing first 10 letters to get line number 
-									if (parseInt(lineNumber) >= parseInt(foundFiles.line_start) && parseInt(lineNumber) <= parseInt(foundFiles.line_end)) {
-										FromLineElement.style.backgroundColor = '#fce097'; // highlight line number 
-										let firstChild = item.firstElementChild;
-										firstChild.style.backgroundColor = '#fce097'; // highlight entire line 
+							const fileHighlight = article.firstElementChild;
+							const headingHighlight = fileHighlight.children[0];
+							headingHighlight.style.backgroundColor = '#f1f549'; // highlight file Head
 
+							// getting the status of file 
+							const status = article.querySelector('div[class^="diff-chunk-inner"]');
+							const statusDetail = status.classList;
+
+							const listOfChunks = article.getElementsByClassName('diff-chunk-inner');
+							const allChunkLines = listOfChunks[0].querySelectorAll('.lines-wrapper');
+
+							const lineStart = parseInt(foundFiles.line_start);
+							const lineEnd = parseInt(foundFiles.line_end);
+
+							function getLineNumber(element) {
+								const lineNumberElement = element.querySelector('a[aria-label]');
+								const getLineNumber = lineNumberElement.getAttribute('aria-label');
+								const lineNumber = parseInt(getLineNumber.match(/\d+/)[0]); // for getting the number from text (for example : 'xyz abc 12' gives 12)
+								return lineNumber;
+							}
+
+							if (statusDetail[1] == 'side-by-side') {
+								// for split view 
+								allChunkLines.forEach((item) => {
+									const scanEachLine = item.querySelectorAll('span[data-line-type]');
+
+									scanEachLine.forEach((line) => {
+										const symbol = line.getAttribute('data-line-type');
+
+										if (symbol == '-') {
+											const lineNumber = getLineNumber(item);
+											if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+												const firstElement = item.firstElementChild;
+												const secondChild = firstElement.children[2];
+												secondChild.style.borderLeft = 'solid 6px #f1f549';
+											}
+										} else if (symbol == '+') {
+											const lineNumber = getLineNumber(item);
+											if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+												const secondElement = item.children[1];
+												const secondChild = secondElement.children[2];
+												secondChild.style.borderLeft = 'solid 6px #f1f549';
+											}
+										}
+									})
+
+								})
+
+							} else {
+								// for unified view 
+								allChunkLines.forEach((item) => {
+									const eachLine = item.querySelector('span[data-line-type]');
+									const symbol = eachLine.getAttribute('data-line-type');
+
+									if (symbol == '-' || symbol == '+') {
+										const lineNumber = getLineNumber(item);
+										if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+											const firstElement = item.firstElementChild;
+											const secondChild = firstElement.children[2];
+											secondChild.style.borderLeft = 'solid 6px #f1f549';
+										}
 									}
-								});
-
-								toLineElements.forEach((toLineElement) => {
-									const ariaLabel = toLineElement.getAttribute('aria-label');
-									const lineNumber = ariaLabel.substring(8);// because aria label = "To line 3273", so removing first 8 letters to get line number 
-									if (parseInt(lineNumber) >= parseInt(foundFiles.line_start) && parseInt(lineNumber) <= parseInt(foundFiles.line_end)) {
-										toLineElement.style.backgroundColor = '#c9cbff';
-										let firstChild = item.firstElementChild;
-										firstChild.style.backgroundColor = '#c9cbff'; // highlight entire line
-									}
-								});
-
-							})
-
+								})
+							}
 						}
 					});
 				}
