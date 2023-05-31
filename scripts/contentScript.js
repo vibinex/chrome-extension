@@ -238,7 +238,7 @@ function addingCssElementToGithub(elementId, status, changeInfo) {
 		// TODO: a better approach would be create a constant CSS for a class, and add the class to the elements in consideration
 		element.innerHTML = `#issue_${elementId}_link::before{
 		background-color:${tagBackgroundColor};
-		content: '${changeInfo['num_hunks_changed']} changes';
+		content: '${changeInfo['num_hunks_changed']} change${parseInt(changeInfo['num_hunks_changed']) == 1 ? '' : 's'}';
 		color: white;
 		width: 12px;
 		height: 12px;
