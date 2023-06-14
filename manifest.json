@@ -22,7 +22,9 @@
             "matches": [
                 "https://github.com/**",
                 "https://bitbucket.org/**",
-                "https://vibinex.com/**"
+                "https://vibinex.com/**",
+                "https://gitlab.com/**"
+
             ],
             "css": [
                 "scripts/main.css"

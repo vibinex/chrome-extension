@@ -153,6 +153,8 @@ async function getTrackedRepos(orgName, userId, repoHost) {
 			body = { workspace_slug: orgName, userId: userId, is_github: false }
 			url = `${backendUrl}/bitbucket/setup/repos`;
 			break;
+		case 'gitlab':
+			
 		default:
 			console.warn(`[getTrackedRepos] Invalid repoHost provided: ${repoHost}`);
 			break;
@@ -562,8 +564,11 @@ const bitBucketHunkHighlight = (apiResponses) => {
 const orchestrator = (tabUrl, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
 	const urlObj = tabUrl.split('?')[0].split('/');
-	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
-		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
+
+	console.log(urlObj)
+
+	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org' || urlObj[2] === 'gitlab.com')) {
+		console.warn(`[Vibinex] You are not logged in! Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
 	}
 	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
@@ -666,7 +671,34 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				}
 			}
 		}
-	})
+
+		if (urlObj[2] === 'gitlab.com') {
+
+			//TODO: orgs?
+
+			const ownerName = urlObj[3];
+			const repoName = urlObj[4];
+			showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'gitlab');
+			
+			if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){
+				console.log("Showing MRs");
+
+				const body = {
+					"repo_owner": ownerName,
+					"repo_name": repoName,
+					"user_id": userId,
+					"is_github": false //TODO: change to repohost
+				}
+
+				const url = `${backendUrl}/relevance/pr`;
+				const highlightedPRIds = await apiCall(url, body);
+				highlightRelevantPRs(highlightedPRIds);
+			}
+
+
+
+		}
+	});
 };
 
 window.onload = () => {
