@@ -146,14 +146,18 @@ async function getTrackedRepos(orgName, userId, repoHost) {
 	let url = ''
 	switch (repoHost) {
 		case 'github':
-			body = { org: orgName, userId: userId, is_github: true }
+			body = { org: orgName, userId: userId, repo_provider: 'github' }
 			url = `${backendUrl}/github/setup/repos`;
 			break;
 		case 'bitbucket':
-			body = { workspace_slug: orgName, userId: userId, is_github: false }
+			body = { workspace_slug: orgName, userId: userId, repo_provider: 'bitbucket' }
 			url = `${backendUrl}/bitbucket/setup/repos`;
 			break;
 		case 'gitlab':
+			body = {group: orgName, userId: userId, repo_provider: 'gitlab'}
+			url = `${backendUrl}/gitlab/setup/repos`;
+		// 	body = { org: orgName, userId: userId, repo_provider: 'gitlab' } //TODO: orgname?
+
 			
 		default:
 			console.warn(`[getTrackedRepos] Invalid repoHost provided: ${repoHost}`);
@@ -560,6 +564,19 @@ const bitBucketHunkHighlight = (apiResponses) => {
 
 }
 
+function addingCssElementToGitLab(ele)
+
+
+function highlightRelevantMRs(highlightedMRIds){
+	if(highlightedMRIds){
+		for(const priorityLevel in highlightedMRIds){
+			for (const mrNumber in highlightedMRIds[priorityLevel]){
+				addingCssElementToGitLab(mrNumber, keyToLabel[priorityLevel], highlightedMRIds[priorityLevel][mrNumber])
+			}
+		}
+	}
+};
+
 
 const orchestrator = (tabUrl, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
@@ -585,7 +602,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"is_github": true
+						"repo_provider": "github"
 					}
 					const url = `${backendUrl}/relevance/pr`;
 					const highlightedPRIds = await apiCall(url, body);
@@ -598,7 +615,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_name": repoName,
 						"user_id": userId,
 						"pr_number": prNumber,
-						"is_github": true
+						"repo_provider": "github"
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
@@ -644,7 +661,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"is_github": false
+						"repo_provider": 'bitucket'
 					}
 					const url = `${backendUrl}/relevance/pr`;
 					const highlightedPRIds = await apiCall(url, body);
@@ -674,28 +691,61 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 
 		if (urlObj[2] === 'gitlab.com') {
 
-			//TODO: orgs?
+			if(urlObj.length === 4 && !urlObj[3]){
+				//TODO: need repo_owner from userID
+				
+				
 
-			const ownerName = urlObj[3];
-			const repoName = urlObj[4];
-			showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'gitlab');
-			
-			if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){
-				console.log("Showing MRs");
-
-				const body = {
-					"repo_owner": ownerName,
-					"repo_name": repoName,
-					"user_id": userId,
-					"is_github": false //TODO: change to repohost
-				}
-
-				const url = `${backendUrl}/relevance/pr`;
-				const highlightedPRIds = await apiCall(url, body);
-				highlightRelevantPRs(highlightedPRIds);
 			}
 
+			else if (urlObj.length > 4){	
 
+				const ownerName = urlObj[3];
+				const repoName = urlObj[4];
+				showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'gitlab');
+				
+				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){
+					console.log("Showing MRs");
+
+					const body = {
+						"repo_owner": ownerName,
+						"repo_name": repoName,
+						"user_id": userId,
+						"repo_provider": 'gitlab' 
+					}
+
+					const url = `${backendUrl}/relevance/pr`;
+					const highlightedMRIds = await apiCall(url, body);
+					highlightRelevantMRs(highlightedMRIds); // TODO: build this function
+				}
+				if(urlObj[5] && (urlObj[6] === 'merge_requests') && urlObj[7])
+				{
+					console.log("Viewing particular MR")
+					const prNumber = parseInt(urlObj[7]);
+					const body = {
+						"repo_owner": ownerName,
+						"repo_name": repoName,
+						"user_id": userId,
+						"pr_number": prNumber,
+						"repo_provider": 'gitlab',
+					}
+					const url = `${backendUrl}/relevance/pr/files`; //TODO
+					const response = await apiCall(url, body);
+					showImpFileInMR(response); // TODO: build this function
+
+					const hunk_info_body = {
+						"repo_owner": ownerName,
+						"repo_name": repoName,
+						"user_id": userId,
+						"pr_number": prNumber,
+						"repo_provider": "gitlab"
+					}
+					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`; //TODO
+					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
+					gitlabHunkHighlight(hunk_info_response);//TODO
+				}
+			} 
+			//ask about orgs
 
 		}
 	});
