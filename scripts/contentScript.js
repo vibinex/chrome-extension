@@ -564,7 +564,50 @@ const bitBucketHunkHighlight = (apiResponses) => {
 
 }
 
-function addingCssElementToGitLab(ele)
+function addingCssElementToGitLab(elementID, status, changeInfo) {
+	console.log('addingCssElementToGitLab')
+	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(102, 255, 153)';
+	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
+	let dummy = 'merge_request_230318557'
+	console.log('elementID')
+	const rowElement = document.getElementById(dummy)
+	if(rowElement){
+		rowElement.style.backgroundColor = backgroundColor;
+		infoElement = document.createElement('div');
+		infoElement.style.backgroundColor = tagBackgroundColor;
+		infoElement.style.color = 'green';
+		infoElement.style.width = '12px';
+		infoElement.style.height = '12px';
+		infoElement.style.border = 'rgb(45, 0, 0)';
+		infoElement.style.borderRadius = '5px';
+		infoElement.style.marginRight = '10px';
+		infoElement.style.paddingLeft = '5px';
+		infoElement.style.paddingRight = '5px';
+		infoElement.style.paddingBottom = '2px';
+		infoElement.style.textAlign = 'center';
+		infoElement.style.fontSize = '10px';
+		infoElement.style.fontWeight = 'bold';
+		infoElement.style.fontColor = 'green';
+		infoElement.innerText = 5;
+		rowElement.insertBefore(infoElement, rowElement.firstChild);
+
+		// const element = document.head.appendChild(document.createElement("style"));
+		// // TODO: a better approach would be create a constant CSS for a class, and add the class to the elements in consideration
+		// element.innerHTML = `#merge_request_230318557{
+		// background-color:${tagBackgroundColor};
+		// content: heeellogitlab;
+		// color: white;
+		// width: 12px;
+		// height: 12px;
+		// border: rgb(45, 0, 0);
+		// border-radius: 5px;
+		// margin-right: 10px;
+		// padding-left: 5px;
+		// padding-right: 5px;
+		// padding-bottom: 2px;}`;
+	}
+
+}
 
 
 function highlightRelevantMRs(highlightedMRIds){
@@ -706,6 +749,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				
 				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){
 					console.log("Showing MRs");
+					addingCssElementToGitLab(1,2,3);
 
 					const body = {
 						"repo_owner": ownerName,
