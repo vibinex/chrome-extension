@@ -1,6 +1,8 @@
 console.log('[vibinex] Running content script');
 'use strict';
 
+const env = "dev";
+
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
 	'important': "Important"
@@ -156,6 +158,7 @@ async function getTrackedRepos(orgName, userId, repoHost) {
 		case 'gitlab':
 			body = {group: orgName, userId: userId, repo_provider: 'gitlab'}
 			url = `${backendUrl}/gitlab/setup/repos`;
+			break;
 		// 	body = { org: orgName, userId: userId, repo_provider: 'gitlab' } //TODO: orgname?
 
 			
@@ -570,6 +573,7 @@ function addingCssElementToGitLab(elementID, status, changeInfo) {
 	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
 	let dummy = 'merge_request_230318557'
 	console.log('elementID')
+	// const rowElement = document.getElementById(`merge_request_${elementId}`);
 	const rowElement = document.getElementById(dummy)
 	if(rowElement){
 		rowElement.style.backgroundColor = backgroundColor;
@@ -606,9 +610,12 @@ function addingCssElementToGitLab(elementID, status, changeInfo) {
 		// padding-right: 5px;
 		// padding-bottom: 2px;}`;
 	}
-
 }
 
+
+function gitlabHunkHighlight(response){
+	
+}
 
 function highlightRelevantMRs(highlightedMRIds){
 	if(highlightedMRIds){
@@ -619,6 +626,36 @@ function highlightRelevantMRs(highlightedMRIds){
 		}
 	}
 };
+
+
+function showImpFileInMR(response)
+{
+	console.log('showImpFileInMR');
+	if ("relevant" in response) {
+		const fileNames = new Set(response['relevant'])
+		setTimeout(function () {
+		console.log('DOMContentLoaded');
+		const fileElements = document.querySelectorAll('div[data-qa-selector="file_row_container"]');
+		console.log(fileElements);
+		fileElements.forEach((e)=>{
+			file = e.getAttribute('data-qa-file-name')
+			// if(file==='sometext'){
+			// 	p = e.parentNode;
+			// 	p.style.backgroundColor = 'yellow';
+
+			// }
+			if(fileNames.has(file)){
+				p = e.parentNode;
+				p.style.backgroundColor = 'yellow';
+			}
+			console.log(file);
+		})
+		},1000);
+	}
+
+}
+
+
 
 
 const orchestrator = (tabUrl, websiteUrl, userId) => {
@@ -773,9 +810,16 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"pr_number": prNumber,
 						"repo_provider": 'gitlab',
 					}
-					const url = `${backendUrl}/relevance/pr/files`; //TODO
-					const response = await apiCall(url, body);
-					showImpFileInMR(response); // TODO: build this function
+					const url = `${backendUrl}/relevance/pr/files`;
+
+					console.log("Calling API");
+
+					if(env!=='dev')
+					{
+						const response = await apiCall(url, body); 
+					}
+					console.log("Got response");
+					showImpFileInMR("response"); // TODO: build this function
 
 					const hunk_info_body = {
 						"repo_owner": ownerName,
