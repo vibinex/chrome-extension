@@ -1,4 +1,4 @@
-name: Publish to Chrome Web Store.
+name: Create a release to publish
 
 on:
   workflow_dispatch:
@@ -17,22 +17,22 @@ jobs:
     - name: Pack extension
       uses: TheDoctor0/zip-release@0.4.1
       with:
-        filename: ./Package.zip
-        exclusions: '.git/* .vscode/* .github/* *.md'
+      	filename: ./Package.zip
+      	exclusions: '.git/* .vscode/* .github/* *.md'
 
     - name: Publish to Chrome Webstore
       uses: SebastienGllmt/chrome-addon@v3
       with:
-        extension: jafgelpkkkopeaefadkdjcmnicgpcncc
-        zip: ./Package.zip
-        client-id: ${{ secrets.G_CLIENT_ID }}
-        client-secret: ${{ secrets.G_CLIENT_SECRET }}
-        refresh-token: ${{ secrets.G_REFRESH_TOKEN }}
+      	extension: jafgelpkkkopeaefadkdjcmnicgpcncc
+      	zip: ./Package.zip
+      	client-id: ${{ secrets.G_CLIENT_ID }}
+      	client-secret: ${{ secrets.G_CLIENT_SECRET }}
+      	refresh-token: ${{ secrets.G_REFRESH_TOKEN }}
 
     - name: Drop artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: 'Chrome Artifacts'
-        path: ./Package.zip
+      	name: 'Chrome Artifacts'
+      	path: ./Package.zip
     
     
