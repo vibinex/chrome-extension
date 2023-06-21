@@ -1,4 +1,4 @@
-name: Create a release to publish
+name: Publish to Chrome Web Store.
 
 on:
   workflow_dispatch:
