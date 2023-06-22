@@ -573,8 +573,8 @@ function addingCssElementToGitLab(elementID, status, changeInfo) {
 	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
 	let dummy = 'merge_request_230318557'
 	console.log('elementID')
-	// const rowElement = document.getElementById(`merge_request_${elementId}`);
-	const rowElement = document.getElementById(dummy)
+	const rowElement = document.getElementById(`merge_request_${elementId}`);
+	// const rowElement = document.getElementById(dummy)
 	if(rowElement){
 		rowElement.style.backgroundColor = backgroundColor;
 		infoElement = document.createElement('div');
@@ -628,30 +628,43 @@ function highlightRelevantMRs(highlightedMRIds){
 };
 
 
-function showImpFileInMR(response)
+async function showImpFileInMR(response)
 {
 	console.log('showImpFileInMR');
-	if ("relevant" in response) {
-		const fileNames = new Set(response['relevant'])
+	// if ("relevant" in response) {
+		const filepaths = new Set(response['relevant'])
 		setTimeout(function () {
 		console.log('DOMContentLoaded');
-		const fileElements = document.querySelectorAll('div[data-qa-selector="file_row_container"]');
-		console.log(fileElements);
-		fileElements.forEach((e)=>{
-			file = e.getAttribute('data-qa-file-name')
-			// if(file==='sometext'){
-			// 	p = e.parentNode;
-			// 	p.style.backgroundColor = 'yellow';
+		const fileElements = document.querySelectorAll('div[data-qa-selector="file_title_container"]');
 
-			// }
-			if(fileNames.has(file)){
-				p = e.parentNode;
-				p.style.backgroundColor = 'yellow';
+		console.log(fileElements);
+		fileElements.forEach(async (e)=>{
+			let filepath = e.firstChild.querySelector('a').querySelector('strong').getAttribute('title');
+			console.log(filepath);
+			const hashedFilepath = await sha256(filepath);
+
+			// if(hashedFilepath === await sha256('sometext'))
+			if(fileNames.has(hashedFilename))
+			{				
+				e.style.backgroundColor = '#7a7e00';
 			}
-			console.log(file);
+			if(filepaths.has(hashedFilepath))
+			// if(hashedFilepath === await sha256('sometext'))
+			{
+				let filename = filepath.split('/').pop();
+				const fileTreeElements = document.querySelectorAll('div[data-qa-selector=file_row_container]');
+				fileTreeElements.forEach((e)=>{
+				
+					if(filename == e.getAttribute('data-qa-file-name'))
+					{
+						e.parentNode.style.backgroundColor = '#7a7e00';
+					}
+				});
+			}
+
 		})
 		},1000);
-	}
+	// }
 
 }
 
