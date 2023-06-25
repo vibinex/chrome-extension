@@ -159,7 +159,6 @@ async function getTrackedRepos(orgName, userId, repoHost) {
 			body = {group: orgName, userId: userId, repo_provider: 'gitlab'}
 			url = `${backendUrl}/gitlab/setup/repos`;
 			break;
-		// 	body = { org: orgName, userId: userId, repo_provider: 'gitlab' } //TODO: orgname?
 
 			
 		default:
@@ -567,13 +566,15 @@ const bitBucketHunkHighlight = (apiResponses) => {
 
 }
 
+
+//TODO: need to work on the design
 function addingCssElementToGitLab(elementID, status, changeInfo) {
 	console.log('addingCssElementToGitLab')
 	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(102, 255, 153)';
 	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
 	let dummy = 'merge_request_230318557'
 	console.log('elementID')
-	const rowElement = document.getElementById(`merge_request_${elementId}`);
+	const rowElement = document.getElementById(`merge_request_${elementID}`);
 	// const rowElement = document.getElementById(dummy)
 	if(rowElement){
 		rowElement.style.backgroundColor = backgroundColor;
@@ -613,7 +614,137 @@ function addingCssElementToGitLab(elementID, status, changeInfo) {
 }
 
 
-function gitlabHunkHighlight(response){
+async function gitlabHunkHighlight(response){
+	console.log("inside hunk highlight");
+
+	setTimeout(async function () {
+		console.log('DOMContentLoaded');
+		const fileElements = document.querySelectorAll('div[data-qa-selector="file_title_container"]');
+
+		const test = await sha256('.gitlab-ci.yml')
+
+		const isInline = document.querySelector("div[data-testid=right-side]")? false:true;
+		console.log(isInline);
+		// console.log(fileElements);
+		fileElements.forEach(async (e)=>{
+			let filepath = e.firstChild.querySelector('a').querySelector('strong').getAttribute('title');
+			console.log(filepath);
+			const hashedFilepath = await sha256(filepath);
+
+			// const foundHunks = response['hunkinfo'].filter(item=> item.file === test);
+			// const foundHunks = response['hunkinfo'].filter(item=> item.file === hashedFilepath);
+			// console.log("lenght of foudn ")
+			console.log("here");
+			if(test === hashedFilepath)
+			if(isInline)
+			{
+				const lineElements = e.parentNode.getElementsByClassName('line_holder')
+				// console.log("Line leemetns" ,lineElements.length);
+
+				// // for (const hunk of foundHunks){
+				// 	for(const line of lineElements)
+				// 	{
+				// 		// line.parentElement.style.backgroundColor = 'red';
+				// 		const lineNumber = parseInt(line.firstChild.getAttribute('data-interop-line'));
+				// 		console.log("lin no ", line)
+				// 		if(lineNumber>=3 && lineNumber <= 6)
+				// 		{
+				// 			let innerElements = line.firstChild.children;
+				// 			for (e of innerElements)
+				// 			{
+				// 				e.style.backgroundColor='red';
+				// 			}
+				// 		}
+				// 	}
+					
+				// // }
+
+				for (const hunk of foundHunks){
+					for(const line of lineElements)
+					{
+						const lineNumber = parseInt(line.firstChild.getAttribute('data-interop-line'));
+						if(lineNumber>=hunk.line_start && lineNumber <= hunk.line_end)
+						{
+
+							line.style.backgroundColor= GH_RELEVANT_BG_COLOR;
+							let innerElements = line.firstChild.children;
+							for (e of innerElements)
+							{
+								e.style.backgroundColor=GH_RELEVANT_BG_COLOR;
+							}
+						}
+					}
+					
+				}
+			}
+			else{
+				const lineElements = e.parentNode.getElementsByClassName('line_holder');
+
+				for(const hunk of foundHunks)
+				{
+					for(const line of lineElements)
+					{
+						const lineNumber = parseInt(line.firstChild.getAttribute('data-interop-old-line'));
+						if(lineNumber>=hunk.line_start && lineNumber <= hunk.line_end)
+						{
+							line.style.backgroundColor= GH_RELEVANT_BG_COLOR;
+							let leftContainer = line.firstChild;
+							let rightContainer=leftContainer.nextElementSibling;
+							// console.log(rightContainer);
+
+							let leftInnerElements = leftContainer.children;
+							for (e of leftInnerElements)
+							{
+								e.style.backgroundColor=GH_RELEVANT_BG_COLOR;
+							}
+
+							let rightInnerElements=rightContainer.children;
+							for(e of rightInnerElements)
+							{
+								e.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+							}
+						}
+					}
+				}
+
+				// // for(const hunk of foundHunks)
+				// // {
+				// 	for(const line of lineElements)
+				// 	{
+				// 		const lineNumber = parseInt(line.firstChild.getAttribute('data-interop-old-line'));
+				// 		if(lineNumber>=3 && lineNumber <= 6)
+				// 		{
+				// 			line.style.backgroundColor= GH_RELEVANT_BG_COLOR;
+				// 			let leftContainer = line.firstChild;
+				// 			let rightContainer=leftContainer.nextElementSibling;
+				// 			console.log(rightContainer);
+
+				// 			let leftInnerElements = leftContainer.children;
+				// 			for (e of leftInnerElements)
+				// 			{
+				// 				e.style.backgroundColor=GH_RELEVANT_BG_COLOR;
+				// 			}
+
+				// 			let rightInnerElements=rightContainer.children;
+				// 			for(e of rightInnerElements)
+				// 			{
+				// 				e.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+				// 			}
+
+				// 		}
+				// 	}
+				// // }
+			}
+			
+
+			// if(hashedFilepath === await sha256('sometext'))
+			
+
+		});
+		},1000);
+
+
+
 	
 }
 
@@ -631,20 +762,20 @@ function highlightRelevantMRs(highlightedMRIds){
 async function showImpFileInMR(response)
 {
 	console.log('showImpFileInMR');
-	// if ("relevant" in response) {
+	if ("relevant" in response) {
 		const filepaths = new Set(response['relevant'])
 		setTimeout(function () {
-		console.log('DOMContentLoaded');
+		// console.log('DOMContentLoaded');
 		const fileElements = document.querySelectorAll('div[data-qa-selector="file_title_container"]');
 
-		console.log(fileElements);
+		// console.log(fileElements);
 		fileElements.forEach(async (e)=>{
 			let filepath = e.firstChild.querySelector('a').querySelector('strong').getAttribute('title');
-			console.log(filepath);
+			// console.log(filepath);
 			const hashedFilepath = await sha256(filepath);
 
 			// if(hashedFilepath === await sha256('sometext'))
-			if(fileNames.has(hashedFilename))
+			if(filepaths.has(hashedFilename))
 			{				
 				e.style.backgroundColor = '#7a7e00';
 			}
@@ -664,7 +795,7 @@ async function showImpFileInMR(response)
 
 		})
 		},1000);
-	// }
+	}
 
 }
 
@@ -799,7 +930,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				
 				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){
 					console.log("Showing MRs");
-					addingCssElementToGitLab(1,2,3);
+					// addingCssElementToGitLab(1,2,3);
 
 					const body = {
 						"repo_owner": ownerName,
@@ -810,7 +941,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 
 					const url = `${backendUrl}/relevance/pr`;
 					const highlightedMRIds = await apiCall(url, body);
-					highlightRelevantMRs(highlightedMRIds); // TODO: build this function
+					highlightRelevantMRs(highlightedMRIds);
 				}
 				if(urlObj[5] && (urlObj[6] === 'merge_requests') && urlObj[7])
 				{
@@ -827,12 +958,10 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 
 					console.log("Calling API");
 
-					if(env!=='dev')
-					{
-						const response = await apiCall(url, body); 
-					}
+					const response = await apiCall(url, body); 
+				
 					console.log("Got response");
-					showImpFileInMR("response"); // TODO: build this function
+					showImpFileInMR(response); 
 
 					const hunk_info_body = {
 						"repo_owner": ownerName,
@@ -841,9 +970,9 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"pr_number": prNumber,
 						"repo_provider": "gitlab"
 					}
-					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`; //TODO
+					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`; 
 					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
-					gitlabHunkHighlight(hunk_info_response);//TODO
+					gitlabHunkHighlight(hunk_info_response);
 				}
 			} 
 			//ask about orgs
