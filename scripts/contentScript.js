@@ -12,10 +12,8 @@ const Provider = Object.freeze({
 	GITLAB: 'gitlab'
 })
 
-
-
-
 const GH_RELEVANT_BG_COLOR = "rgb(86, 88, 0)";
+const GL_RELEVANT_BG_COLOR = 'rgb(163, 242, 36)';
 
 function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	let loadingIconID;
@@ -574,49 +572,30 @@ const bitBucketHunkHighlight = (apiResponses) => {
 }
 
 
-//TODO: need to work on the design
 function addingCssElementToGitLab(elementID, status, changeInfo) {
-	console.log('addingCssElementToGitLab')
-	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : 'rgb(102, 255, 153)';
-	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
-	let dummy = 'merge_request_230318557'
-	console.log('elementID')
-	const rowElement = document.getElementById(`merge_request_${elementID}`);
-	// const rowElement = document.getElementById(dummy)
-	if(rowElement){
-		rowElement.style.backgroundColor = backgroundColor;
-		infoElement = document.createElement('div');
-		infoElement.style.backgroundColor = tagBackgroundColor;
-		infoElement.style.color = 'green';
-		infoElement.style.width = '12px';
-		infoElement.style.height = '12px';
-		infoElement.style.border = 'rgb(45, 0, 0)';
-		infoElement.style.borderRadius = '5px';
-		infoElement.style.marginRight = '10px';
-		infoElement.style.paddingLeft = '5px';
-		infoElement.style.paddingRight = '5px';
-		infoElement.style.paddingBottom = '2px';
-		infoElement.style.textAlign = 'center';
-		infoElement.style.fontSize = '10px';
-		infoElement.style.fontWeight = 'bold';
-		infoElement.style.fontColor = 'green';
-		infoElement.innerText = 5;
-		rowElement.insertBefore(infoElement, rowElement.firstChild);
 
-		// const element = document.head.appendChild(document.createElement("style"));
-		// // TODO: a better approach would be create a constant CSS for a class, and add the class to the elements in consideration
-		// element.innerHTML = `#merge_request_230318557{
-		// background-color:${tagBackgroundColor};
-		// content: heeellogitlab;
-		// color: white;
-		// width: 12px;
-		// height: 12px;
-		// border: rgb(45, 0, 0);
-		// border-radius: 5px;
-		// margin-right: 10px;
-		// padding-left: 5px;
-		// padding-right: 5px;
-		// padding-bottom: 2px;}`;
+	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : GL_RELEVANT_BG_COLOR;
+	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
+	const rowElement = document.getElementById(`merge_request_${elementID}`);
+	if(rowElement && rowElement!=null)
+	{
+		rowElement.style.backgroundColor = backgroundColor;
+		const element = document.createElement("div");
+		element.style.backgroundColor = tagBackgroundColor;
+		element.style.color = 'white';
+		element.style.height = '22px';
+		element.style.border = 'rgb(45, 0, 0)';
+		element.style.borderRadius = '5px';
+		element.style.marginRight = '10px';
+		element.style.paddingLeft = '5px';
+		element.style.paddingRight = '5px';
+		element.style.paddingBottom = '2px';
+		element.style.marginTop = '9px';
+		element.style.textAlign = 'center';
+		element.style.fontWeight = 'bold';
+		element.innerText=`${changeInfo['num_hunks_changed']} change${parseInt(changeInfo['num_hunks_changed']) == 1 ? '' : 's'}`;
+		rowElement.prepend(element);
+
 	}
 }
 
@@ -810,6 +789,7 @@ async function showImpFileInMR(response)
 
 
 const orchestrator = (tabUrl, websiteUrl, userId) => {
+	addingCssElementToGitLab(1,2,3); //localtest
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
 	const urlObj = tabUrl.split('?')[0].split('/');
 
@@ -836,7 +816,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_provider": "github"
 					}
 					const url = `${backendUrl}/relevance/pr`;
-					const highlightedPRIds = await apiCall(url, body);
+					const highlightedPRIds = await apiCall(url, body); 
 					highlightRelevantPRs(highlightedPRIds);
 				}
 				if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
@@ -937,7 +917,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				
 				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){
 					console.log("Showing MRs");
-					// addingCssElementToGitLab(1,2,3);
+					
 
 					const body = {
 						"repo_owner": ownerName,
@@ -947,8 +927,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					}
 
 					const url = `${backendUrl}/relevance/pr`;
-					const highlightedMRIds = await apiCall(url, body);
-					highlightRelevantMRs(highlightedMRIds);
+					// const highlightedMRIds = await apiCall(url, body); //localtest
+					// highlightRelevantMRs('highlightedMRIds'); //localtest
 				}
 				if(urlObj[5] && (urlObj[6] === 'merge_requests') && urlObj[7])
 				{
