@@ -813,8 +813,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 
 			if(urlObj.length === 4 && !urlObj[3]){
 				//TODO: need repo_owner from userID
-				
-				
+								
 
 			}
 
@@ -823,7 +822,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				const ownerName = urlObj[3];
 				const repoName = urlObj[4];
 				showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'gitlab');
-				
+				//showing relevant MRs
 				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){					
 
 					const body = {
@@ -837,6 +836,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const highlightedMRIds = await apiCall(url, body); 
 					highlightRelevantMRs(highlightedMRIds);
 				}
+				//showing a particular MR
 				if(urlObj[5] && (urlObj[6] === 'merge_requests') && urlObj[7])
 				{
 					const prNumber = parseInt(urlObj[7]);
