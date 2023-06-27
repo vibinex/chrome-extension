@@ -601,50 +601,17 @@ function addingCssElementToGitLab(elementID, status, changeInfo) {
 
 
 async function gitlabHunkHighlight(response){
-	console.log("inside hunk highlight");
-
-	setTimeout(async function () {
-		console.log('DOMContentLoaded');
+	setTimeout(async function () { //timeout is set to allow content to load
 		const fileElements = document.querySelectorAll('div[data-qa-selector="file_title_container"]');
-
-		const test = await sha256('.gitlab-ci.yml')
-
 		const isInline = document.querySelector("div[data-testid=right-side]")? false:true;
-		console.log(isInline);
-		// console.log(fileElements);
+		
 		fileElements.forEach(async (e)=>{
 			let filepath = e.firstChild.querySelector('a').querySelector('strong').getAttribute('title');
-			console.log(filepath);
 			const hashedFilepath = await sha256(filepath);
-
-			// const foundHunks = response['hunkinfo'].filter(item=> item.file === test);
-			// const foundHunks = response['hunkinfo'].filter(item=> item.file === hashedFilepath);
-			// console.log("lenght of foudn ")
-			console.log("here");
-			if(test === hashedFilepath)
+			const foundHunks = response['hunkinfo'].filter(item=> item.file === hashedFilepath);
 			if(isInline)
 			{
 				const lineElements = e.parentNode.getElementsByClassName('line_holder')
-				// console.log("Line leemetns" ,lineElements.length);
-
-				// // for (const hunk of foundHunks){
-				// 	for(const line of lineElements)
-				// 	{
-				// 		// line.parentElement.style.backgroundColor = 'red';
-				// 		const lineNumber = parseInt(line.firstChild.getAttribute('data-interop-line'));
-				// 		console.log("lin no ", line)
-				// 		if(lineNumber>=3 && lineNumber <= 6)
-				// 		{
-				// 			let innerElements = line.firstChild.children;
-				// 			for (e of innerElements)
-				// 			{
-				// 				e.style.backgroundColor='red';
-				// 			}
-				// 		}
-				// 	}
-					
-				// // }
-
 				for (const hunk of foundHunks){
 					for(const line of lineElements)
 					{
@@ -656,7 +623,7 @@ async function gitlabHunkHighlight(response){
 							let innerElements = line.firstChild.children;
 							for (e of innerElements)
 							{
-								e.style.backgroundColor=GH_RELEVANT_BG_COLOR;
+								e.style.backgroundColor=GL_RELEVANT_BG_COLOR;
 							}
 						}
 					}
@@ -665,7 +632,6 @@ async function gitlabHunkHighlight(response){
 			}
 			else{
 				const lineElements = e.parentNode.getElementsByClassName('line_holder');
-
 				for(const hunk of foundHunks)
 				{
 					for(const line of lineElements)
@@ -673,11 +639,9 @@ async function gitlabHunkHighlight(response){
 						const lineNumber = parseInt(line.firstChild.getAttribute('data-interop-old-line'));
 						if(lineNumber>=hunk.line_start && lineNumber <= hunk.line_end)
 						{
-							line.style.backgroundColor= GH_RELEVANT_BG_COLOR;
+							line.style.backgroundColor= GL_RELEVANT_BG_COLOR;
 							let leftContainer = line.firstChild;
 							let rightContainer=leftContainer.nextElementSibling;
-							// console.log(rightContainer);
-
 							let leftInnerElements = leftContainer.children;
 							for (e of leftInnerElements)
 							{
@@ -692,46 +656,9 @@ async function gitlabHunkHighlight(response){
 						}
 					}
 				}
-
-				// // for(const hunk of foundHunks)
-				// // {
-				// 	for(const line of lineElements)
-				// 	{
-				// 		const lineNumber = parseInt(line.firstChild.getAttribute('data-interop-old-line'));
-				// 		if(lineNumber>=3 && lineNumber <= 6)
-				// 		{
-				// 			line.style.backgroundColor= GH_RELEVANT_BG_COLOR;
-				// 			let leftContainer = line.firstChild;
-				// 			let rightContainer=leftContainer.nextElementSibling;
-				// 			console.log(rightContainer);
-
-				// 			let leftInnerElements = leftContainer.children;
-				// 			for (e of leftInnerElements)
-				// 			{
-				// 				e.style.backgroundColor=GH_RELEVANT_BG_COLOR;
-				// 			}
-
-				// 			let rightInnerElements=rightContainer.children;
-				// 			for(e of rightInnerElements)
-				// 			{
-				// 				e.style.backgroundColor = GH_RELEVANT_BG_COLOR;
-				// 			}
-
-				// 		}
-				// 	}
-				// // }
 			}
-			
-
-			// if(hashedFilepath === await sha256('sometext'))
-			
-
 		});
 		},1000);
-
-
-
-	
 }
 
 function highlightRelevantMRs(highlightedMRIds){
@@ -747,27 +674,16 @@ function highlightRelevantMRs(highlightedMRIds){
 
 async function showImpFileInMR(response)
 {
-	console.log('showImpFileInMR');
 	if ("relevant" in response) {
 		const filepaths = new Set(response['relevant'])
-		setTimeout(function () {
-		// console.log('DOMContentLoaded');
+		setTimeout(function () { //timeout is to ensure DOM elements are loaded
 		const fileElements = document.querySelectorAll('div[data-qa-selector="file_title_container"]');
-
-		// console.log(fileElements);
 		fileElements.forEach(async (e)=>{
 			let filepath = e.firstChild.querySelector('a').querySelector('strong').getAttribute('title');
-			// console.log(filepath);
 			const hashedFilepath = await sha256(filepath);
-
-			// if(hashedFilepath === await sha256('sometext'))
-			if(filepaths.has(hashedFilename))
+			if(filepaths.has(hashedFilepath)) // colors files in the file tree as well as in the diff views
 			{				
 				e.style.backgroundColor = '#7a7e00';
-			}
-			if(filepaths.has(hashedFilepath))
-			// if(hashedFilepath === await sha256('sometext'))
-			{
 				let filename = filepath.split('/').pop();
 				const fileTreeElements = document.querySelectorAll('div[data-qa-selector=file_row_container]');
 				fileTreeElements.forEach((e)=>{
@@ -778,23 +694,17 @@ async function showImpFileInMR(response)
 					}
 				});
 			}
-
 		})
 		},1000);
 	}
-
 }
 
 
 
 
 const orchestrator = (tabUrl, websiteUrl, userId) => {
-	addingCssElementToGitLab(1,2,3); //localtest
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
 	const urlObj = tabUrl.split('?')[0].split('/');
-
-	console.log(urlObj)
-
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org' || urlObj[2] === 'gitlab.com')) {
 		console.warn(`[Vibinex] You are not logged in! Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
@@ -813,7 +723,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"repo_provider": "github"
+						"repo_provider": Provider.GITHUB
 					}
 					const url = `${backendUrl}/relevance/pr`;
 					const highlightedPRIds = await apiCall(url, body); 
@@ -826,7 +736,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_name": repoName,
 						"user_id": userId,
 						"pr_number": prNumber,
-						"repo_provider": "github"
+						"repo_provider": Provider.GITHUB
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
@@ -837,7 +747,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_name": repoName,
 						"user_id": userId,
 						"pr_number": prNumber,
-						"repo_provider": "github"
+						"repo_provider": Provider.GITHUB
 					}
 					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`;
 					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
@@ -872,7 +782,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"repo_provider": 'bitucket'
+						"repo_provider": Provider.BITBUCKET
 					}
 					const url = `${backendUrl}/relevance/pr`;
 					const highlightedPRIds = await apiCall(url, body);
@@ -886,8 +796,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_name": repoName,
 						"user_id": userId,
 						"pr_number": prNumber,
-						"repo_provider": 'bitbucket',
-						"is_github": false
+						"repo_provider": Provider.BITBUCKET,
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
@@ -915,55 +824,44 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				const repoName = urlObj[4];
 				showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'gitlab');
 				
-				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){
-					console.log("Showing MRs");
-					
+				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){					
 
 					const body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"repo_provider": 'gitlab' 
+						"repo_provider": Provider.GITLAB
 					}
 
 					const url = `${backendUrl}/relevance/pr`;
-					// const highlightedMRIds = await apiCall(url, body); //localtest
-					// highlightRelevantMRs('highlightedMRIds'); //localtest
+					const highlightedMRIds = await apiCall(url, body); 
+					highlightRelevantMRs(highlightedMRIds);
 				}
 				if(urlObj[5] && (urlObj[6] === 'merge_requests') && urlObj[7])
 				{
-					console.log("Viewing particular MR")
 					const prNumber = parseInt(urlObj[7]);
 					const body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
 						"pr_number": prNumber,
-						"repo_provider": 'gitlab',
+						"repo_provider": Provider.GITLAB
 					}
 					const url = `${backendUrl}/relevance/pr/files`;
-
-					console.log("Calling API");
-
 					const response = await apiCall(url, body); 
-				
-					console.log("Got response");
 					showImpFileInMR(response); 
-
 					const hunk_info_body = {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
 						"pr_number": prNumber,
-						"repo_provider": "gitlab"
+						"repo_provider": Provider.GITLAB
 					}
 					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`; 
 					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
 					gitlabHunkHighlight(hunk_info_response);
 				}
-			} 
-			//ask about orgs
-
+			}
 		}
 	});
 };
