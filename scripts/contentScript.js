@@ -1,12 +1,19 @@
 console.log('[vibinex] Running content script');
 'use strict';
 
-const env = "dev";
-
 const keyToLabel = Object.freeze({
 	'relevant': "Relevant",
 	'important': "Important"
 });
+
+const Provider = Object.freeze({
+	GITHUB: 'github',
+	BITBUCKET: 'bitbucket',
+	GITLAB: 'gitlab'
+})
+
+
+
 
 const GH_RELEVANT_BG_COLOR = "rgb(86, 88, 0)";
 
