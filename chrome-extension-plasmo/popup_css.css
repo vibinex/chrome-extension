@@ -1,0 +1,185 @@
+* {
+	padding: 0px;
+	margin: 0px;
+}
+
+footer {
+	display: flex;
+	flex-direction: row;
+	margin-top: 4px;
+	font-size: xx-small;
+	color: darkgray;
+}
+
+#rate_us_anchor {
+	flex-grow: 1;
+}
+
+a {
+	text-decoration: none;
+}
+
+body {
+	margin: 0px !important;
+	width: 300px;
+	padding: 10px 20px;
+	font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.container {
+	min-height: 200px;
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	background-color: rgb(255, 255, 255);
+}
+
+.heading {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	margin: auto;
+	margin-bottom: 15px;
+}
+
+.heading_text {
+	margin-top: auto;
+	margin-bottom: auto;
+	font-size: large;
+	font-weight: bold;
+	flex-grow: 1;
+}
+
+.heading_logo {
+	width: 12%;
+	border-radius: 100%;
+	margin-right: 5px;
+}
+
+.secondHeading {
+	font-size: larger;
+	margin-top: 15px;
+	margin-bottom: 10px;
+	font-weight: bold;
+}
+
+.second_box {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	background-color: rgb(180, 211, 255);
+	padding: 7px;
+	border-radius: 5px;
+}
+
+.light-icon {
+	width: 15%;
+	transform: rotate(20deg)
+}
+
+li {
+	list-style-type: "✓";
+	font-weight: 800;
+	color: blue;
+	margin: 10px
+}
+
+.list_item {
+	color: black;
+	font-weight: 100;
+	margin-left: 5px;
+
+}
+
+.profile_picture {
+	width: 4rem;
+	height: 4rem;
+	border-radius: 50%;
+	margin: 0.5rem;
+}
+
+#user_div {
+	flex-grow: 1;
+	min-height: 150px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
+}
+
+.button {
+	border: 1px solid #e4e4e7;
+	color: #333333;
+	text-decoration: none;
+	background-color: white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+	border-radius: 0.375rem;
+	width: 100%;
+	height: 2.5rem;
+	font-size: 0.875rem;
+	line-height: 1.25rem;
+	cursor: pointer;
+	padding: 0 1.5rem;
+	margin-top: 0.5rem;
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+}
+
+.button:hover {
+	background-color: #f4f4f5;
+}
+
+.button:active {
+	background-color: #e4e4e7;
+}
+
+.producthunt_review_button {
+	width: 250px;
+	height: 54px;
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+.logout_button {
+	border: none;
+	background-color: transparent;
+	color: gray;
+	cursor: pointer;
+}
+
+.button>img {
+	width: 1rem;
+	height: 1rem;
+	margin-right: 0.75rem;
+}
+
+#login-div,
+#session-div {
+	display: none;
+}
+
+.loader {
+	border: 3px solid #f3f3f3;
+	border-top: 3px solid #414141;
+	border-radius: 50%;
+	width: 50px;
+	height: 50px;
+	animation: spin 0.5s linear infinite;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+}
