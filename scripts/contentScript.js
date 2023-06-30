@@ -817,13 +817,13 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 
 			}
 
-			else if (urlObj.length > 4){	
+			else if (urlObj.length > 4){// for a url like https://gitlab.com/user/project
 
 				const ownerName = urlObj[3];
 				const repoName = urlObj[4];
 				showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'gitlab');
 				//showing relevant MRs
-				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){					
+				if (urlObj[5] && (urlObj[6] === 'merge_requests') && !urlObj[7]){// url of the form https://gitlab.com/user/project/-/merge_requests				
 
 					const body = {
 						"repo_owner": ownerName,
@@ -837,7 +837,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					highlightRelevantMRs(highlightedMRIds);
 				}
 				//showing a particular MR
-				if(urlObj[5] && (urlObj[6] === 'merge_requests') && urlObj[7])
+				if(urlObj[5] && (urlObj[6] === 'merge_requests') && urlObj[7]) // url of the form https://gitlab.com/user/project/-/merge_requests/2
 				{
 					const prNumber = parseInt(urlObj[7]);
 					const body = {
