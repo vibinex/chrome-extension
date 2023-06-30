@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener(() => {
 		fetch(url, {
 			method: "POST",
 			headers: {
-				"Access-Control-Allow-Origin": "chrome-extension://jafgelpkkkopeaefadkdjcmnicgpcncc",
+				"Access-Control-Allow-Origin": "moz-extension://5c0d342a-6eed-4ac6-a3c2-9d4763cd112a",
 				"Content-Type": "application/json",
 				"Accept": "application/json",
 			},

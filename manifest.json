@@ -3,9 +3,9 @@
     "version": "0.0.13",
     "manifest_version": 3,
     "description": "Personalization and context for pull requests on GitHub & Bitbucket",
-    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsRm6EaBdHDBxVjt9o9WKeL9EDdz1X+knDAU5uoZaRsXTmWjslhJN9DhSd7/Ys4aJOSN+s+5/HnIHcKV63P4GYaUM5FhETHEWORHlwIgjcV/1h6wD6bNbvXi06gtiygE+yMrCzzD93/Z+41XrwMElYiW2U5owNpat2Yfq4p9FDX1uBJUKsRIMp6LbRQla4vAzH/HMUtHWmeuUsmPVzcq1b6uB1QmuJqIQ1GrntIHw3UBWUlqRZ5OtxI1DCP3knglvqz26WT5Pc4GBDNlcI9+3F0vhwqwHqrdyjZpIKZ7iaQzcrovOqUKuXs1J3hDtXq8WoJELIqfIisY7rhAvq6b8jQIDAQAB",
     "background": {
-        "service_worker": "backgroundScript.js"
+        "scripts": ["backgroundScript.js"],
+		"type": "module"
     },
     "action": {
         "default_popup": "popup/popup.html",
@@ -14,6 +14,12 @@
     "permissions": [
         "storage"
     ],
+	"host_permission": [
+		"*://github.com/*",
+		"*://bitbucket.org/*",
+		"*://vibinex.com/*",
+		"*://gitlab.com/*"
+	],
     "icons": {
         "128": "resources/vibinex-logo.png"
     },
@@ -31,5 +37,11 @@
                 "scripts/contentScript.js"
             ]
         }
-    ]
+    ],
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "addon@vibinex.com",
+			"strict_min_version": "42.0"
+		}
+	}
 }
