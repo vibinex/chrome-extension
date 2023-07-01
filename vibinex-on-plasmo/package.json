@@ -1,8 +1,8 @@
 {
-  "name": "chrome-extension-vibinex-plasmo",
-  "displayName": "Chrome extension vibinex plasmo",
+  "name": "vibinex-on-plasmo",
+  "displayName": "Vibinex on plasmo",
   "version": "0.0.1",
-  "description": "A basic Plasmo extension.",
+  "description": "Basic setup on plasmo.",
   "author": "Vibinex",
   "scripts": {
     "dev": "plasmo dev",
@@ -10,22 +10,25 @@
     "package": "plasmo package"
   },
   "dependencies": {
-    "plasmo": "0.76.3",
+    "plasmo": "0.77.5",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@types/chrome": "0.0.237",
-    "@types/node": "20.2.4",
-    "@types/react": "18.2.7",
-    "@types/react-dom": "18.2.4",
+    "@types/chrome": "0.0.239",
+    "@types/node": "20.3.2",
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.6",
     "prettier": "2.8.8",
-    "typescript": "5.0.4",
+    "typescript": "5.1.6",
     "@plasmohq/prettier-plugin-sort-imports": "3.6.4"
   },
   "manifest": {
     "host_permissions": [
       "https://*/*"
+    ],
+    "permissions": [
+      "tabs"
     ]
   }
 }
