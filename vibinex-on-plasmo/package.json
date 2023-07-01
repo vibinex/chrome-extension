@@ -24,7 +24,7 @@
     "@plasmohq/prettier-plugin-sort-imports": "3.6.4"
   },
   "manifest": {
-    "key": "$CRX_PUBLIC_KEY`",
+    "key": "$CRX_PUBLIC_KEY",
     "host_permissions": [
       "https://github.com/**",
       "https://bitbucket.org/**",

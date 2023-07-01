@@ -1,6 +1,7 @@
 import { useState } from "react"
 
 function IndexOptions() {
+  // TODO: add the settings page here as well
   const [data, setData] = useState("")
 
   return (
