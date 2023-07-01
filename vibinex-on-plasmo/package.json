@@ -1,8 +1,8 @@
 {
-  "name": "vibinex-on-plasmo",
-  "displayName": "Vibinex on plasmo",
-  "version": "0.0.1",
-  "description": "Basic setup on plasmo.",
+  "name": "vibinex",
+  "displayName": "Vibinex Code Review",
+  "version": "0.0.14",
+  "description": "Personalization and context for pull requests on GitHub & Bitbucket",
   "author": "Vibinex",
   "scripts": {
     "dev": "plasmo dev",
@@ -24,11 +24,14 @@
     "@plasmohq/prettier-plugin-sort-imports": "3.6.4"
   },
   "manifest": {
+    "key": "$CRX_PUBLIC_KEY`",
     "host_permissions": [
-      "https://*/*"
+      "https://github.com/**",
+      "https://bitbucket.org/**",
+      "https://vibinex.com/**"
     ],
     "permissions": [
-      "tabs"
+      "storage"
     ]
   }
 }

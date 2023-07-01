@@ -2,7 +2,15 @@ This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies:
+
+```bash
+pnpm i
+# or
+npm i
+```
+
+Then, run the development server:
 
 ```bash
 pnpm dev
