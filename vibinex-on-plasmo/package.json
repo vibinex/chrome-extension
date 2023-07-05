@@ -32,6 +32,18 @@
     ],
     "permissions": [
       "storage"
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": [
+          "assets/bitbucket.svg",
+          "assets/github.svg",
+          "assets/gitlab.svg"
+        ],
+        "matches": [
+          "https://www.plasmo.com/*"
+        ]
+      }
     ]
   }
 }

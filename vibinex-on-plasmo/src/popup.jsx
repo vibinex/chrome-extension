@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "./style.css";
+import icon from "data-base64:~assets/icon.png"
+import lightIcon from "data-base64:~assets/lightIcon.png"
 
 const IndexPopup = () => {
 	const [data, setData] = useState("");
@@ -9,6 +11,7 @@ const IndexPopup = () => {
 			const providers = await res.json();
 			const loginDiv = document.getElementById("login-div");
 			for (const provider of Object.values(providers)) {
+				const logoURL = chrome.runtime.getURL(`assets/${provider.id}.svg`);
 				const new_form = document.createElement("form")
 				new_form.setAttribute('action', provider.signinUrl);
 				new_form.setAttribute('target', "_blank")
@@ -17,7 +20,7 @@ const IndexPopup = () => {
 				new_form.innerHTML = `			    
 				<input class="csrfToken" type="hidden" name="csrfToken" />
 				<button type="submit" class="button">
-					<img src="/resources/${provider.id}.svg" alt="${provider.name}" />
+					<img src="${logoURL}" alt="${provider.name}" />
 					<span>Log in with ${provider.name}</span>
 				</button>`
 				loginDiv.appendChild(new_form);
@@ -81,14 +84,14 @@ const IndexPopup = () => {
 			<div id="login-div" className="container">
 				<div className="heading">
 					<img
-						src="../resources/vibinex-logo.png"
+						src={icon}
 						className="heading_logo"
 						alt="Vibinex logo"
 					/>
 					<p className="heading_text">Vibinex</p>
 				</div>
 				<div className="second_box">
-					<img src="../resources/lightIcon.png" alt="" className="light-icon" />
+					<img src={lightIcon} alt="" className="light-icon" />
 					<p id="highlightedText">
 						Vibinex is active, but key features are missing.
 					</p>
@@ -115,7 +118,7 @@ const IndexPopup = () => {
 			<div id="session-div" className="container">
 				<div className="heading">
 					<img
-						src="../resources/vibinex-logo.png"
+						src={icon}
 						className="heading_logo"
 						alt="Vibinex logo"
 					/>
@@ -130,7 +133,7 @@ const IndexPopup = () => {
 					</a>
 				</div>
 				<div className="second_box">
-					<img src="../resources/lightIcon.png" alt="" className="light-icon" />
+					<img src={lightIcon} alt="" className="light-icon" />
 					<p id="highlightedText">Vibinex is active!</p>
 				</div>
 				<div id="user_div">
