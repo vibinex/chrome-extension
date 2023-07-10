@@ -1,0 +1,49 @@
+{
+  "name": "vibinex",
+  "displayName": "Vibinex Code Review",
+  "version": "1.0.0",
+  "description": "Personalization and context for pull requests on GitHub & Bitbucket",
+  "author": "Vibinex",
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package"
+  },
+  "dependencies": {
+    "plasmo": "0.77.5",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.0.239",
+    "@types/node": "20.3.2",
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.6",
+    "prettier": "2.8.8",
+    "typescript": "5.1.6",
+    "@plasmohq/prettier-plugin-sort-imports": "3.6.4"
+  },
+  "manifest": {
+    "key": "$CRX_PUBLIC_KEY",
+    "host_permissions": [
+      "https://github.com/**",
+      "https://bitbucket.org/**",
+      "https://vibinex.com/**"
+    ],
+    "permissions": [
+      "storage"
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": [
+          "assets/bitbucket.svg",
+          "assets/github.svg",
+          "assets/gitlab.svg"
+        ],
+        "matches": [
+          "https://www.plasmo.com/*"
+        ]
+      }
+    ]
+  }
+}

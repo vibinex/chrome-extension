@@ -1,5 +1,6 @@
+export { }
 chrome.runtime.onInstalled.addListener(() => {
-	const environment = "prod";
+	const environment: "prod" | "dev" = "prod";
 	// const environment = "dev";
 	const websiteUrl = (environment === "dev") ? "http://localhost:3000" : "https://vibinex.com";
 	const backendUrl = (environment === "dev") ? "http://localhost:8080" : "https://gcscruncsql-k7jns52mtq-el.a.run.app";
@@ -22,6 +23,6 @@ chrome.runtime.onInstalled.addListener(() => {
 			body: JSON.stringify(body)
 		})
 			.then((response) => response.json())
-			.then((data) => dataFromAPI = data);
+			.then((data) => console.debug("[background] chrome events api data:", data));
 	})
 })
