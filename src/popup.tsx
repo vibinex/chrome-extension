@@ -84,17 +84,6 @@ const IndexPopup: React.FC<{}> = () => {
     });
   }, []);
 
-  useEffect(() => {
-    window.addEventListener('load', () => {
-      const manifestData = chrome.runtime.getManifest();
-      const version_p = document.getElementById('version');
-
-      if (version_p) {
-        version_p.innerHTML = `Version ${manifestData.version}`;
-      }
-    });
-  }, []);
-
   return (
     <>
       <meta charSet="UTF-8" />

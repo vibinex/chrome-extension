@@ -1,7 +1,7 @@
 {
   "name": "vibinex",
   "displayName": "Vibinex Code Review",
-  "version": "0.0.14",
+  "version": "1.0.0",
   "description": "Personalization and context for pull requests on GitHub & Bitbucket",
   "author": "Vibinex",
   "scripts": {
