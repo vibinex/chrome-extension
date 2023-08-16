@@ -1,4 +1,4 @@
-chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
+chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 	fetch(`${websiteUrl}/api/auth/providers`, { cache: 'no-store' }).then(async (res) => {
 		const providers = await res.json();
 		const loginDiv = document.getElementById("login-div");
@@ -40,7 +40,7 @@ chrome.storage.sync.get(["websiteUrl"]).then(({ websiteUrl }) => {
 			document.querySelector("#session-name").innerHTML = user.name;
 			document.querySelector("#session-email").innerHTML = user.email;
 
-			chrome.storage.sync.set({
+			chrome.storage.local.set({
 				userId: user.id,
 				userName: user.name,
 				userImage: user.image

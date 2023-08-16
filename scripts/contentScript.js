@@ -141,7 +141,7 @@ async function sha256(value) {
 
 // for showing all tracked/ untrack pr in a organization
 async function getTrackedRepos(orgName, userId, repoHost) {
-	const { backendUrl } = await chrome.storage.sync.get(["backendUrl"]);
+	const { backendUrl } = await chrome.storage.local.get(["backendUrl"]);
 	let body = {};
 	let url = ''
 	switch (repoHost) {
@@ -566,7 +566,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
 	}
-	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
+	chrome.storage.local.get(["backendUrl"]).then(async ({ backendUrl }) => {
 		if (urlObj[2] == 'github.com') {
 			if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 				// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
@@ -670,7 +670,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 };
 
 window.onload = () => {
-	chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+	chrome.storage.local.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
 		console.log("We have the userId:", userId) // FIXME: remove this console.log
 		let oldHref = document.location.href;
 		orchestrator(oldHref, websiteUrl, userId);
