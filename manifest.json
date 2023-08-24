@@ -13,6 +13,7 @@
     },
     "permissions": [
         "storage",
+        "https://vibinex.com/**",
         "cookies"
     ],
     "icons": {
