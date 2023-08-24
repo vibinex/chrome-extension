@@ -11,9 +11,6 @@
         "default_popup": "popup/popup.html",
         "default_icon": "resources/vibinex-logo.png"
     },
-    "host_permissions": [
-        "*://*/*"
-    ],
     "permissions": [
         "storage",
         "cookies"
@@ -26,8 +23,7 @@
             "matches": [
                 "https://github.com/**",
                 "https://bitbucket.org/**",
-                "https://vibinex.com/**",
-                "https://17b8-171-76-82-43.ngrok-free.app/**"
+                "https://vibinex.com/**"
             ],
             "css": [
                 "scripts/main.css"
