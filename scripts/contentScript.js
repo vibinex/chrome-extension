@@ -100,25 +100,31 @@ function destroyElement(type) {
 		document.getElementById('vibinexErrorIcon').remove();
 }
 
-async function apiCall(url, body) {
+async function apiCall(url, body, query_params={}) {
 	// TODO : doesn't handle multiple api calls on a single page. 
 	try {
 		createElement("loading")
 
 		let dataFromAPI;
-		await fetch(url, {
+		if (query_params) {
+			const queryString = new URLSearchParams(query_params).toString();
+			url = `${url}?${queryString}`;
+		}
+		console.log(`url = ${url}`);
+		const token = await chrome.storage.local.get(["token"]);
+		let response = await fetch(url, {
 			method: "POST",
 			headers: {
-				"Access-Control-Allow-Origin": "chrome-extension://jafgelpkkkopeaefadkdjcmnicgpcncc",
 				"Content-Type": "application/json",
 				"Accept": "application/json",
+				"Authorization": `Bearer ${token.token}`,
 			},
-			body: JSON.stringify(body)
-		})
-			.then((response) => response.json())
-			.then((data) => dataFromAPI = data);
+			body: JSON.stringify(body),
+		});
+		dataFromAPI = await response.json();
 
 		destroyElement("loading")
+		console.log("datfromapi = ", dataFromAPI);
 		return dataFromAPI;
 	} catch (e) {
 		console.error(`[vibinex] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
@@ -141,7 +147,7 @@ async function sha256(value) {
 
 // for showing all tracked/ untrack pr in a organization
 async function getTrackedRepos(orgName, userId, repoHost) {
-	const { backendUrl } = await chrome.storage.sync.get(["backendUrl"]);
+	const { backendUrl } = await chrome.storage.local.get(["backendUrl"]);
 	let body = {};
 	let url = ''
 	switch (repoHost) {
@@ -351,8 +357,8 @@ async function FilesInPrBitbucket(response) {
 		if (!ticking) {
 			window.requestAnimationFrame(() => {
 				if (currentScrollPosition - lastKnownScrollPosition > 100) {
-					if ("relevant" in response) {
-						const encryptedFileNames = new Set(response['relevant']);
+					if ("files" in response) {
+						const encryptedFileNames = new Set(response['files']);
 						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"))
 						lastKnownScrollPosition = currentScrollPosition;
 						fileNav.forEach(async (element) => {
@@ -477,7 +483,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 						const fileName = ariaLabel.substring(13); // beacuse ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
 
 						const matchEncrypted = await sha256(fileName);
-						const foundFiles = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
+						const foundFiles = apiResponses["hunkinfo"].find(item => item.filepath === matchEncrypted);
 
 						if (foundFiles) {
 							const fileHighlight = article.firstElementChild;
@@ -518,11 +524,11 @@ const bitBucketHunkHighlight = (apiResponses) => {
 											}
 										} else if (symbol == '+') {
 											const lineNumber = getLineNumber(item);
-											if (lineNumber >= lineStart && lineNumber <= lineEnd) {
-												const secondElement = item.children[1];
-												const secondChild = secondElement.children[2];
-												secondChild.style.borderLeft = 'solid 6px #f1f549';
-											}
+											// if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+											// 	const secondElement = item.children[1];
+											// 	const secondChild = secondElement.children[2];
+											// 	secondChild.style.borderLeft = 'solid 6px #f1f549';
+											// }
 										}
 									})
 
@@ -566,7 +572,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
 	}
-	chrome.storage.sync.get(["backendUrl"]).then(async ({ backendUrl }) => {
+	chrome.storage.local.get(["backendUrl"]).then(async ({ backendUrl }) => {
+		const url = `${backendUrl}/api/extension/relevant`;
 		if (urlObj[2] == 'github.com') {
 			if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 				// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
@@ -582,8 +589,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"user_id": userId,
 						"is_github": true
 					}
-					const url = `${backendUrl}/relevance/pr`;
-					const highlightedPRIds = await apiCall(url, body);
+					const query_params = {"type": "review"};
+					const highlightedPRIds = await apiCall(url, body, query_params);
 					highlightRelevantPRs(highlightedPRIds);
 				}
 				if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
@@ -595,8 +602,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"pr_number": prNumber,
 						"is_github": true
 					}
-					const url = `${backendUrl}/relevance/pr/files`;
-					const response = await apiCall(url, body);
+					let query_params = {"type": "file"};
+					const response = await apiCall(url, body, query_params);
 					showImpFileInPr(response);
 
 					const hunk_info_body = {
@@ -606,8 +613,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"pr_number": prNumber,
 						"repo_provider": "github"
 					}
-					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`;
-					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
+					query_params = {"type": "hunk"};
+					const hunk_info_response = await apiCall(url, hunk_info_body, query_params);
 					githubHunkHighlight(hunk_info_response);
 				}
 			}
@@ -639,10 +646,10 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"is_github": false
+						"repo_provider": "bitbucket"
 					}
-					const url = `${backendUrl}/relevance/pr`;
-					const highlightedPRIds = await apiCall(url, body);
+					const query_params = {"type": "review"};
+					const highlightedPRIds = await apiCall(url, body, query_params);
 					addCssElementToBitbucket(highlightedPRIds);
 				}
 				// for showing highlighted file in single pr and also for hunkLevel highlight 
@@ -656,12 +663,12 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_provider": 'bitbucket',
 						"is_github": false
 					}
-					const url = `${backendUrl}/relevance/pr/files`;
-					const response = await apiCall(url, body);
+					let query_params = {"type": "file"};
+					const response = await apiCall(url, body, query_params);
 					FilesInPrBitbucket(response);
 					// for hunk level high light of each file 
-					const hunkUrl = `${backendUrl}/relevance/hunkinfo`;
-					const hunkResponse = await apiCall(hunkUrl, body);
+					query_params = {"type": "hunk"};
+					const hunkResponse = await apiCall(url, body, query_params);
 					bitBucketHunkHighlight(hunkResponse);
 				}
 			}
@@ -670,7 +677,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 };
 
 window.onload = () => {
-	chrome.storage.sync.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+	chrome.storage.local.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
 		console.log("We have the userId:", userId) // FIXME: remove this console.log
 		let oldHref = document.location.href;
 		orchestrator(oldHref, websiteUrl, userId);
