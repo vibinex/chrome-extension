@@ -12,7 +12,7 @@
         "default_icon": "resources/vibinex-logo.png"
     },
     "host_permissions": [
-        "*://*/*"
+        "https://vibinex.com/*"
     ],
     "permissions": [
         "storage",
