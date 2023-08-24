@@ -675,7 +675,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_provider": "bitbucket"
 					}
 					const url = `${websiteUrl}/api/extension/relevant`;
-					const query_params = {"type": "review"};
+					const query_params = {type: "review"};
 					const highlightedPRIds = await apiCallOnprem(url, body, query_params);
 					addCssElementToBitbucket(highlightedPRIds);
 				}
@@ -691,11 +691,11 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"is_github": false
 					}
 					const url = `${websiteUrl}/api/extension/relevant`;
-					let query_params = {"type": "file"};
+					let query_params = {type: "file"};
 					const response = await apiCallOnprem(url, body, query_params);
 					FilesInPrBitbucket(response);
 					// for hunk level high light of each file 
-					query_params = {"type": "hunk"};
+					query_params = {type: "hunk"};
 					const hunkResponse = await apiCallOnprem(url, body, query_params);
 					bitBucketHunkHighlight(hunkResponse);
 				}
