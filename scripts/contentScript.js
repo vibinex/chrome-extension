@@ -674,7 +674,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"user_id": userId,
 						"repo_provider": "bitbucket"
 					}
-					const url = `${backendUrl}/api/extension/relevant`;
+					const url = `${websiteUrl}/api/extension/relevant`;
 					const query_params = {"type": "review"};
 					const highlightedPRIds = await apiCallOnprem(url, body, query_params);
 					addCssElementToBitbucket(highlightedPRIds);
@@ -690,7 +690,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_provider": 'bitbucket',
 						"is_github": false
 					}
-					const url = `${backendUrl}/api/extension/relevant`;
+					const url = `${websiteUrl}/api/extension/relevant`;
 					let query_params = {"type": "file"};
 					const response = await apiCallOnprem(url, body, query_params);
 					FilesInPrBitbucket(response);
