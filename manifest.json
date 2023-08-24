@@ -11,9 +11,11 @@
         "default_popup": "popup/popup.html",
         "default_icon": "resources/vibinex-logo.png"
     },
+    "host_permissions": [
+        "*://*/*"
+    ],
     "permissions": [
         "storage",
-        "https://vibinex.com/**",
         "cookies"
     ],
     "icons": {
