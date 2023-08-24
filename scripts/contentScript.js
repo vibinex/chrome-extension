@@ -100,7 +100,37 @@ function destroyElement(type) {
 		document.getElementById('vibinexErrorIcon').remove();
 }
 
-async function apiCall(url, body, query_params={}) {
+async function apiCall(url, body) {
+	// TODO : doesn't handle multiple api calls on a single page. 
+	try {
+		createElement("loading")
+
+		let dataFromAPI;
+		await fetch(url, {
+			method: "POST",
+			headers: {
+				"Access-Control-Allow-Origin": "chrome-extension://jafgelpkkkopeaefadkdjcmnicgpcncc",
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+			},
+			body: JSON.stringify(body)
+		})
+			.then((response) => response.json())
+			.then((data) => dataFromAPI = data);
+
+		destroyElement("loading")
+		return dataFromAPI;
+	} catch (e) {
+		console.error(`[vibinex] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
+		destroyElement("loading");
+		createElement("error");
+		setTimeout(() => {
+			destroyElement("error");
+		}, 2000);
+	}
+}
+
+async function apiCallOnprem(url, body, query_params={}) {
 	// TODO : doesn't handle multiple api calls on a single page. 
 	try {
 		createElement("loading")
@@ -110,7 +140,6 @@ async function apiCall(url, body, query_params={}) {
 			const queryString = new URLSearchParams(query_params).toString();
 			url = `${url}?${queryString}`;
 		}
-		console.log(`url = ${url}`);
 		const token = await chrome.storage.local.get(["token"]);
 		let response = await fetch(url, {
 			method: "POST",
@@ -122,9 +151,7 @@ async function apiCall(url, body, query_params={}) {
 			body: JSON.stringify(body),
 		});
 		dataFromAPI = await response.json();
-
 		destroyElement("loading")
-		console.log("datfromapi = ", dataFromAPI);
 		return dataFromAPI;
 	} catch (e) {
 		console.error(`[vibinex] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
@@ -524,11 +551,11 @@ const bitBucketHunkHighlight = (apiResponses) => {
 											}
 										} else if (symbol == '+') {
 											const lineNumber = getLineNumber(item);
-											// if (lineNumber >= lineStart && lineNumber <= lineEnd) {
-											// 	const secondElement = item.children[1];
-											// 	const secondChild = secondElement.children[2];
-											// 	secondChild.style.borderLeft = 'solid 6px #f1f549';
-											// }
+											if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+												const secondElement = item.children[1];
+												const secondChild = secondElement.children[2];
+												secondChild.style.borderLeft = 'solid 6px #f1f549';
+											}
 										}
 									})
 
@@ -573,7 +600,6 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
 	}
 	chrome.storage.local.get(["backendUrl"]).then(async ({ backendUrl }) => {
-		const url = `${backendUrl}/api/extension/relevant`;
 		if (urlObj[2] == 'github.com') {
 			if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 				// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
@@ -589,8 +615,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"user_id": userId,
 						"is_github": true
 					}
-					const query_params = {"type": "review"};
-					const highlightedPRIds = await apiCall(url, body, query_params);
+					const url = `${backendUrl}/relevance/pr`;
+					const highlightedPRIds = await apiCall(url, body);
 					highlightRelevantPRs(highlightedPRIds);
 				}
 				if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
@@ -602,8 +628,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"pr_number": prNumber,
 						"is_github": true
 					}
-					let query_params = {"type": "file"};
-					const response = await apiCall(url, body, query_params);
+					const url = `${backendUrl}/relevance/pr/files`;
+					const response = await apiCall(url, body);
 					showImpFileInPr(response);
 
 					const hunk_info_body = {
@@ -613,8 +639,8 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"pr_number": prNumber,
 						"repo_provider": "github"
 					}
-					query_params = {"type": "hunk"};
-					const hunk_info_response = await apiCall(url, hunk_info_body, query_params);
+					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`;
+					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
 					githubHunkHighlight(hunk_info_response);
 				}
 			}
@@ -648,8 +674,9 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"user_id": userId,
 						"repo_provider": "bitbucket"
 					}
+					const url = `${backendUrl}/api/extension/relevant`;
 					const query_params = {"type": "review"};
-					const highlightedPRIds = await apiCall(url, body, query_params);
+					const highlightedPRIds = await apiCallOnprem(url, body, query_params);
 					addCssElementToBitbucket(highlightedPRIds);
 				}
 				// for showing highlighted file in single pr and also for hunkLevel highlight 
@@ -663,12 +690,13 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_provider": 'bitbucket',
 						"is_github": false
 					}
+					const url = `${backendUrl}/api/extension/relevant`;
 					let query_params = {"type": "file"};
-					const response = await apiCall(url, body, query_params);
+					const response = await apiCallOnprem(url, body, query_params);
 					FilesInPrBitbucket(response);
 					// for hunk level high light of each file 
 					query_params = {"type": "hunk"};
-					const hunkResponse = await apiCall(url, body, query_params);
+					const hunkResponse = await apiCallOnprem(url, body, query_params);
 					bitBucketHunkHighlight(hunkResponse);
 				}
 			}

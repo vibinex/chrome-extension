@@ -28,9 +28,7 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 	});
 
 	fetch(`${websiteUrl}/api/auth/session`, { cache: 'no-store' }).then(async (res) => {
-		console.log(`response = ${JSON.stringify(res)}`);
 		const json = await res.json();
-		console.log(`json = ${JSON.stringify(json)}`);
 		document.querySelector("#loading-div").style.display = "none";
 		if (json.user) {
 			//user is logged in
@@ -42,10 +40,6 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 			document.querySelector("#session-name").innerHTML = user.name;
 			document.querySelector("#session-email").innerHTML = user.email;
 			const cookie = await chrome.cookies.get({ url: websiteUrl, name: '__Secure-next-auth.session-token' });
-			console.log("cookie = ", cookie);
-			if (cookie) {
-				console.log("cookie val = ", cookie.value);
-			}
 			chrome.storage.local.set({
 				userId: user.id,
 				userName: user.name,
