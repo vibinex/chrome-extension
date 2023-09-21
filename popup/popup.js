@@ -39,16 +39,23 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 			document.querySelector("#session-image").src = user.image;
 			document.querySelector("#session-name").innerHTML = user.name;
 			document.querySelector("#session-email").innerHTML = user.email;
-
-			chrome.storage.local.set({
-				userId: user.id,
-				userName: user.name,
-				userImage: user.image
-			}).then(() => {
-				console.debug(`[popup] userId has been set to ${user.id}`);
-			}).catch(err => {
-				console.error(`[popup] Sync storage could not be set. userId: ${user.id}`, err);
+			chrome.cookies.get({ url: websiteUrl, name: '__Secure-next-auth.session-token' })
+			.then((cookie) => {
+				const tokenval = cookie.value;
+				chrome.storage.local.set({
+					userId: user.id,
+					userName: user.name,
+					userImage: user.image,
+					token: tokenval,
+				}).then(() => {
+					console.debug(`[popup] userId has been set to ${user.id}`);
+				}).catch(err => {
+					console.error(`[popup] Local storage could not be set. userId: ${user.id}`, err);
+				})
 			})
+			.catch((err) =>{
+				console.error("Unable to get Cookie value for session: ", err);
+			});
 		} else {
 			// no session means user not logged in
 			document.querySelector("#login-div").style.display = "flex";

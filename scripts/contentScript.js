@@ -130,6 +130,39 @@ async function apiCall(url, body) {
 	}
 }
 
+async function apiCallOnprem(url, body, query_params={}) {
+	// TODO : doesn't handle multiple api calls on a single page. 
+	try {
+		createElement("loading")
+
+		let dataFromAPI;
+		if (query_params) {
+			const queryString = new URLSearchParams(query_params).toString();
+			url = `${url}?${queryString}`;
+		}
+		const token = await chrome.storage.local.get(["token"]);
+		let response = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"Accept": "application/json",
+				"Authorization": `Bearer ${token.token}`,
+			},
+			body: JSON.stringify(body),
+		});
+		dataFromAPI = await response.json();
+		destroyElement("loading")
+		return dataFromAPI;
+	} catch (e) {
+		console.error(`[vibinex] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
+		destroyElement("loading");
+		createElement("error");
+		setTimeout(() => {
+			destroyElement("error");
+		}, 2000);
+	}
+}
+
 async function sha256(value) {
 	const buffer = new TextEncoder().encode(value);
 	const hash = await crypto.subtle.digest('SHA-256', buffer);
@@ -351,8 +384,8 @@ async function FilesInPrBitbucket(response) {
 		if (!ticking) {
 			window.requestAnimationFrame(() => {
 				if (currentScrollPosition - lastKnownScrollPosition > 100) {
-					if ("relevant" in response) {
-						const encryptedFileNames = new Set(response['relevant']);
+					if ("files" in response) {
+						const encryptedFileNames = new Set(response['files']);
 						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"))
 						lastKnownScrollPosition = currentScrollPosition;
 						fileNav.forEach(async (element) => {
@@ -477,7 +510,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 						const fileName = ariaLabel.substring(13); // beacuse ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
 
 						const matchEncrypted = await sha256(fileName);
-						const foundFiles = apiResponses["hunkinfo"].find(item => item.file === matchEncrypted);
+						const foundFiles = apiResponses["hunkinfo"].find(item => item.filepath === matchEncrypted);
 
 						if (foundFiles) {
 							const fileHighlight = article.firstElementChild;
@@ -639,10 +672,11 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_owner": ownerName,
 						"repo_name": repoName,
 						"user_id": userId,
-						"is_github": false
+						"repo_provider": "bitbucket"
 					}
-					const url = `${backendUrl}/relevance/pr`;
-					const highlightedPRIds = await apiCall(url, body);
+					const url = `${websiteUrl}/api/extension/relevant`;
+					const query_params = {type: "review"};
+					const highlightedPRIds = await apiCallOnprem(url, body, query_params);
 					addCssElementToBitbucket(highlightedPRIds);
 				}
 				// for showing highlighted file in single pr and also for hunkLevel highlight 
@@ -656,12 +690,13 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_provider": 'bitbucket',
 						"is_github": false
 					}
-					const url = `${backendUrl}/relevance/pr/files`;
-					const response = await apiCall(url, body);
+					const url = `${websiteUrl}/api/extension/relevant`;
+					let query_params = {type: "file"};
+					const response = await apiCallOnprem(url, body, query_params);
 					FilesInPrBitbucket(response);
 					// for hunk level high light of each file 
-					const hunkUrl = `${backendUrl}/relevance/hunkinfo`;
-					const hunkResponse = await apiCall(hunkUrl, body);
+					query_params = {type: "hunk"};
+					const hunkResponse = await apiCallOnprem(url, body, query_params);
 					bitBucketHunkHighlight(hunkResponse);
 				}
 			}
