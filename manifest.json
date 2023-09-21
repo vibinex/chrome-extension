@@ -32,7 +32,7 @@
                 "scripts/main.css"
             ],
             "js": [
-                "scripts/contentScript.js"
+                "scripts/utilities.js", "scripts/api.js", "scripts/highlighting.js", "scripts/repoHandlers.js", "scripts/orchestrator.js", "scripts/init.js"
             ]
         }
     ]
