@@ -50,7 +50,7 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				}).then(() => {
 					console.debug(`[popup] userId has been set to ${user.id}`);
 				}).catch(err => {
-					console.error(`[popup] Sync storage could not be set. userId: ${user.id}`, err);
+					console.error(`[popup] Local storage could not be set. userId: ${user.id}`, err);
 				})
 			})
 			.catch((err) =>{
