@@ -1,5 +1,5 @@
 // Listener for when the Chrome extension is installed.
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(() => {
 	// Define the environment for the extension, either "prod" or "dev".
 	const environment = "prod";
 	// const environment = "dev";
