@@ -31,7 +31,7 @@ chrome.runtime.onInstalled.addListener(() => {
 				},
 				body: JSON.stringify(body)
 		}).catch((err) => {
-			console.error(`[vibinex/backgroundScript.js]Unable to post installation event to ${url}, error - `, err);
+			console.error(`[vibinex/backgroundScript] Unable to post installation event to ${url}, error - `, err);
 		});
 	});
 	
