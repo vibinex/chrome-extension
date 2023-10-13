@@ -83,14 +83,6 @@ async function apiCallOnprem(url, body, query_params={}) {
 	if (!res_json) {
 		return null;
 	}
-	await setStorage({
-		[url]: res_json
-	}).catch((e) => {
-		console.error(`[apiCallOnprem] Error while saving data to local storage. URL: ${url}, error: `, e)
-		destroyElement("loading");
-		createElement("error");
-		setTimeout(() => { destroyElement("error"); }, 2000);
-	});
 	destroyElement("loading");
 	return res_json;
 }
