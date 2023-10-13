@@ -44,34 +44,45 @@ async function apiCall(url, body) {
  * @returns {Object} - The data returned from the API.
  */
 async function apiCallOnprem(url, body, query_params={}) {
-	// TODO : doesn't handle multiple api calls on a single page. 
-	try {
-		createElement("loading")
-
-		let dataFromAPI;
-		if (query_params) {
-			const queryString = new URLSearchParams(query_params).toString();
-			url = `${url}?${queryString}`;
-		}
-		const token = await chrome.storage.local.get(["token"]);
-		let response = await fetch(url, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"Accept": "application/json",
-				"Authorization": `Bearer ${token.token}`,
-			},
-			body: JSON.stringify(body),
-		});
-		dataFromAPI = await response.json();
-		destroyElement("loading")
-		return dataFromAPI;
-	} catch (e) {
-		console.error(`[vibinex] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
+	// TODO : doesn't handle multiple api calls on a single page.
+	if (query_params) {
+		const queryString = new URLSearchParams(query_params).toString();
+		url = `${url}?${queryString}`;
+	}
+	createElement("loading");
+	const token = await getStorage(["token"]).catch((err) => {
+		console.error(`[vibinex/apiCallOnprem] Unable to get user token from local storage, url = ${url}`, err);
+	});
+	if (!token) {
+		console.error(`[vibinex/apiCallOnprem] Invalid token for url - ${url}`)
+		return null;
+	}
+	const response = await fetch(url, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Accept": "application/json",
+			"Authorization": `Bearer ${token.token}`,
+		},
+		body: JSON.stringify(body),
+	}).catch((e) => {
+		console.error(`[vibinex/apiCallOnprem] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
 		destroyElement("loading");
 		createElement("error");
-		setTimeout(() => {
-			destroyElement("error");
-		}, 2000);
+		setTimeout(() => { destroyElement("error"); }, 2000);
+	});
+	if (!response) {
+		return null;
 	}
+	const res_json = await response.json().catch((e) => {
+		console.error(`[vibinex/apiCallOnprem] Error while deserializing data. URL: ${url}, payload: ${JSON.stringify(body)} `, e)
+		destroyElement("loading");
+		createElement("error");
+		setTimeout(() => { destroyElement("error"); }, 2000);
+	});
+	destroyElement("loading");
+	if (!res_json) {
+		return null;
+	}
+	return res_json;
 }
