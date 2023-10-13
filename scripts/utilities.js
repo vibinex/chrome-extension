@@ -92,14 +92,22 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
  * @param {string} type - The type of element to remove ("loading", "add", or "error").
  */
 function destroyElement(type) {
-	document.getElementById('vibinexLogo').remove();
-	document.getElementById('floating-info').remove();
-	if (type === "loading")
-		document.getElementById('vibinexLoadingGif').remove();
-	else if (type === "add")
-		document.getElementById('vibinexPlusIcon').remove();
-	else if (type === "error")
-		document.getElementById('vibinexErrorIcon').remove();
+    const vibinexLogo = document.getElementById('vibinexLogo');
+    const floatingInfo = document.getElementById('floating-info');
+    const vibinexLoadingGif = document.getElementById('vibinexLoadingGif');
+    const vibinexPlusIcon = document.getElementById('vibinexPlusIcon');
+    const vibinexErrorIcon = document.getElementById('vibinexErrorIcon');
+
+    if (vibinexLogo) vibinexLogo.remove();
+    if (floatingInfo) floatingInfo.remove();
+
+    if (type === "loading" && vibinexLoadingGif) {
+        vibinexLoadingGif.remove();
+    } else if (type === "add" && vibinexPlusIcon) {
+        vibinexPlusIcon.remove();
+    } else if (type === "error" && vibinexErrorIcon) {
+        vibinexErrorIcon.remove();
+    }
 }
 
 /**
@@ -115,4 +123,28 @@ async function sha256(value) {
 		.map((byte) => byte.toString(16).padStart(2, '0'))
 		.join('');
 	return hexString;
+}
+
+function setStorage(data) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.set(data, () => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError));
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+function getStorage(keys) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(keys, (result) => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError));
+            } else {
+                resolve(result);
+            }
+        });
+    });
 }
