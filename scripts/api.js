@@ -55,7 +55,7 @@ async function apiCallOnprem(url, body, query_params={}) {
 	});
 	if (!token) {
 		console.error(`Invalid token for url - ${url}`)
-		return;
+		return null;
 	}
 	const response = await fetch(url, {
 		method: "POST",
@@ -72,7 +72,7 @@ async function apiCallOnprem(url, body, query_params={}) {
 		setTimeout(() => { destroyElement("error"); }, 2000);
 	});
 	if (!response) {
-		return;
+		return null;
 	}
 	const res_json = await response.json().catch((e) => {
 		console.error(`[apiCallOnprem] Error while deserializing data. URL: ${url}, error: `, e)
@@ -81,7 +81,7 @@ async function apiCallOnprem(url, body, query_params={}) {
 		setTimeout(() => { destroyElement("error"); }, 2000);
 	});
 	if (!res_json) {
-		return;
+		return null;
 	}
 	await setStorage({
 		[url]: res_json
