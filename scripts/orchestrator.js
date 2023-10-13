@@ -4,7 +4,7 @@ const orchestrator = async (tabUrl) => {
 		console.error(`[Vibinex] Unable to get websiteUrl, userId from local storage, url = ${tabUrl}`, err);
 	});
 	if (!websiteUrl || !userId) {
-		console.error(`Invalid websiteUrl - ${websiteUrl} or userId - ${userId}`)
+		console.error(`[Vibinex] Invalid websiteUrl - ${websiteUrl} or userId - ${userId}`)
 		return null;
 	}
 	const urlObj = tabUrl.split('?')[0].split('/');
