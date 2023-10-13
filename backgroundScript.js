@@ -11,7 +11,7 @@ chrome.runtime.onInstalled.addListener(() => {
 	// Store the website and backend URLs in Chrome's local storage.
 	chrome.storage.local.set({ websiteUrl, backendUrl }, () => {
 		if (chrome.runtime.lastError) {
-			console.error(`[Vibinex] Unable to store websiteUrl, backendUrl in local storage`, chrome.runtime.lastError);
+			console.error(`[vibinex] Unable to store websiteUrl, backendUrl in local storage`, chrome.runtime.lastError);
 		}
 	});
 	
@@ -31,7 +31,7 @@ chrome.runtime.onInstalled.addListener(() => {
 				},
 				body: JSON.stringify(body)
 		}).catch((err) => {
-			console.error(`Unable to post installation event to ${url}, error - `, err);
+			console.error(`[vibinex/backgroundScript.js]Unable to post installation event to ${url}, error - `, err);
 		});
 	});
 	

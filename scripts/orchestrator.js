@@ -1,10 +1,10 @@
 const orchestrator = async (tabUrl) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
 	const {websiteUrl, userId} = await getStorage(["websiteUrl", "userId"]).catch((err) => {
-		console.error(`[Vibinex] Unable to get websiteUrl, userId from local storage, url = ${tabUrl}`, err);
+		console.error(`[vibinex/orchestrator] Unable to get websiteUrl, userId from local storage, url = ${tabUrl}`, err);
 	});
 	if (!websiteUrl || !userId) {
-		console.error(`[Vibinex] Invalid websiteUrl - ${websiteUrl} or userId - ${userId}`)
+		console.error(`[vibinex/orchestrator] Invalid websiteUrl - ${websiteUrl} or userId - ${userId}`)
 		return null;
 	}
 	const urlObj = tabUrl.split('?')[0].split('/');

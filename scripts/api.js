@@ -66,7 +66,7 @@ async function apiCallOnprem(url, body, query_params={}) {
 		},
 		body: JSON.stringify(body),
 	}).catch((e) => {
-		console.error(`[apiCallOnprem] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
+		console.error(`[vibinex/apiCallOnprem] Error while getting data from API. URL: ${url}, payload: ${JSON.stringify(body)}`, e)
 		destroyElement("loading");
 		createElement("error");
 		setTimeout(() => { destroyElement("error"); }, 2000);
@@ -80,9 +80,9 @@ async function apiCallOnprem(url, body, query_params={}) {
 		createElement("error");
 		setTimeout(() => { destroyElement("error"); }, 2000);
 	});
+	destroyElement("loading");
 	if (!res_json) {
 		return null;
 	}
-	destroyElement("loading");
 	return res_json;
 }
