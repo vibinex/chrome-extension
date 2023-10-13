@@ -75,7 +75,7 @@ async function apiCallOnprem(url, body, query_params={}) {
 		return null;
 	}
 	const res_json = await response.json().catch((e) => {
-		console.error(`[apiCallOnprem] Error while deserializing data. URL: ${url}, error: `, e)
+		console.error(`[vibinex/apiCallOnprem] Error while deserializing data. URL: ${url}, payload: ${JSON.stringify(body)} `, e)
 		destroyElement("loading");
 		createElement("error");
 		setTimeout(() => { destroyElement("error"); }, 2000);
