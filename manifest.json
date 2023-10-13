@@ -17,7 +17,8 @@
     ],
     "permissions": [
         "storage",
-        "cookies"
+        "cookies",
+        "tabs"
     ],
     "icons": {
         "128": "resources/vibinex-logo.png"
@@ -27,8 +28,7 @@
             "matches": [
                 "https://github.com/**",
                 "https://bitbucket.org/**",
-                "https://vibinex.com/**",
-                "https://gcscruncsql-k7jns52mtq-el.a.run.app/**"
+                "https://vibinex.com/**"
             ],
             "css": [
                 "scripts/main.css"
