@@ -5,6 +5,7 @@ const orchestrator = async (tabUrl) => {
 	});
 	if (!websiteUrl || !userId) {
 		console.error(`Invalid websiteUrl - ${websiteUrl} or userId - ${userId}`)
+		return null;
 	}
 	const urlObj = tabUrl.split('?')[0].split('/');
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
