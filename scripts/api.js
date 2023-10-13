@@ -54,7 +54,7 @@ async function apiCallOnprem(url, body, query_params={}) {
 		console.error(`[vibinex/apiCallOnprem] Unable to get user token from local storage, url = ${url}`, err);
 	});
 	if (!token) {
-		console.error(`[vibinex/apiCallOnprem]Invalid token for url - ${url}`)
+		console.error(`[vibinex/apiCallOnprem] Invalid token for url - ${url}`)
 		return null;
 	}
 	const response = await fetch(url, {
