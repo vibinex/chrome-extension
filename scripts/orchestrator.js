@@ -123,8 +123,6 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					// for hunk level high light of each file 
 					query_params = { type: "hunk" };
 					const hunkResponse = await apiCallOnprem(url, body, query_params);
-					console.log("API details", url, body, query_params);
-					console.log("hunkResponse", hunkResponse);
 					bitBucketHunkHighlight(hunkResponse);
 				}
 			}
