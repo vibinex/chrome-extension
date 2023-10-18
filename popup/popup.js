@@ -52,22 +52,22 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 
 			// Retrieve the session token from the cookie and store user details in Chrome's local storage.
 			chrome.cookies.get({ url: websiteUrl, name: '__Secure-next-auth.session-token' })
-			.then((cookie) => {
-				const tokenval = cookie.value;
-				chrome.storage.local.set({
-					userId: user.id,
-					userName: user.name,
-					userImage: user.image,
-					token: tokenval,
-				}).then(() => {
-					console.debug(`[popup] userId has been set to ${user.id}`);
-				}).catch(err => {
-					console.error(`[popup] Local storage could not be set. userId: ${user.id}`, err);
+				.then((cookie) => {
+					const tokenval = cookie.value;
+					chrome.storage.local.set({
+						userId: user.id,
+						userName: user.name,
+						userImage: user.image,
+						token: tokenval,
+					}).then(() => {
+						console.debug(`[popup] userId has been set to ${user.id}`);
+					}).catch(err => {
+						console.error(`[popup] Local storage could not be set. userId: ${user.id}`, err);
+					});
+				})
+				.catch((err) => {
+					console.error("Unable to get Cookie value for session: ", err);
 				});
-			})
-			.catch((err) => {
-				console.error("Unable to get Cookie value for session: ", err);
-			});
 		} else {
 			// If no user session exists, display the login options.
 			document.querySelector("#login-div").style.display = "flex";

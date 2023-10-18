@@ -40,7 +40,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_name": repoName,
 						"user_id": userId,
 						"is_github": true
-					}
+					};
 					const url = `${backendUrl}/relevance/pr`;
 					const highlightedPRIds = await apiCall(url, body);
 					highlightRelevantPRs(highlightedPRIds);
@@ -53,7 +53,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"user_id": userId,
 						"pr_number": prNumber,
 						"is_github": true
-					}
+					};
 					const url = `${backendUrl}/relevance/pr/files`;
 					const response = await apiCall(url, body);
 					showImpFileInPr(response);
@@ -64,7 +64,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"user_id": userId,
 						"pr_number": prNumber,
 						"repo_provider": "github"
-					}
+					};
 					const hunk_info_url = `${backendUrl}/relevance/hunkinfo`;
 					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
 					githubHunkHighlight(hunk_info_response);
@@ -76,7 +76,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 				(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
 				// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
 				const orgName = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
-				const trackedRepos = await getTrackedRepos(orgName, userId, 'github')
+				const trackedRepos = await getTrackedRepos(orgName, userId, 'github');
 				updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl);
 			}
 		}
@@ -85,7 +85,7 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 			// for showing tracked repo of a organization 
 			if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
 				const workspaceSlug = urlObj[3];
-				const trackedRepos = await getTrackedRepos(workspaceSlug, userId, 'bitbucket')
+				const trackedRepos = await getTrackedRepos(workspaceSlug, userId, 'bitbucket');
 				updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl);
 			}
 
@@ -99,9 +99,9 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"repo_name": repoName,
 						"user_id": userId,
 						"repo_provider": "bitbucket"
-					}
+					};
 					const url = `${websiteUrl}/api/extension/relevant`;
-					const query_params = {type: "review"};
+					const query_params = { type: "review" };
 					const highlightedPRIds = await apiCallOnprem(url, body, query_params);
 					addCssElementToBitbucket(highlightedPRIds);
 				}
@@ -115,17 +115,17 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 						"pr_number": prNumber,
 						"repo_provider": 'bitbucket',
 						"is_github": false
-					}
+					};
 					const url = `${websiteUrl}/api/extension/relevant`;
-					let query_params = {type: "file"};
+					let query_params = { type: "file" };
 					const response = await apiCallOnprem(url, body, query_params);
 					FilesInPrBitbucket(response);
 					// for hunk level high light of each file 
-					query_params = {type: "hunk"};
+					query_params = { type: "hunk" };
 					const hunkResponse = await apiCallOnprem(url, body, query_params);
 					bitBucketHunkHighlight(hunkResponse);
 				}
 			}
 		}
-	})
+	});
 };

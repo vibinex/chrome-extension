@@ -16,7 +16,7 @@ function highlightRelevantPRs(highlightedPRIds) {
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber])
+				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]);
 			}
 		}
 	}
@@ -76,7 +76,7 @@ function addCssElementToBitbucket(highlightedPRIds) {
 				beforePsuedoElement.style.color = 'white';
 				beforePsuedoElement.style.padding = '2px';
 				beforePsuedoElement.style.paddingLeft = '5px';
-				beforePsuedoElement.style.paddingRight = '5px'
+				beforePsuedoElement.style.paddingRight = '5px';
 				beforePsuedoElement.style.borderRadius = '3px';
 				const parent = item.closest('tr');
 				parent.style.backgroundColor = `${backgroundColor}`;
@@ -148,7 +148,7 @@ async function FilesInPrBitbucket(response) {
 				if (currentScrollPosition - lastKnownScrollPosition > 100) {
 					if ("files" in response) {
 						const encryptedFileNames = new Set(response['files']);
-						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"))
+						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"));
 						lastKnownScrollPosition = currentScrollPosition;
 						fileNav.forEach(async (element) => {
 							const h3Element = element.querySelector('h3');
@@ -167,7 +167,7 @@ async function FilesInPrBitbucket(response) {
 									value2.style.backgroundColor = '#c5cc02';
 								}
 							}
-						})
+						});
 					}
 				}
 				ticking = false;
@@ -216,7 +216,7 @@ const githubHunkHighlight = async (apiResponses) => {
 					// for unified view
 					let flag = false;
 					value.forEach((item, index) => {
-						const deletedLines = item.querySelector('button[data-original-line]')
+						const deletedLines = item.querySelector('button[data-original-line]');
 						if (deletedLines !== null) {
 							const originalLine = deletedLines.getAttribute('data-original-line');
 							const signature = originalLine.charAt(0);
@@ -253,13 +253,13 @@ const githubHunkHighlight = async (apiResponses) => {
 									}
 								}
 							}
-						})
-					})
+						});
+					});
 				}
 			}
 		}
-	})
-}
+	});
+};
 
 /**
  * Highlights specific hunks (sections) of code in a Bitbucket pull request.
@@ -329,9 +329,9 @@ const bitBucketHunkHighlight = (apiResponses) => {
 												secondChild.style.borderLeft = 'solid 6px #f1f549';
 											}
 										}
-									})
+									});
 
-								})
+								});
 
 							} else {
 								// for unified view 
@@ -347,7 +347,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 											secondChild.style.borderLeft = 'solid 6px #f1f549';
 										}
 									}
-								})
+								});
 							}
 						}
 					});
@@ -357,4 +357,4 @@ const bitBucketHunkHighlight = (apiResponses) => {
 			ticking = true;
 		}
 	});
-}
+};
