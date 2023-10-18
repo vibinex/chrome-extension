@@ -1,12 +1,25 @@
-const orchestrator = async (tabUrl) => {
+/**
+ * The `orchestrator` function is responsible for orchestrating various actions based on the current URL of the tab.
+ * 
+ * Functionality:
+ * 1. Logs the updated tab URL for debugging purposes.
+ * 2. Checks if the user is logged in when on GitHub or Bitbucket. If not, a warning is displayed.
+ * 3. Retrieves the 'backendUrl' from Chrome local storage.
+ * 
+ * For GitHub:
+ * - If on a specific repository page (e.g., https://github.com/mui/mui-toolpad), it displays a floating action button.
+ * - If on a repository's pull requests page, it highlights relevant PRs.
+ * - If viewing files of a specific pull request, it highlights important files and specific code hunks.
+ * - If on a user or organization's main page or repositories page, it updates the display of tracked repositories.
+ * 
+ * For Bitbucket:
+ * - If on a workspace's repositories page, it updates the display of tracked repositories.
+ * - If on a repository's pull requests page, it highlights relevant PRs or specific files and code hunks in a PR.
+ * 
+ * Note: This function assumes it's running in the context of a browser extension, given its use of the 'chrome.storage' API and specific URL patterns for GitHub and Bitbucket.
+ */
+const orchestrator = (tabUrl, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
-	const {websiteUrl, userId} = await getStorage(["websiteUrl", "userId"]).catch((err) => {
-		console.error(`[vibinex/orchestrator] Unable to get websiteUrl, userId from local storage, url = ${tabUrl}`, err);
-	});
-	if (!websiteUrl || !userId) {
-		console.error(`[vibinex/orchestrator] Invalid websiteUrl - ${websiteUrl} or userId - ${userId}`)
-		return null;
-	}
 	const urlObj = tabUrl.split('?')[0].split('/');
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
