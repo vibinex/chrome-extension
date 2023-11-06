@@ -107,6 +107,48 @@ function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 }
 
 /**
+ * Updates the user's GitHub repositories page to visually indicate which repositories are being tracked.
+ * 
+ * @param {Array} trackedRepos - List of tracked repositories.
+ * @param {string} websiteUrl - The URL of the website.
+ */
+function updateTrackedReposInUserGitHub(trackedRepos, websiteUrl) {
+	const allUserRepo = document.getElementById('user-repositories-list');
+	const userRepoUrl = Array.from(allUserRepo.getElementsByTagName('a'));
+
+	userRepoUrl.forEach((item) => {
+		const link = item.getAttribute('href').split('/');
+		const userRepoName = link[link.length - 1];
+
+		if (trackedRepos.includes(userRepoName)) {
+			const checkElement = item.getElementsByClassName('trackLogo')[0];
+			if (checkElement) {
+				// TODO: Ideally, we should only need to add the element when there is none present
+				checkElement.remove();
+			}
+			const img = document.createElement("img");
+			img.setAttribute('class', 'trackLogo');
+			const beforePsuedoElement = document.createElement('a');
+			img.src = `${websiteUrl}/favicon.ico`;
+			img.style.width = '15px'
+			img.style.height = '15px'
+
+			beforePsuedoElement.appendChild(img);
+			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${userRepoName}`;
+			beforePsuedoElement.target = '_blank';
+			beforePsuedoElement.style.display = 'inline-block';
+			beforePsuedoElement.style.marginRight = '2px';
+			beforePsuedoElement.style.color = 'white';
+			beforePsuedoElement.style.borderRadius = '2px';
+			beforePsuedoElement.style.fontSize = '15px';
+			beforePsuedoElement.style.textDecoration = 'none';
+
+			item.insertBefore(beforePsuedoElement, item.firstChild);
+		}
+	})
+}
+
+/**
  * Displays a floating action button on the repository page if the repository is not being tracked.
  * 
  * @param {string} orgName - The name of the organization or user.

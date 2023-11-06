@@ -21,6 +21,7 @@
 const orchestrator = (tabUrl, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
 	const urlObj = tabUrl.split('?')[0].split('/');
+	const urlEnd = tabUrl.split('?')[1]
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
@@ -69,6 +70,12 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					const hunk_info_response = await apiCall(hunk_info_url, hunk_info_body);
 					githubHunkHighlight(hunk_info_response);
 				}
+			}
+			else if (urlEnd === 'tab=repositories') {
+				// for working on this url https://github.com/username?tab=repositories
+				const userName = urlObj[3]
+				const trackedRepos = await getTrackedRepos(userName, userId, 'github');
+				updateTrackedReposInUserGitHub(trackedRepos, websiteUrl)
 			}
 			// for showing all tracked repo
 			else if (
