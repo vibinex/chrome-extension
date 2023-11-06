@@ -72,7 +72,7 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
  */
 function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 	const allOrgRepo = document.getElementById('org-repositories');
-	const orgRepoUrl = Array.from(allOrgRepo.getElementsByTagName('a'));
+	const orgRepoUrl = Array.from(allOrgRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
 
 	orgRepoUrl.forEach((item) => {
 		const link = item.getAttribute('href').split('/');
@@ -114,7 +114,7 @@ function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
  */
 function updateTrackedReposInUserGitHub(trackedRepos, websiteUrl) {
 	const allUserRepo = document.getElementById('user-repositories-list');
-	const userRepoUrl = Array.from(allUserRepo.getElementsByTagName('a'));
+	const userRepoUrl = Array.from(allUserRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
 
 	userRepoUrl.forEach((item) => {
 		const link = item.getAttribute('href').split('/');
