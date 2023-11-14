@@ -53,7 +53,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 					"user_id": userId,
 					"pr_number": prNumber,
 					"repo_provider": 'github',
-					"is_github": false
+					"is_github": true
 				};
 				let query_params = { type: "file" };
 				const response = await apiCallOnprem(url, body, query_params);
