@@ -65,20 +65,22 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
 }
 
 /**
- * Updates the GitHub organization page to visually indicate which repositories are being tracked.
+ * Updates the GitHub organization or user page to visually indicate which repositories are being tracked.
  * 
  * @param {Array} trackedRepos - List of tracked repositories.
  * @param {string} websiteUrl - The URL of the website.
+ * @param {boolean} isOrg - Whether github organization or user.
  */
-function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
-	const allOrgRepo = document.getElementById('org-repositories');
-	const orgRepoUrl = Array.from(allOrgRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
+function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
+	const allRepo = ownerType == 'org' ? document.getElementById('org-repositories') : document.getElementById('user-repositories-list');
+	const repoUrl = Array.from(allRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
 
-	orgRepoUrl.forEach((item) => {
+
+	repoUrl.forEach((item) => {
 		const link = item.getAttribute('href').split('/');
-		const orgRepoName = link[link.length - 1];
+		const repoName = link[link.length - 1];
 
-		if (trackedRepos.includes(orgRepoName)) {
+		if (trackedRepos.includes(repoName)) {
 			const checkElement = item.getElementsByClassName('trackLogo')[0];
 			if (checkElement) {
 				// TODO: Ideally, we should only need to add the element when there is none present
@@ -92,49 +94,7 @@ function updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl) {
 			img.style.height = '15px'
 
 			beforePsuedoElement.appendChild(img);
-			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${orgRepoName}`;
-			beforePsuedoElement.target = '_blank';
-			beforePsuedoElement.style.display = 'inline-block';
-			beforePsuedoElement.style.marginRight = '2px';
-			beforePsuedoElement.style.color = 'white';
-			beforePsuedoElement.style.borderRadius = '2px';
-			beforePsuedoElement.style.fontSize = '15px';
-			beforePsuedoElement.style.textDecoration = 'none';
-
-			item.insertBefore(beforePsuedoElement, item.firstChild);
-		}
-	})
-}
-
-/**
- * Updates the user's GitHub repositories page to visually indicate which repositories are being tracked.
- * 
- * @param {Array} trackedRepos - List of tracked repositories.
- * @param {string} websiteUrl - The URL of the website.
- */
-function updateTrackedReposInUserGitHub(trackedRepos, websiteUrl) {
-	const allUserRepo = document.getElementById('user-repositories-list');
-	const userRepoUrl = Array.from(allUserRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
-
-	userRepoUrl.forEach((item) => {
-		const link = item.getAttribute('href').split('/');
-		const userRepoName = link[link.length - 1];
-
-		if (trackedRepos.includes(userRepoName)) {
-			const checkElement = item.getElementsByClassName('trackLogo')[0];
-			if (checkElement) {
-				// TODO: Ideally, we should only need to add the element when there is none present
-				checkElement.remove();
-			}
-			const img = document.createElement("img");
-			img.setAttribute('class', 'trackLogo');
-			const beforePsuedoElement = document.createElement('a');
-			img.src = `${websiteUrl}/favicon.ico`;
-			img.style.width = '15px'
-			img.style.height = '15px'
-
-			beforePsuedoElement.appendChild(img);
-			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${userRepoName}`;
+			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${repoName}`;
 			beforePsuedoElement.target = '_blank';
 			beforePsuedoElement.style.display = 'inline-block';
 			beforePsuedoElement.style.marginRight = '2px';

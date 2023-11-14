@@ -71,20 +71,21 @@ const orchestrator = (tabUrl, websiteUrl, userId) => {
 					githubHunkHighlight(hunk_info_response);
 				}
 			}
-			else if (urlEnd === 'tab=repositories') {
-				// for working on this url https://github.com/username?tab=repositories
-				const userName = urlObj[3]
-				const trackedRepos = await getTrackedRepos(userName, userId, 'github');
-				updateTrackedReposInUserGitHub(trackedRepos, websiteUrl)
-			}
-			// for showing all tracked repo
+			// for showing all tracked repo in organisation page
 			else if (
-				(urlObj[3] && urlObj[4] == undefined) ||
+				(urlObj[3] && urlObj[4] == undefined && urlEnd !== 'tab=repositories') ||
 				(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
 				// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
 				const orgName = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
 				const trackedRepos = await getTrackedRepos(orgName, userId, 'github');
-				updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl);
+				updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'org');
+			}
+			// for showing all tracked repo in user page
+			else if (urlObj[3] && !urlObj[4] && urlEnd === 'tab=repositories') {
+				// for working on this url https://github.com/username?tab=repositories
+				const userName = urlObj[3]
+				const trackedRepos = await getTrackedRepos(userName, userId, 'github');
+				updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'user')
 			}
 		}
 
