@@ -11,15 +11,15 @@
 console.log('[vibinex] Running content scripts');
 'use strict';
 window.onload = () => {
-	chrome.storage.local.get(["websiteUrl", "userId"]).then(({ websiteUrl, userId }) => {
+	chrome.storage.local.get(["websiteUrl", "userId"]).then(async ({ websiteUrl, userId }) => {
 		console.log("We have the userId:", userId) // FIXME: remove this console.log
 		let oldHref = document.location.href;
-		orchestrator(oldHref, websiteUrl, userId);
+		await orchestrator(oldHref, websiteUrl, userId);
 		return new MutationObserver(mutations => {
-			mutations.forEach(() => {
+			mutations.forEach(async () => {
 				if (oldHref !== document.location.href) {
 					oldHref = document.location.href;
-					orchestrator(oldHref, websiteUrl, userId);
+					await orchestrator(oldHref, websiteUrl, userId);
 				}
 			})
 		}).observe(document.querySelector("body"), { childList: true, subtree: true });
