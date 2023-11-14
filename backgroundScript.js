@@ -1,12 +1,12 @@
 // Listener for when the Chrome extension is installed.
 chrome.runtime.onInstalled.addListener(() => {
 	// Define the environment for the extension, either "prod" or "dev".
-	const environment = "prod";
-	// const environment = "dev";
+	// const environment = "prod";
+	const environment = "dev";
 
 	// Set the website and backend URLs based on the environment.
-	const websiteUrl = (environment === "dev") ? "http://localhost:3000" : "https://vibinex.com";
-	const backendUrl = (environment === "dev") ? "http://localhost:8080" : "https://gcscruncsql-k7jns52mtq-el.a.run.app";
+	const websiteUrl = (environment === "dev") ? "https://vibi-test-394606.el.r.appspot.com" : "https://vibinex.com";
+	const backendUrl = (environment === "dev") ? "https://gcscruncsql-k7jns52mtq-el.a.run.app" : "https://gcscruncsql-k7jns52mtq-el.a.run.app";
 
 	// Store the website and backend URLs in Chrome's local storage.
 	chrome.storage.local.set({ websiteUrl, backendUrl }).then(_ => console.log(`Website URL set to ${websiteUrl};`));
