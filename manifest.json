@@ -13,8 +13,7 @@
     },
     "host_permissions": [
         "https://vibinex.com/*",
-        "https://gcscruncsql-k7jns52mtq-el.a.run.app/*",
-        "https://vibi-test-394606.el.r.appspot.com/*"
+        "https://gcscruncsql-k7jns52mtq-el.a.run.app/*"
     ],
     "permissions": [
         "storage",
