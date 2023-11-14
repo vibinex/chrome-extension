@@ -98,8 +98,8 @@ function addCssElementToBitbucket(highlightedPRIds) {
  * @param {Object} response - Response object containing relevant data.
  */
 async function showImpFileInPr(response) {
-	if ("relevant" in response) {
-		const encryptedFileNames = new Set(response['relevant']);
+	if ("files" in response) {
+		const encryptedFileNames = new Set(response['files']);
 		const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
 		if (!fileNav) return;
 		const fileList = Array.from(fileNav.getElementsByTagName('li'));
@@ -190,7 +190,7 @@ const githubHunkHighlight = async (apiResponses) => {
 		if (fileContent) {
 
 			const matchEncrypted = await sha256(fileContent);
-			const foundFiles = apiResponses["hunkinfo"].filter(item => item.file === matchEncrypted);
+			const foundFiles = apiResponses["hunkinfo"].filter(item => item.filepath === matchEncrypted);
 
 			if (foundFiles.length >= 0) {
 				// checking for diff view either unified or split 
