@@ -192,7 +192,7 @@ const githubHunkHighlight = async (apiResponses) => {
 			const matchEncrypted = await sha256(fileContent);
 			const foundFiles = apiResponses["hunkinfo"].filter(item => item.filepath === matchEncrypted);
 
-			if (foundFiles.length >= 0) {
+			if (foundFiles.length > 0) {
 				// checking for diff view either unified or split 
 				// TODO: We can identify the view once for all files at once instead of doing it for each file separately
 				const deletedLines = document.querySelectorAll('input[value]');
