@@ -223,7 +223,7 @@ const githubHunkHighlight = async (apiResponses) => {
 							const tableNumber = item.querySelector('td[data-line-number]');
 							const checkNumber = tableNumber.getAttribute('data-line-number');
 							for (const foundFile of foundFiles) {
-								if ((signature == '-' || signature == '+') && checkNumber >= foundFile.line_start && checkNumber <= foundFile.line_end) {
+								if ((signature == '-' || signature == '+') && parseInt(checkNumber) >= parseInt(foundFile.line_start) && parseInt(checkNumber) <= parseInt(foundFile.line_end)) {
 									flag = true;
 								} else {
 									flag = false;
@@ -247,7 +247,7 @@ const githubHunkHighlight = async (apiResponses) => {
 								const tableContent = items.querySelector("td[data-split-side='left']");
 								if ((tableContent.innerHTML === '') || (tableContent && tableContent.querySelector("span[data-code-marker='-']"))) {
 									for (const foundFile of foundFiles) {
-										if (dataLineValue >= foundFile.line_start && dataLineValue <= foundFile.line_end) {
+										if (parseInt(dataLineValue) >= parseInt(foundFile.line_start) && parseInt(dataLineValue) <= parseInt(foundFile.line_end)) {
 											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
 										}
 									}
