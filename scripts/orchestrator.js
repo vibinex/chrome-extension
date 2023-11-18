@@ -21,7 +21,12 @@
 const orchestrator = async (tabUrl, websiteUrl, userId) => {
 	console.debug(`[vibinex-orchestrator] updated url: ${tabUrl}`);
 	const urlObj = tabUrl.split('?')[0].split('/');
+	const urlEnd = tabUrl.split('?')[1];
+	// for a possible case like https://github.com/AJAYK-01?tab=repositories&success=true
+	const searchParams = urlEnd !== undefined ? urlEnd.split('&') : [];
+
 	const url = `${websiteUrl}/api/extension/relevant`;
+
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
@@ -64,14 +69,21 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 				githubHunkHighlight(hunk_info_response);
 			}
 		}
-		// for showing all tracked repo
+		// for showing all tracked repo in organisation page
 		else if (
-			(urlObj[3] && urlObj[4] == undefined) ||
+			(urlObj[3] && urlObj[4] == undefined && !searchParams.includes('tab=repositories')) ||
 			(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
 			// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
 			const orgName = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
 			const trackedRepos = await getTrackedRepos(orgName, userId, 'github');
-			updateTrackedReposInOrgGitHub(trackedRepos, websiteUrl);
+			updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'org');
+		}
+		// for showing all tracked repo in user page
+		else if (urlObj[3] && !urlObj[4] && searchParams.includes('tab=repositories')) {
+			// for working on this url https://github.com/username?tab=repositories
+			const userName = urlObj[3]
+			const trackedRepos = await getTrackedRepos(userName, userId, 'github');
+			updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'user')
 		}
 	}
 
