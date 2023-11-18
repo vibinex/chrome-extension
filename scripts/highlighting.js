@@ -184,79 +184,84 @@ async function FilesInPrBitbucket(response) {
  */
 const githubHunkHighlight = async (apiResponses) => {
 	// TODO: optimization needed to not highlight next deleted line space if not present in response.
-	const getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
-	getFileName.forEach(async (item) => {
-		let fileContent = item.getAttribute('data-tagsearch-path');
-		if (fileContent) {
+	const allFileDiffViews = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
+	allFileDiffViews.forEach(async (fileDiffView) => {
+		let filepathFromHTML = fileDiffView.getAttribute('data-tagsearch-path');
+		if (!filepathFromHTML) {
+			console.error('[vibinex] File address not found in HTML');
+			return;
+		}
 
-			const matchEncrypted = await sha256(fileContent);
-			const foundFiles = apiResponses["hunkinfo"].filter(item => item.filepath === matchEncrypted);
+		const encryptedFilepathFromHTML = await sha256(filepathFromHTML);
+		const relevantHunksInThisFile = apiResponses["hunkinfo"].filter(hunkInfo => hunkInfo.filepath === encryptedFilepathFromHTML);
 
-			if (foundFiles.length > 0) {
-				// checking for diff view either unified or split 
-				// TODO: We can identify the view once for all files at once instead of doing it for each file separately
-				const deletedLines = document.querySelectorAll('input[value]');
-				let diffView = false;
-				deletedLines.forEach((item) => {
-					const getValue = item.getAttribute('value');
-					const getName = item.getAttribute('checked');
+		if (relevantHunksInThisFile.length <= 0) {
+			console.debug(`[vibinex] No relevant hunks in file: ${filepathFromHTML}`);
+			return;
+		}
+		// checking for diff view either unified or split
+		// TODO: We can identify the view once for all files at once instead of doing it for each file separately
+		const allInputTagsWithValueAttr = document.querySelectorAll('input[value]');
+		let isUnifiedDiffView = false;
+		allInputTagsWithValueAttr.forEach((item) => {
+			const valueAttrOfInputTag = item.getAttribute('value');
+			const checkedAttrOfInputTag = item.getAttribute('checked');
 
-					if (getValue == 'unified' || getValue == 'split') {
-						if (getName == 'checked' && getValue == 'unified') {
-							diffView = true; // for unified view
-						}
-
-					}
-
-				});
-
-				const value = Array.from(item.getElementsByTagName('tr'));
-
-				if (diffView) {
-					// for unified view
-					let flag = false;
-					value.forEach((item, index) => {
-						const deletedLines = item.querySelector('button[data-original-line]');
-						if (deletedLines !== null) {
-							const originalLine = deletedLines.getAttribute('data-original-line');
-							const signature = originalLine.charAt(0);
-							const tableNumber = item.querySelector('td[data-line-number]');
-							const checkNumber = tableNumber.getAttribute('data-line-number');
-							for (const foundFile of foundFiles) {
-								if ((signature == '-' || signature == '+') && parseInt(checkNumber) >= parseInt(foundFile.line_start) && parseInt(checkNumber) <= parseInt(foundFile.line_end)) {
-									flag = true;
-								} else {
-									flag = false;
-								}
-
-								if (flag) {
-									item.style.backgroundColor = GH_RELEVANT_BG_COLOR;
-								}
-							}
-						}
-					});
-
-				} else {
-					// for split view 
-					value.forEach((items) => {
-						const secondRow = Array.from(items.getElementsByTagName('td'));
-						secondRow.forEach((item) => {
-							const buttonId = item.querySelector('button[data-line]');
-							if (buttonId) {
-								const dataLineValue = buttonId.getAttribute('data-line');
-								const tableContent = items.querySelector("td[data-split-side='left']");
-								if ((tableContent.innerHTML === '') || (tableContent && tableContent.querySelector("span[data-code-marker='-']"))) {
-									for (const foundFile of foundFiles) {
-										if (parseInt(dataLineValue) >= parseInt(foundFile.line_start) && parseInt(dataLineValue) <= parseInt(foundFile.line_end)) {
-											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
-										}
-									}
-								}
-							}
-						});
-					});
+			if (valueAttrOfInputTag === 'unified' || valueAttrOfInputTag === 'split') {
+				if (checkedAttrOfInputTag === 'checked' && valueAttrOfInputTag === 'unified') {
+					isUnifiedDiffView = true; // for unified view
 				}
 			}
+		});
+
+		const allRowsInFileDiff = Array.from(fileDiffView.getElementsByTagName('tr'));
+
+		if (isUnifiedDiffView) { // for unified view
+			const isRelevantRow = (row) => {
+				const addCommentButtonInLine = row.querySelector('button[data-original-line]');
+				if (!addCommentButtonInLine) {
+					return false; // this row doesn't have 'add comment' button: interface doesn't consider it part of diff
+				}
+				const lineContent = addCommentButtonInLine.getAttribute('data-original-line');
+				const signature = lineContent.charAt(0);
+
+				const cellInRowWithLineNumber = row.querySelector('td[data-line-number]');
+				const lineNumber = cellInRowWithLineNumber.getAttribute('data-line-number');
+				for (const hunk of relevantHunksInThisFile) {
+					if ((signature === '-') && (parseInt(lineNumber) >= parseInt(hunk.line_start)) && (parseInt(lineNumber) <= parseInt(hunk.line_end))) {
+						return true;
+					}
+				}
+				return false;
+			};
+			allRowsInFileDiff.forEach((rowInFileDiff) => {
+				if (isRelevantRow(rowInFileDiff)) {
+					rowInFileDiff.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+				}
+			});
+		} else { // for split view 
+			allRowsInFileDiff.forEach((rowInFileDiff) => {
+				if (rowInFileDiff.classList.contains('blob-expanded')) {
+					return; // this row is not considered part of the diff
+				}
+				const leftSideContentCell = rowInFileDiff.querySelector("td[data-split-side='left']");
+				const addCommentButtonWithLineNo = leftSideContentCell.querySelector('button[data-line]');
+				if (!addCommentButtonWithLineNo) {
+					console.error('[vibinex] Could not detect line number in diff row');
+					return; // this cell doesn't have 'add comment' button
+				}
+				const lineNumber = addCommentButtonWithLineNo.getAttribute('data-line');
+
+				if (leftSideContentCell && leftSideContentCell.querySelector("span[data-code-marker='-']")) {
+					for (const hunk of relevantHunksInThisFile) {
+						if (parseInt(lineNumber) >= parseInt(hunk.line_start) && parseInt(lineNumber) <= parseInt(hunk.line_end)) {
+							leftSideContentCell.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+						}
+					}
+				}
+				// we currently do not handle any other cases
+				return;
+			});
 		}
 	});
 };
