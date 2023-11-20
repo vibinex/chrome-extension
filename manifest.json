@@ -39,7 +39,8 @@
                 "scripts/highlighting.js",
                 "scripts/repoHandlers.js",
                 "scripts/orchestrator.js",
-                "scripts/init.js"
+                "scripts/init.js",
+                "scripts/signedOutIndicator.js"
             ]
         }
     ]

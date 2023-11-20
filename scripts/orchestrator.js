@@ -1,21 +1,21 @@
 /**
  * The `orchestrator` function is responsible for orchestrating various actions based on the current URL of the tab.
- * 
+ *
  * Functionality:
  * 1. Logs the updated tab URL for debugging purposes.
  * 2. Checks if the user is logged in when on GitHub or Bitbucket. If not, a warning is displayed.
  * 3. Retrieves the 'backendUrl' from Chrome local storage.
- * 
+ *
  * For GitHub:
  * - If on a specific repository page (e.g., https://github.com/mui/mui-toolpad), it displays a floating action button.
  * - If on a repository's pull requests page, it highlights relevant PRs.
  * - If viewing files of a specific pull request, it highlights important files and specific code hunks.
  * - If on a user or organization's main page or repositories page, it updates the display of tracked repositories.
- * 
+ *
  * For Bitbucket:
  * - If on a workspace's repositories page, it updates the display of tracked repositories.
  * - If on a repository's pull requests page, it highlights relevant PRs or specific files and code hunks in a PR.
- * 
+ *
  * Note: This function assumes it's running in the context of a browser extension, given its use of the 'chrome.storage' API and specific URL patterns for GitHub and Bitbucket.
  */
 const orchestrator = async (tabUrl, websiteUrl, userId) => {
@@ -32,6 +32,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 		// TODO: create a UI element on the screen with CTA to login to Vibinex
 	}
 	if (urlObj[2] == 'github.com') {
+		addSignedOutIndicator(websiteUrl, 'github')
 		if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 			// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
 			const ownerName = urlObj[3];
@@ -88,6 +89,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 	}
 
 	if (urlObj[2] === 'bitbucket.org') {
+		addSignedOutIndicator(websiteUrl, 'bitbucket')
 		// for showing tracked repo of a organization 
 		if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
 			const workspaceSlug = urlObj[3];

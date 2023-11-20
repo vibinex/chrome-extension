@@ -31,3 +31,40 @@ chrome.runtime.onInstalled.addListener(() => {
 			.then((data) => dataFromAPI = data); // Store the response data in the dataFromAPI variable.
 	})
 })
+
+/**
+ * Checks Logged in status for showing indicator on supported pages like github and bitbucket.
+ * @param websiteUrl
+ * @returns {Promise<boolean>}
+ */
+async function checkLoginStatus(websiteUrl) {
+	let result = false;
+	try {
+		const res = await fetch(`${websiteUrl}/api/auth/session`, {cache: 'no-store'});
+		const json = await res.json();
+
+		if (json.user) {
+			result = true;
+		}
+	} catch (err) {
+		console.error(err);
+	}
+	return result;
+}
+
+/**
+ * Listener to handle login status check request.
+ * The api session request only works via extension background script due to the need of auth cookies in request.
+ */
+chrome.runtime.onMessage.addListener(
+	function(request, sender, sendResponse) {
+		const message = request.message?.split(',');
+		if (message[0] === "check_login_status") {
+			const websiteUrl = message[1];
+			checkLoginStatus(websiteUrl).then(loggedIn => {
+				sendResponse({status: loggedIn});
+			});
+		}
+		return true;  // Will respond asynchronously.
+	}
+);
