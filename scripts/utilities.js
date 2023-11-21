@@ -107,6 +107,9 @@ function destroyElement(type) {
 		document.getElementById('vibinexPlusIcon').remove();
 	else if (type === "error")
 		document.getElementById('vibinexErrorIcon').remove();
+	else if (type === "login") {
+		document.getElementById('vibinexLoginIcon').remove();
+	}
 }
 
 /**
