@@ -34,16 +34,17 @@ chrome.runtime.onInstalled.addListener(() => {
 
 /**
  * Checks Logged in status for showing indicator on supported pages like github and bitbucket.
- * @param websiteUrl
+ * @param {string} websiteUrl
+ * @param {string} provider
  * @returns {Promise<boolean>}
  */
-async function checkLoginStatus(websiteUrl) {
+async function checkLoginStatus(websiteUrl, provider) {
 	let result = false;
 	try {
-		const res = await fetch(`${websiteUrl}/api/auth/session`, {cache: 'no-store'});
+		const res = await fetch(`${websiteUrl}/api/auth/session`, { cache: 'no-store' });
 		const json = await res.json();
 
-		if (json.user) {
+		if (json.user && json.user.auth_info && json.user.auth_info[provider]) {
 			result = true;
 		}
 	} catch (err) {
@@ -52,17 +53,19 @@ async function checkLoginStatus(websiteUrl) {
 	return result;
 }
 
+
 /**
  * Listener to handle login status check request.
  * The api session request only works via extension background script due to the need of auth cookies in request.
  */
 chrome.runtime.onMessage.addListener(
-	function(request, sender, sendResponse) {
+	function (request, _, sendResponse) {
 		const message = request.message?.split(',');
 		if (message[0] === "check_login_status") {
 			const websiteUrl = message[1];
-			checkLoginStatus(websiteUrl).then(loggedIn => {
-				sendResponse({status: loggedIn});
+			const provider = message[2]
+			checkLoginStatus(websiteUrl, provider).then(loggedIn => {
+				sendResponse({ status: loggedIn });
 			});
 		}
 		return true;  // Will respond asynchronously.
