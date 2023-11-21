@@ -29,31 +29,3 @@ tr[data-hunk="9ab7f36934cf29a090a7f1f7f432ab43eda8cf806712acde424581fcf2a221ca"]
     background-color: rgb(164, 167, 0);
 }
  */
-#vibinex-indicator {
-    position: fixed;
-    top: 2px;
-    left: 45%;
-    display: block;
-    color: #f3f4f6;
-    text-decoration: none;
-    background-color: #2196f3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    z-index: 9999;
-    line-height: 1.25rem;
-    padding: 0.5rem;
-    margin-top: 0.5rem;
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-}
-
-#vibinex-indicator>img {
-    width: 1rem;
-    height: 1rem;
-    margin-right: 0.75rem;
-}
