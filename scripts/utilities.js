@@ -1,7 +1,7 @@
 /**
  * Creates and appends a floating UI element to the page based on the specified type.
  * 
- * @param {string} type - The type of element to create ("loading", "add", or "error").
+ * @param {string} type - The type of element to create ("loading", "add", "error" or "login").
  * @param {string} websiteUrl - The base URL for Vibinex (default: "https://vibinex.com").
  */
 function createElement(type = "add", websiteUrl = "https://vibinex.com") {
@@ -25,6 +25,10 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 			imgUrl = "https://cdn-icons-png.flaticon.com/512/1243/1243911.png?w=740&t=st=1680153899~exp=1680154499~hmac=be129e6a5a3dd4b9a362138086907f3330050f0a300473c5ed0e7e9541ece2de"
 			bannerMessage = "Something went wrong";
 			break;
+		case "login":
+			loadingIconID = "vibinexLoginIcon";
+			imgUrl = "https://cdn-icons-png.flaticon.com/512/6980/6980070.png?filename=user_6980070.png&fd=1";
+			bannerMessage = "Please Login to Vibinex"
 		default:
 			break;
 	}
@@ -59,6 +63,9 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	if (type === "add") {
 		redirectLink.href = `${websiteUrl}/docs`;
 	}
+	else if (type === "login") {
+		redirectLink.href = `${websiteUrl}/api/auth/signin`
+	}
 	redirectLink.appendChild(loadingGif);
 	redirectLink.appendChild(img);
 
@@ -81,7 +88,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	}
 	redirectLink.addEventListener('mouseover', () => changeCss(true));
 	redirectLink.addEventListener('mouseout', () => changeCss(false));
-    // Append the created elements to the document body.
+	// Append the created elements to the document body.
 	document.body.appendChild(redirectLink);
 	document.body.appendChild(infoBanner);
 }
