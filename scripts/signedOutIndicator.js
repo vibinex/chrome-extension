@@ -8,7 +8,7 @@ function addSignedOutIndicator(websiteUrl, provider) {
         message: "check_login_status," + websiteUrl.toString() + "," + provider.toString()
     }, async function (response) {
         if (response.status === false) {
-            createElement("login")
+            createElement(provider)
         }
     });
 }

@@ -1,7 +1,7 @@
 /**
  * Creates and appends a floating UI element to the page based on the specified type.
  * 
- * @param {string} type - The type of element to create ("loading", "add", "error" or "login").
+ * @param {string} type - The type of element to create ("loading", "add", "error", "github" or "bitbucket").
  * @param {string} websiteUrl - The base URL for Vibinex (default: "https://vibinex.com").
  */
 function createElement(type = "add", websiteUrl = "https://vibinex.com") {
@@ -25,10 +25,16 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 			imgUrl = "https://cdn-icons-png.flaticon.com/512/1243/1243911.png?w=740&t=st=1680153899~exp=1680154499~hmac=be129e6a5a3dd4b9a362138086907f3330050f0a300473c5ed0e7e9541ece2de"
 			bannerMessage = "Something went wrong";
 			break;
-		case "login":
+		case "github":
 			loadingIconID = "vibinexLoginIcon";
-			imgUrl = "https://cdn-icons-png.flaticon.com/512/6980/6980070.png?filename=user_6980070.png&fd=1";
-			bannerMessage = "Please Login to Vibinex"
+			imgUrl = "https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-github-with-cat-logo-an-online-community-for-software-development-logo-bold-tal-revivo.png";
+			bannerMessage = "Log in with GitHub";
+			break;
+		case "bitbucket":
+			loadingIconID = "vibinexLoginIcon";
+			imgUrl = "https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-bitbucket-is-a-web-based-version-control-repository-hosting-service-logo-bold-tal-revivo.png";
+			bannerMessage = "Log in with Bitbucket";
+			break;
 		default:
 			break;
 	}
@@ -63,8 +69,9 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	if (type === "add") {
 		redirectLink.href = `${websiteUrl}/docs`;
 	}
-	else if (type === "login") {
+	else if (type === "github" || type === "bitbucket") {
 		redirectLink.href = `${websiteUrl}/api/auth/signin`
+		redirectLink.target = '_blank'
 	}
 	redirectLink.appendChild(loadingGif);
 	redirectLink.appendChild(img);
@@ -91,6 +98,33 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	// Append the created elements to the document body.
 	document.body.appendChild(redirectLink);
 	document.body.appendChild(infoBanner);
+
+	if (loadingIconID === "vibinexLoginIcon") {
+		// Create and style the login indicator.
+		const loginButton = document.createElement('button');
+		loginButton.style.borderRadius = '39px';
+		loginButton.style.paddingLeft = '44px';
+		loginButton.style.paddingRight = '15px';
+		loginButton.style.border = 'none';
+		loginButton.style.backgroundColor = 'black';
+		loginButton.style.color = 'white';
+		loginButton.style.cursor = 'pointer';
+		loginButton.style.position = 'fixed';
+		loginButton.style.left = '26px';
+		loginButton.style.bottom = '48px';
+		loginButton.style.height = '39px';
+		loginButton.style.zIndex = '199'
+		loginButton.style.alignItems = 'center';
+
+		// Append the login text to the login button.
+		loginButton.appendChild(document.createTextNode(bannerMessage));
+
+		// Replace the loading icon with the login button.
+		redirectLink.replaceChild(loginButton, loadingGif);
+		redirectLink.href = `${websiteUrl}/api/auth/signin`
+		infoBanner.remove();
+	}
+
 }
 
 /**
