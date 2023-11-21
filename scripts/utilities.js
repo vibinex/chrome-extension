@@ -121,7 +121,6 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 
 		// Replace the loading icon with the login button.
 		redirectLink.replaceChild(loginButton, loadingGif);
-		redirectLink.href = `${websiteUrl}/api/auth/signin`
 		infoBanner.remove();
 	}
 
