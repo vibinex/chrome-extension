@@ -4,8 +4,13 @@
  * @param {string} websiteUrl
  */
 function addSignedOutIndicator(websiteUrl, provider) {
+    const message = {
+        action: "check_login_status",
+        websiteUrl: websiteUrl,
+        provider: provider
+    }
     chrome.runtime.sendMessage({
-        message: "check_login_status," + websiteUrl.toString() + "," + provider.toString()
+        message: JSON.stringify(message)
     }, async function (response) {
         if (response.status === false) {
             createElement(provider)

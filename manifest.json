@@ -38,9 +38,9 @@
                 "scripts/api.js",
                 "scripts/highlighting.js",
                 "scripts/repoHandlers.js",
+                "scripts/signedOutIndicator.js",
                 "scripts/orchestrator.js",
-                "scripts/init.js",
-                "scripts/signedOutIndicator.js"
+                "scripts/init.js"
             ]
         }
     ]

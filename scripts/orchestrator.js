@@ -29,7 +29,6 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
-		// TODO: create a UI element on the screen with CTA to login to Vibinex
 	}
 	if (urlObj[2] == 'github.com') {
 		addSignedOutIndicator(websiteUrl, 'github')

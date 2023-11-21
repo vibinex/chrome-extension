@@ -60,10 +60,10 @@ async function checkLoginStatus(websiteUrl, provider) {
  */
 chrome.runtime.onMessage.addListener(
 	function (request, _, sendResponse) {
-		const message = request.message?.split(',');
-		if (message[0] === "check_login_status") {
-			const websiteUrl = message[1];
-			const provider = message[2]
+		const message = JSON.parse(request.message);
+		if (message.action === "check_login_status") {
+			const websiteUrl = message.websiteUrl;
+			const provider = message.provider
 			checkLoginStatus(websiteUrl, provider).then(loggedIn => {
 				sendResponse({ status: loggedIn });
 			});
