@@ -245,6 +245,10 @@ const githubHunkHighlight = async (apiResponses) => {
 					return; // this row is not considered part of the diff
 				}
 				const leftSideContentCell = rowInFileDiff.querySelector("td[data-split-side='left']");
+				if (!leftSideContentCell) {
+					console.warn(`[vibinex] Could not detect left side content cell in diff row`);
+					return; // this row doesn't have left side content cell
+				}
 				const addCommentButtonWithLineNo = leftSideContentCell.querySelector('button[data-line]');
 				if (!addCommentButtonWithLineNo) {
 					console.error('[vibinex] Could not detect line number in diff row');
