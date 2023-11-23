@@ -256,7 +256,7 @@ const githubHunkHighlight = async (apiResponses) => {
 				}
 				const lineNumber = addCommentButtonWithLineNo.getAttribute('data-line');
 
-				if (leftSideContentCell && leftSideContentCell.querySelector("span[data-code-marker='-']")) {
+				if (leftSideContentCell?.querySelector("span[data-code-marker='-']")) {
 					for (const hunk of relevantHunksInThisFile) {
 						if (parseInt(lineNumber) >= parseInt(hunk.line_start) && parseInt(lineNumber) <= parseInt(hunk.line_end)) {
 							leftSideContentCell.style.backgroundColor = GH_RELEVANT_BG_COLOR;
@@ -264,7 +264,6 @@ const githubHunkHighlight = async (apiResponses) => {
 					}
 				}
 				// we currently do not handle any other cases
-				return;
 			});
 		}
 	});
