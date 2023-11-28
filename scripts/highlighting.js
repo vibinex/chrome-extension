@@ -183,12 +183,26 @@ async function FilesInPrBitbucket(response) {
  * @param {Array} apiResponses - Array of API responses containing hunk information.
  */
 const githubHunkHighlight = async (apiResponses) => {
+	// checking for diff view either unified or split
+	let isUnifiedDiffView = false;
+	const allInputTagsWithValueAttr = document.querySelectorAll('input[value]'); // for reducing DOM queries in foreach loop.
+	for (const item of allInputTagsWithValueAttr) {
+		const valueAttrOfInputTag = item.getAttribute('value');
+		const checkedAttrOfInputTag = item.getAttribute('checked');
+
+		if (valueAttrOfInputTag === 'unified' || valueAttrOfInputTag === 'split') {
+			if (checkedAttrOfInputTag === 'checked' && valueAttrOfInputTag === 'unified') {
+				isUnifiedDiffView = true; // for unified view
+			}
+		}
+	};
+
 	// TODO: optimization needed to not highlight next deleted line space if not present in response.
 	const allFileDiffViews = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
 	allFileDiffViews.forEach(async (fileDiffView) => {
 		let filepathFromHTML = fileDiffView.getAttribute('data-tagsearch-path');
 		if (!filepathFromHTML) {
-			console.error('[vibinex] File address not found in HTML');
+			console.error(`[vibinex] File address not found in HTML for file: ${filepathFromHTML}`);
 			return;
 		}
 
@@ -199,33 +213,26 @@ const githubHunkHighlight = async (apiResponses) => {
 			console.debug(`[vibinex] No relevant hunks in file: ${filepathFromHTML}`);
 			return;
 		}
-		// checking for diff view either unified or split
-		// TODO: We can identify the view once for all files at once instead of doing it for each file separately
-		const allInputTagsWithValueAttr = document.querySelectorAll('input[value]');
-		let isUnifiedDiffView = false;
-		allInputTagsWithValueAttr.forEach((item) => {
-			const valueAttrOfInputTag = item.getAttribute('value');
-			const checkedAttrOfInputTag = item.getAttribute('checked');
 
-			if (valueAttrOfInputTag === 'unified' || valueAttrOfInputTag === 'split') {
-				if (checkedAttrOfInputTag === 'checked' && valueAttrOfInputTag === 'unified') {
-					isUnifiedDiffView = true; // for unified view
-				}
-			}
-		});
-
-		const allRowsInFileDiff = Array.from(fileDiffView.getElementsByTagName('tr'));
-
+		/** Select all TRs except the following:
+		 * - TRs with the .js-skip-tagsearch are the rows which are expandable (we click on it to see more code)
+		 * - TRs inside the THEAD[hidden] tags only contain the headings of the diff table
+		 */
+		const allRowsInFileDiff = Array.from(fileDiffView.querySelectorAll('tr:not(.js-skip-tagsearch):not(thead[hidden] :is(tr))'));
 		if (isUnifiedDiffView) { // for unified view
 			const isRelevantRow = (row) => {
-				const addCommentButtonInLine = row.querySelector('button[data-original-line]');
-				if (!addCommentButtonInLine) {
-					return false; // this row doesn't have 'add comment' button: interface doesn't consider it part of diff
+				const lineContentSpan = row.querySelector('span[data-code-marker]');
+				if (!lineContentSpan) {
+					console.warn(`[vibinex] Could not detect span with data-code-marker in diff row for file: ${filepathFromHTML}`);
+					return false;
 				}
-				const lineContent = addCommentButtonInLine.getAttribute('data-original-line');
-				const signature = lineContent.charAt(0);
+				const signature = lineContentSpan.getAttribute('data-code-marker');
 
 				const cellInRowWithLineNumber = row.querySelector('td[data-line-number]');
+				if (!cellInRowWithLineNumber) {
+					console.warn(`[vibinex] Could not detect cell with data-line-number in diff row for file: ${filepathFromHTML}`);
+					return false;
+				}
 				const lineNumber = cellInRowWithLineNumber.getAttribute('data-line-number');
 				for (const hunk of relevantHunksInThisFile) {
 					if ((signature === '-') && (parseInt(lineNumber) >= parseInt(hunk.line_start)) && (parseInt(lineNumber) <= parseInt(hunk.line_end))) {
