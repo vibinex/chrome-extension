@@ -183,80 +183,95 @@ async function FilesInPrBitbucket(response) {
  * @param {Array} apiResponses - Array of API responses containing hunk information.
  */
 const githubHunkHighlight = async (apiResponses) => {
-	// TODO: optimization needed to not highlight next deleted line space if not present in response.
-	const getFileName = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
-	getFileName.forEach(async (item) => {
-		let fileContent = item.getAttribute('data-tagsearch-path');
-		if (fileContent) {
+	// checking for diff view either unified or split
+	let isUnifiedDiffView = false;
+	const allInputTagsWithValueAttr = document.querySelectorAll('input[value]'); // for reducing DOM queries in foreach loop.
+	for (const item of allInputTagsWithValueAttr) {
+		const valueAttrOfInputTag = item.getAttribute('value');
+		const checkedAttrOfInputTag = item.getAttribute('checked');
 
-			const matchEncrypted = await sha256(fileContent);
-			const foundFiles = apiResponses["hunkinfo"].filter(item => item.filepath === matchEncrypted);
-
-			if (foundFiles.length > 0) {
-				// checking for diff view either unified or split 
-				// TODO: We can identify the view once for all files at once instead of doing it for each file separately
-				const deletedLines = document.querySelectorAll('input[value]');
-				let diffView = false;
-				deletedLines.forEach((item) => {
-					const getValue = item.getAttribute('value');
-					const getName = item.getAttribute('checked');
-
-					if (getValue == 'unified' || getValue == 'split') {
-						if (getName == 'checked' && getValue == 'unified') {
-							diffView = true; // for unified view
-						}
-
-					}
-
-				});
-
-				const value = Array.from(item.getElementsByTagName('tr'));
-
-				if (diffView) {
-					// for unified view
-					let flag = false;
-					value.forEach((item, index) => {
-						const deletedLines = item.querySelector('button[data-original-line]');
-						if (deletedLines !== null) {
-							const originalLine = deletedLines.getAttribute('data-original-line');
-							const signature = originalLine.charAt(0);
-							const tableNumber = item.querySelector('td[data-line-number]');
-							const checkNumber = tableNumber.getAttribute('data-line-number');
-							for (const foundFile of foundFiles) {
-								if ((signature == '-' || signature == '+') && parseInt(checkNumber) >= parseInt(foundFile.line_start) && parseInt(checkNumber) <= parseInt(foundFile.line_end)) {
-									flag = true;
-								} else {
-									flag = false;
-								}
-
-								if (flag) {
-									item.style.backgroundColor = GH_RELEVANT_BG_COLOR;
-								}
-							}
-						}
-					});
-
-				} else {
-					// for split view 
-					value.forEach((items) => {
-						const secondRow = Array.from(items.getElementsByTagName('td'));
-						secondRow.forEach((item) => {
-							const buttonId = item.querySelector('button[data-line]');
-							if (buttonId) {
-								const dataLineValue = buttonId.getAttribute('data-line');
-								const tableContent = items.querySelector("td[data-split-side='left']");
-								if ((tableContent.innerHTML === '') || (tableContent && tableContent.querySelector("span[data-code-marker='-']"))) {
-									for (const foundFile of foundFiles) {
-										if (parseInt(dataLineValue) >= parseInt(foundFile.line_start) && parseInt(dataLineValue) <= parseInt(foundFile.line_end)) {
-											items.style.backgroundColor = GH_RELEVANT_BG_COLOR;
-										}
-									}
-								}
-							}
-						});
-					});
-				}
+		if (valueAttrOfInputTag === 'unified' || valueAttrOfInputTag === 'split') {
+			if (checkedAttrOfInputTag === 'checked' && valueAttrOfInputTag === 'unified') {
+				isUnifiedDiffView = true; // for unified view
 			}
+		}
+	};
+
+	// TODO: optimization needed to not highlight next deleted line space if not present in response.
+	const allFileDiffViews = Array.from(document.querySelectorAll('div[data-tagsearch-path]'));
+	allFileDiffViews.forEach(async (fileDiffView) => {
+		let filepathFromHTML = fileDiffView.getAttribute('data-tagsearch-path');
+		if (!filepathFromHTML) {
+			console.error(`[vibinex] File address not found in HTML for file: ${filepathFromHTML}`);
+			return;
+		}
+
+		const encryptedFilepathFromHTML = await sha256(filepathFromHTML);
+		const relevantHunksInThisFile = apiResponses["hunkinfo"].filter(hunkInfo => hunkInfo.filepath === encryptedFilepathFromHTML);
+
+		if (relevantHunksInThisFile.length <= 0) {
+			console.debug(`[vibinex] No relevant hunks in file: ${filepathFromHTML}`);
+			return;
+		}
+
+		/** Select all TRs except the following:
+		 * - TRs with the .js-skip-tagsearch are the rows which are expandable (we click on it to see more code)
+		 * - TRs inside the THEAD[hidden] tags only contain the headings of the diff table
+		 */
+		const allRowsInFileDiff = Array.from(fileDiffView.querySelectorAll('tr:not(.js-skip-tagsearch):not(thead[hidden] :is(tr))'));
+		if (isUnifiedDiffView) { // for unified view
+			const isRelevantRow = (row) => {
+				const lineContentSpan = row.querySelector('span[data-code-marker]');
+				if (!lineContentSpan) {
+					console.warn(`[vibinex] Could not detect span with data-code-marker in diff row for file: ${filepathFromHTML}`);
+					return false;
+				}
+				const signature = lineContentSpan.getAttribute('data-code-marker');
+
+				const cellInRowWithLineNumber = row.querySelector('td[data-line-number]');
+				if (!cellInRowWithLineNumber) {
+					console.warn(`[vibinex] Could not detect cell with data-line-number in diff row for file: ${filepathFromHTML}`);
+					return false;
+				}
+				const lineNumber = cellInRowWithLineNumber.getAttribute('data-line-number');
+				for (const hunk of relevantHunksInThisFile) {
+					if ((signature === '-') && (parseInt(lineNumber) >= parseInt(hunk.line_start)) && (parseInt(lineNumber) <= parseInt(hunk.line_end))) {
+						return true;
+					}
+				}
+				return false;
+			};
+			allRowsInFileDiff.forEach((rowInFileDiff) => {
+				if (isRelevantRow(rowInFileDiff)) {
+					rowInFileDiff.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+				}
+			});
+		} else { // for split view 
+			allRowsInFileDiff.forEach((rowInFileDiff) => {
+				if (rowInFileDiff.classList.contains('blob-expanded')) {
+					return; // this row is not considered part of the diff
+				}
+				const leftSideContentCell = rowInFileDiff.querySelector("td[data-split-side='left']");
+				if (!leftSideContentCell) {
+					console.warn(`[vibinex] Could not detect left side content cell in diff row`);
+					return; // this row doesn't have left side content cell
+				}
+				const addCommentButtonWithLineNo = leftSideContentCell.querySelector('button[data-line]');
+				if (!addCommentButtonWithLineNo) {
+					console.error('[vibinex] Could not detect line number in diff row');
+					return; // this cell doesn't have 'add comment' button
+				}
+				const lineNumber = addCommentButtonWithLineNo.getAttribute('data-line');
+
+				if (leftSideContentCell?.querySelector("span[data-code-marker='-']")) {
+					for (const hunk of relevantHunksInThisFile) {
+						if (parseInt(lineNumber) >= parseInt(hunk.line_start) && parseInt(lineNumber) <= parseInt(hunk.line_end)) {
+							leftSideContentCell.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+						}
+					}
+				}
+				// we currently do not handle any other cases
+			});
 		}
 	});
 };

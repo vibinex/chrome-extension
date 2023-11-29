@@ -81,9 +81,9 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 		// for showing all tracked repo in user page
 		else if (urlObj[3] && !urlObj[4] && searchParams.includes('tab=repositories')) {
 			// for working on this url https://github.com/username?tab=repositories
-			const userName = urlObj[3]
+			const userName = urlObj[3];
 			const trackedRepos = await getTrackedRepos(userName, userId, 'github');
-			updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'user')
+			updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'user');
 		}
 	}
 
