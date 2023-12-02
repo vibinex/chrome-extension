@@ -45,6 +45,7 @@ function createElement(type = "add", websiteUrl = "https://vibinex.com") {
 	img.style.width = '35px';
 	img.style.height = '35px';
 	img.style.borderRadius = '35px';
+	img.style.margin = '0px';
 	img.style.position = 'fixed';
 	img.style.left = '30px';
 	img.style.bottom = '50px';
