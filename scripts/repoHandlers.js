@@ -72,40 +72,44 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
  * @param {boolean} isOrg - Whether github organization or user.
  */
 function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
-	const allRepo = ownerType == 'org' ? document.getElementById('org-repositories') : document.getElementById('user-repositories-list');
-	const repoUrl = Array.from(allRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
+    const repoList = ownerType == 'org' ? document.querySelectorAll('[data-testid="list-view-items"] > li') : document.querySelectorAll('[data-filterable-for="your-repos-filter"] > li');
+	console.log("repoList: ", repoList)
+    
+    repoList.forEach((repoItem) => {
+        const repoLink = ownerType == 'org' ? repoItem.querySelector('[data-testid="listitem-title-link"]') : repoItem.querySelector('a[itemprop="name codeRepository"]');
+		console.log("repoLink: ", repoLink);
+        if (!repoLink) return;
 
+        const repoUrl = repoLink.getAttribute('href');
+        const repoName = repoUrl.split('/').pop();
 
-	repoUrl.forEach((item) => {
-		const link = item.getAttribute('href').split('/');
-		const repoName = link[link.length - 1];
+        if (trackedRepos.includes(repoName)) {
+            let trackLogo = repoItem.querySelector('.trackLogo');
+            if (trackLogo) {
+                trackLogo.remove();
+            }
 
-		if (trackedRepos.includes(repoName)) {
-			const checkElement = item.getElementsByClassName('trackLogo')[0];
-			if (checkElement) {
-				// TODO: Ideally, we should only need to add the element when there is none present
-				checkElement.remove();
-			}
-			const img = document.createElement("img");
-			img.setAttribute('class', 'trackLogo');
-			const beforePsuedoElement = document.createElement('a');
-			img.src = `${websiteUrl}/favicon.ico`;
-			img.style.width = '15px'
-			img.style.height = '15px'
+            const img = document.createElement("img");
+            img.classList.add('trackLogo');
+            img.src = `${websiteUrl}/favicon.ico`;
+            img.style.width = '15px';
+            img.style.height = '15px';
 
-			beforePsuedoElement.appendChild(img);
-			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${repoName}`;
-			beforePsuedoElement.target = '_blank';
-			beforePsuedoElement.style.display = 'inline-block';
-			beforePsuedoElement.style.marginRight = '2px';
-			beforePsuedoElement.style.color = 'white';
-			beforePsuedoElement.style.borderRadius = '2px';
-			beforePsuedoElement.style.fontSize = '15px';
-			beforePsuedoElement.style.textDecoration = 'none';
+            const link = document.createElement('a');
+            link.href = `${websiteUrl}/repo?repo_name=${repoName}`;
+            link.target = '_blank';
+			link.style.display ='inline-flex';
+			link.style.marginRight ='6px';
+			link.style.color = 'white';
+			link.style.borderRadius = '2px';
+			link.style.fontSize = '15px';
+			link.style.textDecoration = 'none';
+			link.style.alignItems ='center';
 
-			item.insertBefore(beforePsuedoElement, item.firstChild);
-		}
-	})
+            link.appendChild(img);
+            repoLink.parentNode.insertBefore(link, repoLink);
+        }
+    });
 }
 
 /**
