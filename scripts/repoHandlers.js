@@ -73,11 +73,9 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
  */
 function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
     const repoList = ownerType == 'org' ? document.querySelectorAll('[data-testid="list-view-items"] > li') : document.querySelectorAll('[data-filterable-for="your-repos-filter"] > li');
-	console.log("repoList: ", repoList)
     
     repoList.forEach((repoItem) => {
         const repoLink = ownerType == 'org' ? repoItem.querySelector('[data-testid="listitem-title-link"]') : repoItem.querySelector('a[itemprop="name codeRepository"]');
-		console.log("repoLink: ", repoLink);
         if (!repoLink) return;
 
         const repoUrl = repoLink.getAttribute('href');
