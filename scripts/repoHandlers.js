@@ -71,8 +71,6 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
  * @param {string} websiteUrl - The URL of the website.
  * @param {boolean} isOrg - Whether github organization or user.
  */
-
-
 function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
     let repoList;
     let newUI = false;
