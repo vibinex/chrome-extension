@@ -81,12 +81,10 @@ function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
     if (document.querySelector('[data-testid="list-view-items"]')) {
         repoList = ownerType === 'org' ? document.querySelectorAll('[data-testid="list-view-items"] > li') : document.querySelectorAll('[data-filterable-for="your-repos-filter"] > li');
 		newUI = true;
-		console.log("repos: ", repoList);
     } else {
         const allRepo = ownerType === 'org' ? document.getElementById('org-repositories') : document.getElementById('user-repositories-list');
         repoList = Array.from(allRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
     }
-	console.log("repoList: ", repoList);
     repoList.forEach(repoItem => {
 		let repoUrl;
 		let repoLink
@@ -99,7 +97,6 @@ function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
 			repoUrl = repoItem.getAttribute('href')
 		}
 		const repoName = repoUrl.split('/').pop();
-		console.log("repoName: ", repoName);
 		
         if (trackedRepos.includes(repoName)) {
             const checkElement = repoItem.querySelector('.trackLogo');
