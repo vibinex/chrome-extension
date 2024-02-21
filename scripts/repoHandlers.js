@@ -90,7 +90,6 @@ function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
 			repoLink = ownerType == 'org' ? repoItem.querySelector('[data-testid="listitem-title-link"]') : repoItem.querySelector('a[itemprop="name codeRepository"]');
 			if (!repoLink) return;
 			repoUrl = repoLink.getAttribute('href');
-			console.log("repoUrl: ", repoUrl);
 		} else {
 			repoUrl = repoItem.getAttribute('href')
 		}
