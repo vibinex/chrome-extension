@@ -71,20 +71,40 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
  * @param {string} websiteUrl - The URL of the website.
  * @param {boolean} isOrg - Whether github organization or user.
  */
+
+
 function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
-    const repoList = ownerType == 'org' ? document.querySelectorAll('[data-testid="list-view-items"] > li') : document.querySelectorAll('[data-filterable-for="your-repos-filter"] > li');
-    
-    repoList.forEach((repoItem) => {
-        const repoLink = ownerType == 'org' ? repoItem.querySelector('[data-testid="listitem-title-link"]') : repoItem.querySelector('a[itemprop="name codeRepository"]');
-        if (!repoLink) return;
+    let repoList;
+    let newUI = false;
 
-        const repoUrl = repoLink.getAttribute('href');
-        const repoName = repoUrl.split('/').pop();
-
+    // Check if selectors for new UI exist
+    if (document.querySelector('[data-testid="list-view-items"]')) {
+        repoList = ownerType === 'org' ? document.querySelectorAll('[data-testid="list-view-items"] > li') : document.querySelectorAll('[data-filterable-for="your-repos-filter"] > li');
+		newUI = true;
+		console.log("repos: ", repoList);
+    } else {
+        const allRepo = ownerType === 'org' ? document.getElementById('org-repositories') : document.getElementById('user-repositories-list');
+        repoList = Array.from(allRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
+    }
+	console.log("repoList: ", repoList);
+    repoList.forEach(repoItem => {
+		let repoUrl;
+		let repoLink
+		if (newUI){
+			repoLink = ownerType == 'org' ? repoItem.querySelector('[data-testid="listitem-title-link"]') : repoItem.querySelector('a[itemprop="name codeRepository"]');
+			if (!repoLink) return;
+			repoUrl = repoLink.getAttribute('href');
+			console.log("repoUrl: ", repoUrl);
+		} else {
+			repoUrl = repoItem.getAttribute('href')
+		}
+		const repoName = repoUrl.split('/').pop();
+		console.log("repoName: ", repoName);
+		
         if (trackedRepos.includes(repoName)) {
-            let trackLogo = repoItem.querySelector('.trackLogo');
-            if (trackLogo) {
-                trackLogo.remove();
+            const checkElement = repoItem.querySelector('.trackLogo');
+            if (checkElement) {
+                checkElement.remove();
             }
 
             const img = document.createElement("img");
@@ -93,19 +113,20 @@ function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
             img.style.width = '15px';
             img.style.height = '15px';
 
-            const link = document.createElement('a');
-            link.href = `${websiteUrl}/repo?repo_name=${repoName}`;
-            link.target = '_blank';
-			link.style.display ='inline-flex';
-			link.style.marginRight ='6px';
-			link.style.color = 'white';
-			link.style.borderRadius = '2px';
-			link.style.fontSize = '15px';
-			link.style.textDecoration = 'none';
-			link.style.alignItems ='center';
+            const linkElement = document.createElement('a');
+            linkElement.appendChild(img);
+            linkElement.href = `${websiteUrl}/repo?repo_name=${repoName}`;
+            linkElement.target = '_blank';
 
-            link.appendChild(img);
-            repoLink.parentNode.insertBefore(link, repoLink);
+            newUI ? linkElement.style.display ='inline-flex' : linkElement.style.display='inline-block'
+			linkElement.style.marginRight ='2px';
+			linkElement.style.color = 'white';
+			linkElement.style.borderRadius = '2px';
+			linkElement.style.fontSize = '15px';
+			linkElement.style.textDecoration = 'none';
+			linkElement.style.alignItems ='center';
+
+			newUI ? repoLink.parentNode.insertBefore(linkElement, repoLink) : repoItem.insertBefore(linkElement, repoItem.firstChild);
         }
     });
 }
