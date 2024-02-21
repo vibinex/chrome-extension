@@ -7,23 +7,23 @@
  * @returns {Array} - List of tracked repositories.
  */
 async function getTrackedRepos(orgName, userId, repoHost) {
-	const { backendUrl } = await chrome.storage.local.get(["backendUrl"]);
+	const { websiteUrl } = await chrome.storage.local.get(["websiteUrl"]);
 	let body = {};
 	let url = ''
 	switch (repoHost) {
 		case 'github':
-			body = { org: orgName, userId: userId, is_github: true }
-			url = `${backendUrl}/github/setup/repos`;
+			body = { org: orgName, userId: userId, provider: 'github' }
+			url = `${websiteUrl}/api/extension/setup`;
 			break;
 		case 'bitbucket':
-			body = { workspace_slug: orgName, userId: userId, is_github: false }
-			url = `${backendUrl}/bitbucket/setup/repos`;
+			body = { org: orgName, userId: userId, provider: 'bitbucket' }
+			url = `${websiteUrl}/api/extension/setup`;
 			break;
 		default:
 			console.warn(`[getTrackedRepos] Invalid repoHost provided: ${repoHost}`);
 			break;
 	}
-	const trackedRepos = await apiCall(url, body);
+	const trackedRepos = await apiCallOnprem(url, body);
 	return trackedRepos['repos'];
 }
 
