@@ -115,7 +115,7 @@ function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
             linkElement.href = `${websiteUrl}/repo?repo_name=${repoName}`;
             linkElement.target = '_blank';
 
-            newUI ? linkElement.style.display ='inline-flex' : linkElement.style.display='inline-block'
+			linkElement.style.display = newUI ? 'inline-flex' : 'inline-block';
 			linkElement.style.marginRight ='6px';
 			linkElement.style.color = 'white';
 			linkElement.style.borderRadius = '2px';
