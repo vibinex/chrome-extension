@@ -119,7 +119,7 @@ function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
             linkElement.target = '_blank';
 
             newUI ? linkElement.style.display ='inline-flex' : linkElement.style.display='inline-block'
-			linkElement.style.marginRight ='2px';
+			linkElement.style.marginRight ='6px';
 			linkElement.style.color = 'white';
 			linkElement.style.borderRadius = '2px';
 			linkElement.style.fontSize = '15px';
