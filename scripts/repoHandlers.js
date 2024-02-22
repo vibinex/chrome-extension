@@ -68,7 +68,7 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
  * Extracts all the repo title elements from github's new repo ui
  * 
  * @param {String} ownerType - Type of page whether it's an org page or user's page.
- * @returns {Array} - The array of repoUrl.
+ * @returns {Array} - The array of repo title elements.
  */
 function getRepoTitleElementsFromGithubNewReposUI(ownerType) {
 	const repoList = ownerType === 'org' ? document.querySelectorAll('[data-testid="list-view-items"] > li') : document.querySelectorAll('[data-filterable-for="your-repos-filter"] > li');
@@ -85,7 +85,7 @@ function getRepoTitleElementsFromGithubNewReposUI(ownerType) {
  * Extracts all the repo title elements from github's old repo ui
  * 
  * @param {String} ownerType - Type of page whether it's an org page or user page.
- * @returns {Array} - The array of repoUrl.
+ * @returns {Array} - The array of repo title elements.
  */
 function getRepoTitleElementsFromGithubOldRepoUl(ownerType) {
 	const allRepo = ownerType === 'org' ? document.getElementById('org-repositories') : document.getElementById('user-repositories-list');
@@ -127,12 +127,12 @@ function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
 			vibinexLogoElement.target = '_blank';
 
 			vibinexLogoElement.style.display = newUI ? 'inline-flex' : 'inline-block';
-			vibinexLogoElement.style.marginRight ='6px';
+			vibinexLogoElement.style.marginRight = newUI ? '6px' : '2px';
 			vibinexLogoElement.style.color = 'white';
 			vibinexLogoElement.style.borderRadius = '2px';
 			vibinexLogoElement.style.fontSize = '15px';
 			vibinexLogoElement.style.textDecoration = 'none';
-			vibinexLogoElement.style.alignItems ='center';
+			vibinexLogoElement.style.alignItems = 'center';
 
 			newUI ? repoItem.parentNode.insertBefore(vibinexLogoElement, repoItem) : repoItem.insertBefore(vibinexLogoElement, repoItem.firstChild);
 		}
