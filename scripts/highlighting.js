@@ -309,7 +309,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 							const statusDetail = status.classList;
 
 							const listOfChunks = article.getElementsByClassName('diff-chunk-inner');
-							const allChunkLines = listOfChunks[0].querySelectorAll('.lines-wrapper');
+							const allChunkLines = Array.from(listOfChunks).map(chunk => Array.from(chunk.querySelectorAll('.lines-wrapper')));
 
 							const lineStart = parseInt(foundFiles.line_start);
 							const lineEnd = parseInt(foundFiles.line_end);
