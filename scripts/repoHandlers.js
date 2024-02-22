@@ -65,12 +65,12 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
 }
 
 /**
- * Extracts all the repoUrls elements from github's new ui
+ * Extracts all the repo title elements from github's new repo ui
  * 
  * @param {String} ownerType - Type of page whether it's an org page or user's page.
  * @returns {Array} - The array of repoUrl.
  */
-function githubNewUIRepoUrls(ownerType) {
+function getRepoTitleElementsFromGithubNewReposUI(ownerType) {
 	const repoList = ownerType === 'org' ? document.querySelectorAll('[data-testid="list-view-items"] > li') : document.querySelectorAll('[data-filterable-for="your-repos-filter"] > li');
 	let repoUrls = [];
 	repoList.forEach(repoItem => {
@@ -82,12 +82,12 @@ function githubNewUIRepoUrls(ownerType) {
 }
 
 /**
- * Extracts all the repoUrls elements from github's old ui
+ * Extracts all the repo title elements from github's old repo ui
  * 
  * @param {String} ownerType - Type of page whether it's an org page or user page.
  * @returns {Array} - The array of repoUrl.
  */
-function githubOldUIRepoUrls(ownerType) {
+function getRepoTitleElementsFromGithubOldRepoUl(ownerType) {
 	const allRepo = ownerType === 'org' ? document.getElementById('org-repositories') : document.getElementById('user-repositories-list');
 	const repoUrls = Array.from(allRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
 	return repoUrls;
@@ -103,7 +103,7 @@ function githubOldUIRepoUrls(ownerType) {
 function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
 	// Check if selectors for new UI exist
 	const newUI = document.querySelector('[data-testid="list-view-items"]') ? true : false
-	const repoUrls = newUI ? githubNewUIRepoUrls(ownerType) : githubOldUIRepoUrls(ownerType);
+	const repoUrls = newUI ? getRepoTitleElementsFromGithubNewReposUI(ownerType) : getRepoTitleElementsFromGithubOldRepoUl(ownerType);
 	repoUrls.forEach(repoItem => {
 		const repoLink = repoItem.getAttribute('href');
 		const repoName = repoLink.split('/').pop();
