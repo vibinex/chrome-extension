@@ -65,6 +65,35 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
 }
 
 /**
+ * Extracts all the repo title elements from github's new repo ui
+ * 
+ * @param {String} ownerType - Type of page whether it's an org page or user's page.
+ * @returns {Array} - The array of repo title elements.
+ */
+function getRepoTitleElementsFromGithubNewReposUI(ownerType) {
+	const repoList = ownerType === 'org' ? document.querySelectorAll('[data-testid="list-view-items"] > li') : document.querySelectorAll('[data-filterable-for="your-repos-filter"] > li');
+	let repoUrls = [];
+	repoList.forEach(repoItem => {
+		let repoLink = ownerType == 'org' ? repoItem.querySelector('[data-testid="listitem-title-link"]') : repoItem.querySelector('a[itemprop="name codeRepository"]');
+		if (!repoLink) return;
+		repoUrls.push(repoLink);
+	});
+	return repoUrls;
+}
+
+/**
+ * Extracts all the repo title elements from github's old repo ui
+ * 
+ * @param {String} ownerType - Type of page whether it's an org page or user page.
+ * @returns {Array} - The array of repo title elements.
+ */
+function getRepoTitleElementsFromGithubOldRepoUl(ownerType) {
+	const allRepo = ownerType === 'org' ? document.getElementById('org-repositories') : document.getElementById('user-repositories-list');
+	const repoUrls = Array.from(allRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
+	return repoUrls;
+}
+
+/**
  * Updates the GitHub organization or user page to visually indicate which repositories are being tracked.
  * 
  * @param {Array} trackedRepos - List of tracked repositories.
@@ -72,40 +101,42 @@ function updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl) {
  * @param {boolean} isOrg - Whether github organization or user.
  */
 function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
-	const allRepo = ownerType == 'org' ? document.getElementById('org-repositories') : document.getElementById('user-repositories-list');
-	const repoUrl = Array.from(allRepo.querySelectorAll('a[itemprop="name codeRepository"]'));
-
-
-	repoUrl.forEach((item) => {
-		const link = item.getAttribute('href').split('/');
-		const repoName = link[link.length - 1];
-
+	// Check if selectors for new UI exist
+	const newUI = document.querySelector('[data-testid="list-view-items"]') ? true : false
+	const repoUrls = newUI ? getRepoTitleElementsFromGithubNewReposUI(ownerType) : getRepoTitleElementsFromGithubOldRepoUl(ownerType);
+	repoUrls.forEach(repoItem => {
+		const repoLink = repoItem.getAttribute('href');
+		const repoName = repoLink.split('/').pop();
+		
 		if (trackedRepos.includes(repoName)) {
-			const checkElement = item.getElementsByClassName('trackLogo')[0];
+			const checkElement = repoItem.querySelector('.trackLogo');
 			if (checkElement) {
 				// TODO: Ideally, we should only need to add the element when there is none present
 				checkElement.remove();
 			}
+
 			const img = document.createElement("img");
-			img.setAttribute('class', 'trackLogo');
-			const beforePsuedoElement = document.createElement('a');
+			img.classList.add('trackLogo');
 			img.src = `${websiteUrl}/favicon.ico`;
-			img.style.width = '15px'
-			img.style.height = '15px'
+			img.style.width = '15px';
+			img.style.height = '15px';
 
-			beforePsuedoElement.appendChild(img);
-			beforePsuedoElement.href = `${websiteUrl}/repo?repo_name=${repoName}`;
-			beforePsuedoElement.target = '_blank';
-			beforePsuedoElement.style.display = 'inline-block';
-			beforePsuedoElement.style.marginRight = '2px';
-			beforePsuedoElement.style.color = 'white';
-			beforePsuedoElement.style.borderRadius = '2px';
-			beforePsuedoElement.style.fontSize = '15px';
-			beforePsuedoElement.style.textDecoration = 'none';
+			const vibinexLogoElement = document.createElement('a');
+			vibinexLogoElement.appendChild(img);
+			vibinexLogoElement.href = `${websiteUrl}/repo?repo_name=${repoName}`;
+			vibinexLogoElement.target = '_blank';
 
-			item.insertBefore(beforePsuedoElement, item.firstChild);
+			vibinexLogoElement.style.display = newUI ? 'inline-flex' : 'inline-block';
+			vibinexLogoElement.style.marginRight = newUI ? '6px' : '2px';
+			vibinexLogoElement.style.color = 'white';
+			vibinexLogoElement.style.borderRadius = '2px';
+			vibinexLogoElement.style.fontSize = '15px';
+			vibinexLogoElement.style.textDecoration = 'none';
+			vibinexLogoElement.style.alignItems = 'center';
+
+			newUI ? repoItem.parentNode.insertBefore(vibinexLogoElement, repoItem) : repoItem.insertBefore(vibinexLogoElement, repoItem.firstChild);
 		}
-	})
+	});
 }
 
 /**
