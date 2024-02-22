@@ -294,7 +294,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 					const articles = document.querySelectorAll('article[aria-label^="Diff of file"]');
 					articles.forEach(async (article) => {
 						const ariaLabel = article.getAttribute('aria-label');
-						const fileName = ariaLabel.substring(13); // beacuse ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
+						const fileName = ariaLabel.substring(13); // because ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
 
 						const matchEncrypted = await sha256(fileName);
 						const foundFiles = apiResponses["hunkinfo"].find(item => item.filepath === matchEncrypted);
