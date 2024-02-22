@@ -334,7 +334,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 											if (lineNumber >= lineStart && lineNumber <= lineEnd) {
 												const firstElement = item.firstElementChild;
 												const secondChild = firstElement.children[2];
-												secondChild.style.borderLeft = 'solid 6px #f1f549';
+												secondChild.style.borderLeft = 'solid 6px #eaee32';
 											}
 										} else if (symbol == '+') {
 											const lineNumber = getLineNumber(item);
@@ -356,10 +356,10 @@ const bitBucketHunkHighlight = (apiResponses) => {
 
 									if (symbol == '-' || symbol == '+') {
 										const lineNumber = getLineNumber(item);
-										if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+										if (lineNumber >= lineStart && lineNumber <= lineEnd && symbol == '-') {
 											const firstElement = item.firstElementChild;
 											const secondChild = firstElement.children[2];
-											secondChild.style.borderLeft = 'solid 6px #f1f549';
+											secondChild.style.borderLeft = 'solid 6px #eaee32';
 										}
 									}
 								});
