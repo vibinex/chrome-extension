@@ -6,17 +6,17 @@
  * @param {string} repoHost - The hosting platform ('github' or 'bitbucket').
  * @returns {Array} - List of tracked repositories.
  */
-async function getTrackedRepos(orgName, userId, repoHost) {
+async function getTrackedRepos(owner, userId, repoHost) {
 	const { websiteUrl } = await chrome.storage.local.get(["websiteUrl"]);
 	let body = {};
 	let url = ''
 	switch (repoHost) {
 		case 'github':
-			body = { org: orgName, userId: userId, provider: 'github' }
+			body = { owner: owner, userId: userId, provider: 'github' }
 			url = `${websiteUrl}/api/extension/setup`;
 			break;
 		case 'bitbucket':
-			body = { org: orgName, userId: userId, provider: 'bitbucket' }
+			body = { owner: owner, userId: userId, provider: 'bitbucket' }
 			url = `${websiteUrl}/api/extension/setup`;
 			break;
 		default:
@@ -142,15 +142,15 @@ function updateTrackedReposInGitHub(trackedRepos, websiteUrl, ownerType) {
 /**
  * Displays a floating action button on the repository page if the repository is not being tracked.
  * 
- * @param {string} orgName - The name of the organization or user.
- * @param {string} orgRepo - The name of the repository.
+ * @param {string} owner - The name of the organization or user.
+ * @param {string} ownerRepo - The name of the repository.
  * @param {string} userId - The ID of the user.
  * @param {string} websiteUrl - The URL of the website.
  * @param {string} repoHost - The hosting platform ('github' or 'bitbucket').
  */
-async function showFloatingActionButton(orgName, orgRepo, userId, websiteUrl, repoHost) {
-	const trackedRepoList = await getTrackedRepos(orgName, userId, repoHost);
-	if (!trackedRepoList.includes(orgRepo)) {
+async function showFloatingActionButton(owner, ownerRepo, userId, websiteUrl, repoHost) {
+	const trackedRepoList = await getTrackedRepos(owner, userId, repoHost);
+	if (!trackedRepoList.includes(ownerRepo)) {
 		createElement("add", websiteUrl);
 	}
 }
