@@ -294,7 +294,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 					const articles = document.querySelectorAll('article[aria-label^="Diff of file"]');
 					articles.forEach(async (article) => {
 						const ariaLabel = article.getAttribute('aria-label');
-						const fileName = ariaLabel.substring(13); // beacuse ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
+						const fileName = ariaLabel.substring(13); // because ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
 
 						const matchEncrypted = await sha256(fileName);
 						const foundFiles = apiResponses["hunkinfo"].find(item => item.filepath === matchEncrypted);
@@ -309,7 +309,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 							const statusDetail = status.classList;
 
 							const listOfChunks = article.getElementsByClassName('diff-chunk-inner');
-							const allChunkLines = listOfChunks[0].querySelectorAll('.lines-wrapper');
+							const allChunkLines = Array.from(listOfChunks).map(chunk => Array.from(chunk.querySelectorAll('.lines-wrapper')));
 
 							const lineStart = parseInt(foundFiles.line_start);
 							const lineEnd = parseInt(foundFiles.line_end);
@@ -334,7 +334,7 @@ const bitBucketHunkHighlight = (apiResponses) => {
 											if (lineNumber >= lineStart && lineNumber <= lineEnd) {
 												const firstElement = item.firstElementChild;
 												const secondChild = firstElement.children[2];
-												secondChild.style.borderLeft = 'solid 6px #f1f549';
+												secondChild.style.borderLeft = 'solid 6px #eaee32';
 											}
 										} else if (symbol == '+') {
 											const lineNumber = getLineNumber(item);
@@ -356,10 +356,10 @@ const bitBucketHunkHighlight = (apiResponses) => {
 
 									if (symbol == '-' || symbol == '+') {
 										const lineNumber = getLineNumber(item);
-										if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+										if (lineNumber >= lineStart && lineNumber <= lineEnd && symbol == '-') {
 											const firstElement = item.firstElementChild;
 											const secondChild = firstElement.children[2];
-											secondChild.style.borderLeft = 'solid 6px #f1f549';
+											secondChild.style.borderLeft = 'solid 6px #eaee32';
 										}
 									}
 								});
