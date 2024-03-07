@@ -323,45 +323,44 @@ const bitBucketHunkHighlight = (apiResponses) => {
 
 							if (statusDetail[1] == 'side-by-side') {
 								// for split view 
-								allChunkLines.forEach((item) => {
-									const scanEachLine = item.querySelectorAll('span[data-line-type]');
+								allChunkLines.forEach((items) => {
+									items.forEach((item) => {
+										const scanEachLine = item.querySelectorAll('span[data-line-type]');
+										scanEachLine.forEach((line) => {
+											const symbol = line.getAttribute('data-line-type');
 
-									scanEachLine.forEach((line) => {
-										const symbol = line.getAttribute('data-line-type');
-
-										if (symbol == '-') {
-											const lineNumber = getLineNumber(item);
-											if (lineNumber >= lineStart && lineNumber <= lineEnd) {
-												const firstElement = item.firstElementChild;
-												const secondChild = firstElement.children[2];
-												secondChild.style.borderLeft = 'solid 6px #eaee32';
+											if (symbol == '-') {
+												const lineNumber = getLineNumber(item);
+												if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+													const firstElement = item.firstElementChild;
+													const secondChild = firstElement.children[2];
+													secondChild.style.borderLeft = 'solid 6px #eaee32';
+												}
+											} else if (symbol == '+') {
+												const lineNumber = getLineNumber(item);
+												if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+													const secondElement = item.children[1];
+													const secondChild = secondElement.children[2];
+													secondChild.style.borderLeft = 'solid 6px #f1f549';
+												}
 											}
-										} else if (symbol == '+') {
-											const lineNumber = getLineNumber(item);
-											if (lineNumber >= lineStart && lineNumber <= lineEnd) {
-												const secondElement = item.children[1];
-												const secondChild = secondElement.children[2];
-												secondChild.style.borderLeft = 'solid 6px #f1f549';
-											}
-										}
+										});
 									});
-
 								});
 
 							} else {
 								// for unified view 
-								allChunkLines.forEach((item) => {
-									const eachLine = item.querySelector('span[data-line-type]');
-									const symbol = eachLine.getAttribute('data-line-type');
-
-									if (symbol == '-' || symbol == '+') {
+								allChunkLines.forEach((items) => {
+									items.forEach((item) => {
+										const lineNumberElement = item.querySelector('a[aria-label]');
+										const lineNumberText = lineNumberElement.getAttribute('aria-label');
 										const lineNumber = getLineNumber(item);
-										if (lineNumber >= lineStart && lineNumber <= lineEnd && symbol == '-') {
+										if (lineNumber >= lineStart && lineNumber <= lineEnd && lineNumberText.includes("From")) {
 											const firstElement = item.firstElementChild;
 											const secondChild = firstElement.children[2];
 											secondChild.style.borderLeft = 'solid 6px #eaee32';
 										}
-									}
+									});
 								});
 							}
 						}
