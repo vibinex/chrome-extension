@@ -352,10 +352,10 @@ const bitBucketHunkHighlight = (apiResponses) => {
 								// for unified view 
 								allChunkLines.forEach((items) => {
 									items.forEach((item) => {
-										const eachLine = item.querySelector('span[data-line-type]');
-										const symbol = eachLine.getAttribute('data-line-type');
+										const lineNumberElement = item.querySelector('a[aria-label]');
+										const lineNumberText = lineNumberElement.getAttribute('aria-label');
 										const lineNumber = getLineNumber(item);
-										if (lineNumber >= lineStart && lineNumber <= lineEnd && symbol != '+') {
+										if (lineNumber >= lineStart && lineNumber <= lineEnd && lineNumberText.includes("From")) {
 											const firstElement = item.firstElementChild;
 											const secondChild = firstElement.children[2];
 											secondChild.style.borderLeft = 'solid 6px #eaee32';
