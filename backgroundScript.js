@@ -8,7 +8,8 @@ chrome.runtime.onInstalled.addListener(() => {
 	const websiteUrl = (environment === "dev") ? "http://localhost:3000" : "https://vibinex.com";
 
 	// Store the website URL in Chrome's local storage.
-	chrome.storage.local.set({ websiteUrl }).then(_ => console.log(`Website URL set to ${websiteUrl};`));
+	chrome.storage.local.set({ websiteUrl }).then(_ => console.log(`Website URL set to ${websiteUrl};`))
+ .catch(error => console.error(`Failed to set website URL: ${error}`));
 
 	// Make an API call to the backend to create a Rudderstack event when the extension is installed.
 	chrome.storage.local.get(["userId"]).then(({ userId }) => {
