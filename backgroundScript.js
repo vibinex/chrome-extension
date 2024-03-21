@@ -4,12 +4,12 @@ chrome.runtime.onInstalled.addListener(() => {
 	const environment = "prod";
 	// const environment = "dev";
 
-	// Set the website and backend URLs based on the environment.
+	// Set the website URL based on the environment.
 	const websiteUrl = (environment === "dev") ? "http://localhost:3000" : "https://vibinex.com";
-	const backendUrl = (environment === "dev") ? "http://localhost:8080" : "https://gcscruncsql-k7jns52mtq-el.a.run.app";
 
-	// Store the website and backend URLs in Chrome's local storage.
-	chrome.storage.local.set({ websiteUrl, backendUrl }).then(_ => console.log(`Website URL set to ${websiteUrl};`));
+	// Store the website URL in Chrome's local storage.
+	chrome.storage.local.set({ websiteUrl }).then(_ => console.log(`Website URL set to ${websiteUrl};`))
+ .catch(error => console.error(`Failed to set website URL: ${error}`));
 
 	// Make an API call to the backend to create a Rudderstack event when the extension is installed.
 	chrome.storage.local.get(["userId"]).then(({ userId }) => {
@@ -17,7 +17,7 @@ chrome.runtime.onInstalled.addListener(() => {
 			userId: userId ? userId : "anonymous-id", // Use the stored userId or "anonymous-id" if not available.
 			function: 'chrome-extension-installed'
 		}
-		const url = `${backendUrl}/chrome/events`;
+		const url = `${websiteUrl}/api/extension/events`;
 		fetch(url, {
 			method: "POST",
 			headers: {

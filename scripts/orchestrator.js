@@ -4,7 +4,7 @@
  * Functionality:
  * 1. Logs the updated tab URL for debugging purposes.
  * 2. Checks if the user is logged in when on GitHub or Bitbucket. If not, a warning is displayed.
- * 3. Retrieves the 'backendUrl' from Chrome local storage.
+ * 3. Retrieves the 'websiteUrl' from Chrome local storage.
  *
  * For GitHub:
  * - If on a specific repository page (e.g., https://github.com/mui/mui-toolpad), it displays a floating action button.
