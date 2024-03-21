@@ -17,7 +17,7 @@ chrome.runtime.onInstalled.addListener(() => {
 			userId: userId ? userId : "anonymous-id", // Use the stored userId or "anonymous-id" if not available.
 			function: 'chrome-extension-installed'
 		}
-		const url = `${backendUrl}/chrome/events`;
+		const url = `${websiteUrl}/api/extension/events`;
 		fetch(url, {
 			method: "POST",
 			headers: {
