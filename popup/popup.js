@@ -36,6 +36,7 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 	});
 
 	// Fetch the current session from the server.
+	let tokenval = "";
 	fetch(`${websiteUrl}/api/auth/session`, { cache: 'no-store' }).then(async (res) => {
 		const json = await res.json();
 		document.querySelector("#loading-div").style.display = "none";
@@ -49,7 +50,6 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 			document.querySelector("#session-image").src = user.image;
 			document.querySelector("#session-name").innerHTML = user.name;
 			document.querySelector("#session-email").innerHTML = user.email;
-			let tokenval = "";
 			// Retrieve the session token from the cookie and store user details in Chrome's local storage.
 			chrome.cookies.get({ url: websiteUrl, name: '__Secure-next-auth.session-token' })
 				.then((cookie) => {
@@ -68,11 +68,11 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				.catch((err) => {
 					console.error("Unable to get Cookie value for session: ", err);
 				});
-				const inputDiv = document.getElementById("input-div");
-            inputDiv.style.display = "flex";
 
             // Add event listener to the submit button
+			const submitButton = document.getElementById("pr-url-submit-button");
 			submitButton.addEventListener("click", () => {
+				const urlInput = document.getElementById("pr-url-input");
 				const url = urlInput.value.trim();
 				if (url !== "") {
 					// Send the inputted URL through a POST call to an API
