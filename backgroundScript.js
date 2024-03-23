@@ -9,28 +9,30 @@ chrome.runtime.onInstalled.addListener(() => {
 
 	// Store the website URL in Chrome's local storage.
 	chrome.storage.local.set({ websiteUrl }).then(_ => console.log(`Website URL set to ${websiteUrl};`))
- .catch(error => console.error(`Failed to set website URL: ${error}`));
+		.catch(error => console.error(`Failed to set website URL: ${error}`));
 
 	// Make an API call to the backend to create a Rudderstack event when the extension is installed.
 	chrome.storage.local.get(["userId"]).then(({ userId }) => {
 		const body = {
 			userId: userId ? userId : "anonymous-id", // Use the stored userId or "anonymous-id" if not available.
 			function: 'chrome-extension-installed'
-		}
+		};
 		const url = `${websiteUrl}/api/extension/events`;
 		fetch(url, {
 			method: "POST",
 			headers: {
-				"Access-Control-Allow-Origin": "chrome-extension://jafgelpkkkopeaefadkdjcmnicgpcncc",
+				// "Access-Control-Allow-Origin": "chrome-extension://jafgelpkkkopeaefadkdjcmnicgpcncc",
 				"Content-Type": "application/json",
 				"Accept": "application/json",
 			},
 			body: JSON.stringify(body)
 		})
 			.then((response) => response.json())
-			.then((data) => dataFromAPI = data); // Store the response data in the dataFromAPI variable.
-	})
-})
+			.then((data) => {
+				console.info(`[vibinex] Successfully sent installation event to backend. Response: ${JSON.stringify(data)}`);
+			}).catch(error => console.error(`[vibinex] Failed to send installation event to backend: ${error}`));;
+	});
+});
 
 /**
  * Checks Logged in status for showing indicator on supported pages like github and bitbucket.
@@ -63,7 +65,7 @@ chrome.runtime.onMessage.addListener(
 		const message = JSON.parse(request.message);
 		if (message.action === "check_login_status") {
 			const websiteUrl = message.websiteUrl;
-			const provider = message.provider
+			const provider = message.provider;
 			checkLoginStatus(websiteUrl, provider).then(loggedIn => {
 				sendResponse({ status: loggedIn });
 			});
