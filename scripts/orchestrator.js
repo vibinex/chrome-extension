@@ -57,8 +57,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 					"repo_name": repoName,
 					"user_id": userId,
 					"pr_number": prNumber,
-					"repo_provider": 'github',
-					"is_github": true
+					"repo_provider": 'github'
 				};
 				let query_params = { type: "file" };
 				const response = await apiCallOnprem(url, body, query_params);
@@ -119,8 +118,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 					"repo_name": repoName,
 					"user_id": userId,
 					"pr_number": prNumber,
-					"repo_provider": 'bitbucket',
-					"is_github": false
+					"repo_provider": 'bitbucket'
 				};
 				let query_params = { type: "file" };
 				const response = await apiCallOnprem(url, body, query_params);

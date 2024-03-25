@@ -12,11 +12,11 @@ async function getTrackedRepos(owner, userId, repoHost) {
 	let url = ''
 	switch (repoHost) {
 		case 'github':
-			body = { owner: owner, userId: userId, provider: 'github' }
+			body = { owner: owner, user_id: userId, provider: 'github' }
 			url = `${websiteUrl}/api/extension/setup`;
 			break;
 		case 'bitbucket':
-			body = { owner: owner, userId: userId, provider: 'bitbucket' }
+			body = { owner: owner, user_id: userId, provider: 'bitbucket' }
 			url = `${websiteUrl}/api/extension/setup`;
 			break;
 		default:
