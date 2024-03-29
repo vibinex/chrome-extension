@@ -78,6 +78,7 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				if (url === "") {
 					console.error("[popup/submitButton] URL cannot be empty");
 					submitButton.textContent = "Empty URL! Try Again";
+					return;
 				}
 				// Send the inputted URL through a POST call to an API
 				fetch(`${websiteUrl}/api/extension/trigger`, {
