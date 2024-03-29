@@ -137,7 +137,7 @@ const getThemeColor = () => {
 	const bgColor = window.getComputedStyle(document.body).getPropertyValue('background-color');
 
 	// Extract R, G, B values 
-	const match = bgColor.match(/rgb\((\d+), (\d+), (\d+)\)/);
+	const match = /rgb\((\d+), (\d+), (\d+)\)/.exec(bgColor);
 
 	// Convert to numbers
 	const r = parseInt(match[1]);
