@@ -139,6 +139,11 @@ const getThemeColor = () => {
 	// Extract R, G, B values 
 	const match = /rgb\((\d+), (\d+), (\d+)\)/.exec(bgColor);
 
+	if (!match) {
+		console.error(`Unexpected background color format: ${bgColor}`);
+		return [255, 255, 255]; // Default to white or any sensible default
+	}
+
 	// Convert to numbers
 	const r = parseInt(match[1]);
 	const g = parseInt(match[2]);
