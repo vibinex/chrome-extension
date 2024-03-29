@@ -74,32 +74,31 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 			submitButton.addEventListener("click", () => {
 				const urlInput = document.getElementById("pr-url-input");
 				const url = urlInput.value.trim();
-				if (url !== "") {
-					// Send the inputted URL through a POST call to an API
-					fetch(`${websiteUrl}/api/extension/trigger`, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"Authorization": `Bearer ${tokenval}`
-						},
-						body: JSON.stringify({ url: url })
-					}).then(response => {
-						if (response.ok) {
-							console.log("[popup/submitButton] URL submitted successfully");
-							submitButton.disabled = true;
-							submitButton.textContent = "Triggered!";
-						} else {
-							console.error("[popup/submitButton] Failed to submit URL", JSON.stringify(response));
-							submitButton.textContent = "Failed! Try Again";
-						}
-					}).catch(error => {
-						console.error("[popup/submitButton] Error while submitting URL:", error);
-						submitButton.textContent = "Failed! Try Again";
-					});
-				} else {
+				if (url === "") {
 					console.error("[popup/submitButton] URL cannot be empty");
 					submitButton.textContent = "Empty URL! Try Again";
 				}
+				// Send the inputted URL through a POST call to an API
+				fetch(`${websiteUrl}/api/extension/trigger`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Authorization": `Bearer ${tokenval}`
+					},
+					body: JSON.stringify({ url: url })
+				}).then(response => {
+					if (response.ok) {
+						console.log("[popup/submitButton] URL submitted successfully");
+						submitButton.disabled = true;
+						submitButton.textContent = "Triggered!";
+					} else {
+						console.error("[popup/submitButton] Failed to submit URL", JSON.stringify(response));
+						submitButton.textContent = "Failed! Try Again";
+					}
+				}).catch(error => {
+					console.error("[popup/submitButton] Error while submitting URL:", error);
+					submitButton.textContent = "Failed! Try Again";
+				});
 			});			
         } else {
             // If no user session exists, display the login options.
