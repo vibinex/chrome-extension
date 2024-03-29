@@ -88,7 +88,7 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 					body: JSON.stringify({ url: url })
 				}).then(response => {
 					if (response.ok) {
-						console.log("[popup/submitButton] URL submitted successfully");
+						console.info("[popup/submitButton] URL submitted successfully");
 						submitButton.disabled = true;
 						submitButton.textContent = "Triggered!";
 					} else {
