@@ -36,7 +36,6 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 	});
 
 	// Fetch the current session from the server.
-	let tokenval = "";
 	fetch(`${websiteUrl}/api/auth/session`, { cache: 'no-store' }).then(async (res) => {
 		const json = await res.json();
 		document.querySelector("#loading-div").style.display = "none";
@@ -51,6 +50,7 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 			document.querySelector("#session-name").innerHTML = user.name;
 			document.querySelector("#session-email").innerHTML = user.email;
 			// Retrieve the session token from the cookie and store user details in Chrome's local storage.
+			let tokenval = "";
 			chrome.cookies.get({ url: websiteUrl, name: '__Secure-next-auth.session-token' })
 				.then((cookie) => {
 					tokenval = cookie.value;
