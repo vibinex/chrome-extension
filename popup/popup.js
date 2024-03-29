@@ -72,6 +72,7 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
             // Add event listener to the submit button
 			const submitButton = document.getElementById("pr-url-submit-button");
 			submitButton.addEventListener("click", () => {
+				submitButton.disabled = true;
 				const urlInput = document.getElementById("pr-url-input");
 				const url = urlInput.value.trim();
 				if (url === "") {
@@ -89,13 +90,14 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				}).then(response => {
 					if (response.ok) {
 						console.info("[popup/submitButton] URL submitted successfully");
-						submitButton.disabled = true;
 						submitButton.textContent = "Triggered!";
 					} else {
+						submitButton.disabled = false;
 						console.error("[popup/submitButton] Failed to submit URL", JSON.stringify(response));
 						submitButton.textContent = "Failed! Try Again";
 					}
 				}).catch(error => {
+					submitButton.disabled = false;
 					console.error("[popup/submitButton] Error while submitting URL:", error);
 					submitButton.textContent = "Failed! Try Again";
 				});
