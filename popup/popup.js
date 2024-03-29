@@ -49,11 +49,11 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 			document.querySelector("#session-image").src = user.image;
 			document.querySelector("#session-name").innerHTML = user.name;
 			document.querySelector("#session-email").innerHTML = user.email;
-
 			// Retrieve the session token from the cookie and store user details in Chrome's local storage.
+			let tokenval = "";
 			chrome.cookies.get({ url: websiteUrl, name: '__Secure-next-auth.session-token' })
 				.then((cookie) => {
-					const tokenval = cookie.value;
+					tokenval = cookie.value;
 					chrome.storage.local.set({
 						userId: user.id,
 						userName: user.name,
@@ -68,16 +68,51 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				.catch((err) => {
 					console.error("Unable to get Cookie value for session: ", err);
 				});
-		} else {
-			// If no user session exists, display the login options.
-			document.querySelector("#login-div").style.display = "flex";
-		}
-	});
+
+            // Add event listener to the submit button
+			const submitButton = document.getElementById("pr-url-submit-button");
+			submitButton.addEventListener("click", () => {
+				submitButton.disabled = true;
+				const urlInput = document.getElementById("pr-url-input");
+				const url = urlInput.value.trim();
+				if (url === "") {
+					console.error("[popup/submitButton] URL cannot be empty");
+					submitButton.textContent = "Empty URL! Try Again";
+					return;
+				}
+				// Send the inputted URL through a POST call to an API
+				fetch(`${websiteUrl}/api/extension/trigger`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Authorization": `Bearer ${tokenval}`
+					},
+					body: JSON.stringify({ url: url })
+				}).then(response => {
+					if (response.ok) {
+						console.info("[popup/submitButton] URL submitted successfully");
+						submitButton.textContent = "Triggered!";
+					} else {
+						submitButton.disabled = false;
+						console.error("[popup/submitButton] Failed to submit URL", JSON.stringify(response));
+						submitButton.textContent = "Failed! Try Again";
+					}
+				}).catch(error => {
+					submitButton.disabled = false;
+					console.error("[popup/submitButton] Error while submitting URL:", error);
+					submitButton.textContent = "Failed! Try Again";
+				});
+			});			
+        } else {
+            // If no user session exists, display the login options.
+            document.querySelector("#login-div").style.display = "flex";
+        }
+    });
 });
 
 // Display the extension version on window load.
 window.addEventListener('load', () => {
-	const manifestData = chrome.runtime.getManifest();
-	const version_p = document.getElementById("version");
-	version_p.innerHTML = "v" + manifestData.version;
+    const manifestData = chrome.runtime.getManifest();
+    const version_p = document.getElementById("version");
+    version_p.innerHTML = "v" + manifestData.version;
 });
