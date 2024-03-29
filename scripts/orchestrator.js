@@ -4,7 +4,7 @@
  * Functionality:
  * 1. Logs the updated tab URL for debugging purposes.
  * 2. Checks if the user is logged in when on GitHub or Bitbucket. If not, a warning is displayed.
- * 3. Retrieves the 'backendUrl' from Chrome local storage.
+ * 3. Retrieves the 'websiteUrl' from Chrome local storage.
  *
  * For GitHub:
  * - If on a specific repository page (e.g., https://github.com/mui/mui-toolpad), it displays a floating action button.
@@ -31,7 +31,8 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 	}
 	if (urlObj[2] == 'github.com') {
-		addSignedOutIndicator(websiteUrl, 'github')
+		const isDark = getThemeColor().every((color) => color < 128);
+		addSignedOutIndicator(websiteUrl, 'github');
 		if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
 			// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
 			const ownerName = urlObj[3];
@@ -48,7 +49,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 				};
 				const query_params = { type: "review" };
 				const highlightedPRIds = await apiCallOnprem(url, body, query_params);
-				highlightRelevantPRs(highlightedPRIds);
+				highlightRelevantPRs(highlightedPRIds, isDark);
 			}
 			if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
 				const prNumber = parseInt(urlObj[6]);
@@ -57,16 +58,15 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 					"repo_name": repoName,
 					"user_id": userId,
 					"pr_number": prNumber,
-					"repo_provider": 'github',
-					"is_github": true
+					"repo_provider": 'github'
 				};
 				let query_params = { type: "file" };
 				const response = await apiCallOnprem(url, body, query_params);
-				showImpFileInPr(response);
+				showImpFileInPr(response, isDark);
 
 				query_params = { type: "hunk" };
 				const hunk_info_response = await apiCallOnprem(url, body, query_params);
-				githubHunkHighlight(hunk_info_response);
+				githubHunkHighlight(hunk_info_response, isDark);
 			}
 		}
 		// for showing all tracked repo in organisation page
@@ -88,7 +88,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 	}
 
 	if (urlObj[2] === 'bitbucket.org') {
-		addSignedOutIndicator(websiteUrl, 'bitbucket')
+		addSignedOutIndicator(websiteUrl, 'bitbucket');
 		// for showing tracked repo of a organization 
 		if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
 			const workspaceSlug = urlObj[3];
@@ -119,8 +119,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 					"repo_name": repoName,
 					"user_id": userId,
 					"pr_number": prNumber,
-					"repo_provider": 'bitbucket',
-					"is_github": false
+					"repo_provider": 'bitbucket'
 				};
 				let query_params = { type: "file" };
 				const response = await apiCallOnprem(url, body, query_params);
@@ -132,4 +131,25 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 			}
 		}
 	}
+};
+
+const getThemeColor = () => {
+	const bgColor = window.getComputedStyle(document.body).getPropertyValue('background-color');
+
+	// Extract R, G, B values 
+	const match = /rgb\((\d+), (\d+), (\d+)\)/.exec(bgColor);
+
+	if (!match) {
+		console.error(`Unexpected background color format: ${bgColor}`);
+		return [255, 255, 255]; // Default to white or any sensible default
+	}
+
+	// Convert to numbers
+	const r = parseInt(match[1]);
+	const g = parseInt(match[2]);
+	const b = parseInt(match[3]);
+
+	// Put in array
+	const bgRGB = [r, g, b];
+	return bgRGB;
 };

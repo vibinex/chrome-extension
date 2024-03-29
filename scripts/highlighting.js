@@ -5,18 +5,21 @@ const keyToLabel = Object.freeze({
 });
 
 // Background color for relevant GitHub items.
-const GH_RELEVANT_BG_COLOR = "rgb(86, 88, 0)";
+const GH_RELEVANT_BG_COLOR = (isDark) => (isDark) ? "rgb(86, 88, 0)" : 'rgb(246, 248, 85)';
+const GH_RELEVANT_PR_TAG_COLOR = (isDark) => (isDark) ? 'rgb(164, 167, 0)' : 'rgb(184, 187, 51)';
+const GH_RELEVANT_FILES_BG_COLOR = (isDark) => (isDark) ? "#7a7e00" : 'rgb(241, 245, 73)';
 
 /**
  * Highlights relevant pull requests on GitHub based on provided IDs.
  * 
  * @param {Object} highlightedPRIds - Object containing PR IDs to be highlighted.
+ * @param {boolean} isDark - Whether the GitHub page is in dark mode.
  */
-function highlightRelevantPRs(highlightedPRIds) {
+function highlightRelevantPRs(highlightedPRIds, isDark) {
 	if (highlightedPRIds) {
 		for (const priorityLevel in highlightedPRIds) {
 			for (const prNumber in highlightedPRIds[priorityLevel]) {
-				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber]);
+				addingCssElementToGithub(prNumber, keyToLabel[priorityLevel], highlightedPRIds[priorityLevel][prNumber], isDark);
 			}
 		}
 	}
@@ -29,9 +32,9 @@ function highlightRelevantPRs(highlightedPRIds) {
  * @param {string} status - The status (e.g., "Relevant" or "Important").
  * @param {Object} changeInfo - Information about the changes.
  */
-function addingCssElementToGithub(elementId, status, changeInfo) {
-	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : GH_RELEVANT_BG_COLOR;
-	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : 'rgb(164, 167, 0)';
+function addingCssElementToGithub(elementId, status, changeInfo, isDark) {
+	const backgroundColor = status == 'Important' ? 'rgb(61, 0, 0)' : GH_RELEVANT_BG_COLOR(isDark);
+	const tagBackgroundColor = status == 'Important' ? 'rgb(255,0,0)' : GH_RELEVANT_PR_TAG_COLOR(isDark);
 	const rowElement = document.getElementById(`issue_${elementId}`);
 	if (rowElement && rowElement != null) {
 		rowElement.style.backgroundColor = backgroundColor;
@@ -96,8 +99,9 @@ function addCssElementToBitbucket(highlightedPRIds) {
  * Highlights important files in a GitHub pull request.
  * 
  * @param {Object} response - Response object containing relevant data.
+ * @param {boolean} isDark - Whether the GitHub page is in dark mode.
  */
-async function showImpFileInPr(response) {
+async function showImpFileInPr(response, isDark) {
 	if ("files" in response) {
 		const encryptedFileNames = new Set(response['files']);
 		const fileNav = document.querySelector('[aria-label="File Tree Navigation"]');
@@ -125,7 +129,7 @@ async function showImpFileInPr(response) {
 				}
 				const hashedFilename = await sha256(filename);
 				if (encryptedFileNames.has(hashedFilename)) {
-					item.style.backgroundColor = '#7a7e00';
+					item.style.backgroundColor = GH_RELEVANT_FILES_BG_COLOR(isDark);
 				}
 			}
 		}
@@ -181,8 +185,9 @@ async function FilesInPrBitbucket(response) {
  * Highlights specific hunks (sections) of code in a GitHub pull request.
  * 
  * @param {Array} apiResponses - Array of API responses containing hunk information.
+ * @param {boolean} isDark - Boolean value to determine if dark mode is enabled.
  */
-const githubHunkHighlight = async (apiResponses) => {
+const githubHunkHighlight = async (apiResponses, isDark) => {
 	// checking for diff view either unified or split
 	let isUnifiedDiffView = false;
 	const allInputTagsWithValueAttr = document.querySelectorAll('input[value]'); // for reducing DOM queries in foreach loop.
@@ -243,7 +248,7 @@ const githubHunkHighlight = async (apiResponses) => {
 			};
 			allRowsInFileDiff.forEach((rowInFileDiff) => {
 				if (isRelevantRow(rowInFileDiff)) {
-					rowInFileDiff.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+					rowInFileDiff.style.backgroundColor = GH_RELEVANT_BG_COLOR(isDark);
 				}
 			});
 		} else { // for split view 
@@ -266,7 +271,7 @@ const githubHunkHighlight = async (apiResponses) => {
 				if (leftSideContentCell?.querySelector("span[data-code-marker='-']")) {
 					for (const hunk of relevantHunksInThisFile) {
 						if (parseInt(lineNumber) >= parseInt(hunk.line_start) && parseInt(lineNumber) <= parseInt(hunk.line_end)) {
-							leftSideContentCell.style.backgroundColor = GH_RELEVANT_BG_COLOR;
+							leftSideContentCell.style.backgroundColor = GH_RELEVANT_BG_COLOR(isDark);
 						}
 					}
 				}

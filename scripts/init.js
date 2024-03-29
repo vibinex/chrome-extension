@@ -9,7 +9,6 @@
  * Note: This script assumes it's running in the context of a browser extension, given its use of the 'chrome.storage' API.
  */
 console.log('[vibinex] Running content scripts');
-'use strict';
 window.onload = () => {
 	chrome.storage.local.get(["websiteUrl", "userId"]).then(async ({ websiteUrl, userId }) => {
 		console.log("We have the userId:", userId) // FIXME: remove this console.log
