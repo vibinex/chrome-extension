@@ -249,6 +249,10 @@ const githubHunkHighlight = async (apiResponses, isDark) => {
 			allRowsInFileDiff.forEach((rowInFileDiff) => {
 				if (isRelevantRow(rowInFileDiff)) {
 					rowInFileDiff.style.backgroundColor = GH_RELEVANT_BG_COLOR(isDark);
+					const lastTableCellInFileDiffRow = rowInFileDiff.lastElementChild;
+					if (lastTableCellInFileDiffRow) {
+						lastTableCellInFileDiffRow.style.backgroundColor = "inherit"
+					}
 				}
 			});
 		} else { // for split view 
