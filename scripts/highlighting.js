@@ -361,9 +361,10 @@ const bitBucketHunkHighlight = (apiResponses) => {
 										const lineNumberText = lineNumberElement.getAttribute('aria-label');
 										const lineNumber = getLineNumber(item);
 										if (lineNumber >= lineStart && lineNumber <= lineEnd && lineNumberText.includes("From")) {
-											const firstElement = item.firstElementChild;
-											const secondChild = firstElement.children[2];
+											const lineElement = lineNumberElement.parentElement;
+											const secondChild = lineElement.children[2];
 											secondChild.style.borderLeft = 'solid 6px #eaee32';
+											// TODO: instead add a ::before pseudoelement that is more visible
 										}
 									});
 								});
