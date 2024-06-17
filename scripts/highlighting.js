@@ -152,24 +152,14 @@ async function FilesInPrBitbucket(response) {
 				if (currentScrollPosition - lastKnownScrollPosition > 100) {
 					if ("files" in response) {
 						const encryptedFileNames = new Set(response['files']);
-						const fileNav = Array.from(document.querySelectorAll("[aria-label^='Diff of file']"));
+						const fileNav = Array.from(document.querySelectorAll('a[href^="#chg-"]'));
 						lastKnownScrollPosition = currentScrollPosition;
-						fileNav.forEach(async (element) => {
-							const h3Element = element.querySelector('h3');
-							const spanElement = Array.from(h3Element.querySelectorAll('span'));
-							const elementHeading = spanElement.length == 1 ? spanElement[0] : spanElement[spanElement.length - 1];
-							const spanText = elementHeading.textContent;
-
-							const hashFileName = await sha256(spanText);
+						fileNav.forEach(async (link) => {
+							const href = link.getAttribute('href');
+							const fileName = href.substring(5); // Get part after '#chg-'
+							const hashFileName = await sha256(fileName);
 							if (encryptedFileNames.has(hashFileName)) {
-								if (spanElement.length == 1) {
-									const changeBgColor = element.getElementsByClassName('css-10sfmq2')[0];
-									changeBgColor.style.backgroundColor = '#c5cc02';
-								} else {
-									const value = elementHeading.parentNode.parentNode.parentNode.parentNode.parentNode;
-									const value2 = value.children[0];
-									value2.style.backgroundColor = '#c5cc02';
-								}
+								link.style.backgroundColor = '#c5cc02';
 							}
 						});
 					}
@@ -285,6 +275,13 @@ const githubHunkHighlight = async (apiResponses, isDark) => {
 	});
 };
 
+function getLineNumber(element) {
+	const lineNumberElement = element.querySelector('a[aria-label]');
+	const getLineNumber = lineNumberElement.getAttribute('aria-label');
+	const lineNumber = parseInt(getLineNumber.match(/\d+/)[0]); // for getting the number from text (for example : 'xyz abc 12' gives 12)
+	return lineNumber;
+}
+
 /**
  * Highlights specific hunks (sections) of code in a Bitbucket pull request.
  * 
@@ -299,14 +296,13 @@ const bitBucketHunkHighlight = (apiResponses) => {
 		if (!ticking) {
 			window.requestAnimationFrame(() => {
 				if (currentScrollPosition - lastKnownScrollPosition > 100) {
-
 					const articles = document.querySelectorAll('article[aria-label^="Diff of file"]');
 					articles.forEach(async (article) => {
 						const ariaLabel = article.getAttribute('aria-label');
 						const fileName = ariaLabel.substring(13); // because ariaLable = "Diff of file testFile.js", so removing first 13 letters to get the file name
 
 						const matchEncrypted = await sha256(fileName);
-						const foundFiles = apiResponses["hunkinfo"].find(item => item.filepath === matchEncrypted);
+						const foundFiles = apiResponses["hunkinfo"].filter(item => item.filepath === matchEncrypted);
 
 						if (foundFiles) {
 							const fileHighlight = article.firstElementChild;
@@ -319,60 +315,52 @@ const bitBucketHunkHighlight = (apiResponses) => {
 
 							const listOfChunks = article.getElementsByClassName('diff-chunk-inner');
 							const allChunkLines = Array.from(listOfChunks).map(chunk => Array.from(chunk.querySelectorAll('.lines-wrapper')));
-
-							const lineStart = parseInt(foundFiles.line_start);
-							const lineEnd = parseInt(foundFiles.line_end);
-
-							function getLineNumber(element) {
-								const lineNumberElement = element.querySelector('a[aria-label]');
-								const getLineNumber = lineNumberElement.getAttribute('aria-label');
-								const lineNumber = parseInt(getLineNumber.match(/\d+/)[0]); // for getting the number from text (for example : 'xyz abc 12' gives 12)
-								return lineNumber;
-							}
-
-							if (statusDetail[1] == 'side-by-side') {
-								// for split view 
-								allChunkLines.forEach((items) => {
-									items.forEach((item) => {
-										const scanEachLine = item.querySelectorAll('span[data-line-type]');
-										scanEachLine.forEach((line) => {
-											const symbol = line.getAttribute('data-line-type');
-
-											if (symbol == '-') {
-												const lineNumber = getLineNumber(item);
-												if (lineNumber >= lineStart && lineNumber <= lineEnd) {
-													const firstElement = item.firstElementChild;
-													const secondChild = firstElement.children[2];
-													secondChild.style.borderLeft = 'solid 6px #eaee32';
+							foundFiles.forEach((foundFile) => {
+								const lineStart = parseInt(foundFile.line_start);
+								const lineEnd = parseInt(foundFile.line_end);
+								if (statusDetail[1] == 'side-by-side') {
+									// for split view 
+									allChunkLines.forEach((items) => {
+										items.forEach((item) => {
+											const scanEachLine = item.querySelectorAll('span[data-line-type]');
+											scanEachLine.forEach((line) => {
+												const symbol = line.getAttribute('data-line-type');
+												if (symbol == '-') {
+													const lineNumber = getLineNumber(item);
+													if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+														const codeElement = item.children[1];
+														const lineNumberElement = codeElement.children[0];
+														lineNumberElement.style.borderLeft = 'solid 6px #eaee32';
+													}
+												} else if (symbol == '+') {
+													const lineNumber = getLineNumber(item);
+													if (lineNumber >= lineStart && lineNumber <= lineEnd) {
+														const codeElement = item.children[3];
+														const lineNumberElement = codeElement.children[0];
+														lineNumberElement.style.borderLeft = 'solid 6px #f1f549';
+													}
 												}
-											} else if (symbol == '+') {
-												const lineNumber = getLineNumber(item);
-												if (lineNumber >= lineStart && lineNumber <= lineEnd) {
-													const secondElement = item.children[1];
-													const secondChild = secondElement.children[2];
-													secondChild.style.borderLeft = 'solid 6px #f1f549';
-												}
+											});
+										});
+									});
+	
+								} else {
+									// for unified view 
+									allChunkLines.forEach((items) => {
+										items.forEach((item) => {
+											const lineNumberElement = item.querySelector('a[aria-label]');
+											const lineNumberText = lineNumberElement.getAttribute('aria-label');
+											const lineNumber = getLineNumber(item);
+											if (lineNumber >= lineStart && lineNumber <= lineEnd && lineNumberText.includes("From")) {
+												const lineElement = lineNumberElement.parentElement;
+												const secondChild = lineElement.children[0];
+												secondChild.style.borderLeft = 'solid 6px #eaee32';
+												// TODO: instead add a ::before pseudoelement that is more visible
 											}
 										});
 									});
-								});
-
-							} else {
-								// for unified view 
-								allChunkLines.forEach((items) => {
-									items.forEach((item) => {
-										const lineNumberElement = item.querySelector('a[aria-label]');
-										const lineNumberText = lineNumberElement.getAttribute('aria-label');
-										const lineNumber = getLineNumber(item);
-										if (lineNumber >= lineStart && lineNumber <= lineEnd && lineNumberText.includes("From")) {
-											const lineElement = lineNumberElement.parentElement;
-											const secondChild = lineElement.children[2];
-											secondChild.style.borderLeft = 'solid 6px #eaee32';
-											// TODO: instead add a ::before pseudoelement that is more visible
-										}
-									});
-								});
-							}
+								}
+							});
 						}
 					});
 				}
