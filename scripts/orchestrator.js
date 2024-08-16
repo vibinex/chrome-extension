@@ -51,6 +51,64 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 				const highlightedPRIds = await apiCallOnprem(url, body, query_params);
 				highlightRelevantPRs(highlightedPRIds, isDark);
 			}
+			else if (urlObj[5] === "pull" && urlObj[6] && !isNaN(parseInt(urlObj[6]))) {
+				const prNumber = parseInt(urlObj[6]);
+				const ownerName = urlObj[3];
+				const repoName = urlObj[4];
+
+				const addTriggerButton = () => {
+					const titleElement = document.querySelector('.gh-header-actions');
+					if (titleElement && !document.getElementById('vibinex-trigger-button')) {
+						const triggerButton = document.createElement('button');
+						triggerButton.id = 'vibinex-trigger-button';
+						triggerButton.className = 'btn btn-sm';
+						triggerButton.style.display = 'inline-flex';
+						triggerButton.style.alignItems = 'center';
+						triggerButton.style.gap = '5px';
+
+						const vibinexSymbol = `<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 98.26 87.26" width="20" height="20">
+  <defs>
+    <style>.cls-1{fill:#010101;stroke:#f3f3f3;stroke-miterlimit:10;stroke-width:0.25px;}.cls-2{fill:#0e84ab;}.cls-3{fill:#fff;}</style>
+  </defs>
+  <rect class="cls-1" x="0.13" y="0.13" width="98" height="87" rx="17.77"/>
+  <path class="cls-2" d="M6.48,69.74l32.91-33.91,15.81,44.58-23.66-5.31,3.27-23.28q-6.14,10.5-12.25,21Z"/>
+  <path class="cls-2" d="M94.19,67.92,57.48,38.28l-.33,42,16.44-5.55-10-23.24,17.64,21Z"/>
+  <path class="cls-3" d="M9.98,61.43l35.65-51.89c3.22,4.65,32.45,42.78,34.94,45.19L53.08,29.41l.86,39.53-13.8-40.18Z"/>
+</svg>`;
+
+						triggerButton.innerHTML = `${vibinexSymbol} Process this PR`;
+
+
+						triggerButton.addEventListener('click', async () => {
+							const prUrl = `https://github.com/${ownerName}/${repoName}/pull/${prNumber}`;
+							triggerButton.disabled = true;
+							triggerButton.textContent = 'Triggering...';
+							try {
+								const body = { url: prUrl };
+								const response = await apiCallOnprem(`${websiteUrl}/api/extension/trigger`, body);
+
+								if (!response) throw new Error('Network response was not ok');
+
+								triggerButton.textContent = 'Triggered';
+							} catch (error) {
+								console.error('Error triggering PR review:', error);
+								triggerButton.textContent = 'Failed. Try again?';
+								triggerButton.style.color = 'red';
+								triggerButton.disabled = false;
+							}
+						});
+
+						titleElement.appendChild(triggerButton);
+					}
+				};
+
+				// Initial attempt to add the button
+				addTriggerButton();
+
+				// Set up a MutationObserver to watch for changes in the DOM
+				const observer = new MutationObserver(addTriggerButton);
+				observer.observe(document.body, { childList: true, subtree: true });
+			}
 			if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
 				const prNumber = parseInt(urlObj[6]);
 				const body = {
