@@ -38,6 +38,7 @@
                 "scripts/api.js",
                 "scripts/highlighting.js",
                 "scripts/repoHandlers.js",
+                "scripts/triggerButton.js",
                 "scripts/signedOutIndicator.js",
                 "scripts/orchestrator.js",
                 "scripts/init.js"
