@@ -51,6 +51,29 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 				const highlightedPRIds = await apiCallOnprem(url, body, query_params);
 				highlightRelevantPRs(highlightedPRIds, isDark);
 			}
+
+			let triggerBtnMutationObserver;
+			if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6]))) {
+				// show trigger button on pull request page
+				const prNumber = parseInt(urlObj[6]);
+				const ownerName = urlObj[3];
+				const repoName = urlObj[4];
+				const prUrl = `https://github.com/${ownerName}/${repoName}/pull/${prNumber}`;
+
+				// Initial attempt to add the button
+				addTriggerButton('github', prUrl, websiteUrl);
+
+				// Set up a MutationObserver to watch for changes in the DOM
+				if (triggerBtnMutationObserver) {
+					triggerBtnMutationObserver.disconnect();
+				}
+				triggerBtnMutationObserver = new MutationObserver(() => addTriggerButton('github', prUrl, websiteUrl));
+				triggerBtnMutationObserver.observe(document.body, { childList: true, subtree: true });
+			} else if (triggerBtnMutationObserver) {
+				triggerBtnMutationObserver.disconnect();
+				triggerBtnMutationObserver = null;
+			}
+			
 			if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
 				const prNumber = parseInt(urlObj[6]);
 				const body = {
@@ -96,6 +119,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 			updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl);
 		}
 
+		let triggerBtnMutationObserver;
 		if (urlObj[5] === "pull-requests") {
 			const ownerName = urlObj[3];
 			const repoName = urlObj[4];
@@ -110,10 +134,26 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 				const query_params = { type: "review" };
 				const highlightedPRIds = await apiCallOnprem(url, body, query_params);
 				addCssElementToBitbucket(highlightedPRIds);
+
+				if (triggerBtnMutationObserver) {
+					triggerBtnMutationObserver.disconnect();
+					triggerBtnMutationObserver = null;
+				}
 			}
 			// for showing highlighted file in single pr and also for hunkLevel highlight 
 			else if (urlObj[6]) {
 				const prNumber = parseInt(urlObj[6]);
+				// show trigger button on pull request page
+				const prUrl = `https://bitbucket.org/${ownerName}/${repoName}/pull-requests/${prNumber}`;
+				addTriggerButton('bitbucket', prUrl, websiteUrl);
+
+				if (triggerBtnMutationObserver) {
+					triggerBtnMutationObserver.disconnect();
+				}
+				const triggerBtnMutationObserver = new MutationObserver(() => addTriggerButton('bitbucket', prUrl, websiteUrl));
+				triggerBtnMutationObserver.observe(document.body, { childList: true, subtree: true });
+
+				// file and hunk highlighting
 				const body = {
 					"repo_owner": ownerName,
 					"repo_name": repoName,
