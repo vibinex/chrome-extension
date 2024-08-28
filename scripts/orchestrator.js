@@ -73,8 +73,8 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 				triggerBtnMutationObserver.disconnect();
 				triggerBtnMutationObserver = null;
 			}
-			
-			if (urlObj[5] === "pull" && urlObj[6] && urlObj[7] === "files") {
+
+			if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6])) && urlObj[7].startsWith('files')) {
 				const prNumber = parseInt(urlObj[6]);
 				const body = {
 					"repo_owner": ownerName,
