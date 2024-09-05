@@ -24,151 +24,167 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 	const urlEnd = tabUrl.split('?')[1];
 	// for a possible case like https://github.com/AJAYK-01?tab=repositories&success=true
 	const searchParams = urlEnd !== undefined ? urlEnd.split('&') : [];
-
-	const url = `${websiteUrl}/api/extension/relevant`;
+	
+	const relevanceApiUrl = `${websiteUrl}/api/extension/relevant`;
 
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
 		console.warn(`[Vibinex] You are not logged in. Head to ${websiteUrl} to log in`);
 	}
 	if (urlObj[2] == 'github.com') {
-		const isDark = getThemeColor().every((color) => color < 128);
-		addSignedOutIndicator(websiteUrl, 'github');
-		if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
-			// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
-			const ownerName = urlObj[3];
-			const repoName = urlObj[4];
-			showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'github');
-
-			if (urlObj[5] === 'pulls') {
-				// show relevant PRs
-				const body = {
-					"repo_owner": ownerName,
-					"repo_name": repoName,
-					"user_id": userId,
-					"repo_provider": "github"
-				};
-				const query_params = { type: "review" };
-				const highlightedPRIds = await apiCallOnprem(url, body, query_params);
-				highlightRelevantPRs(highlightedPRIds, isDark);
-			}
-
-			let triggerBtnMutationObserver;
-			if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6]))) {
-				// show trigger button on pull request page
-				const prNumber = parseInt(urlObj[6]);
-				const ownerName = urlObj[3];
-				const repoName = urlObj[4];
-				const prUrl = `https://github.com/${ownerName}/${repoName}/pull/${prNumber}`;
-
-				// Initial attempt to add the button
-				addTriggerButton('github', prUrl, websiteUrl);
-
-				// Set up a MutationObserver to watch for changes in the DOM
-				if (triggerBtnMutationObserver) {
-					triggerBtnMutationObserver.disconnect();
-				}
-				triggerBtnMutationObserver = new MutationObserver(() => addTriggerButton('github', prUrl, websiteUrl));
-				triggerBtnMutationObserver.observe(document.body, { childList: true, subtree: true });
-			} else if (triggerBtnMutationObserver) {
-				triggerBtnMutationObserver.disconnect();
-				triggerBtnMutationObserver = null;
-			}
-
-			if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6])) && urlObj[7].startsWith('files')) {
-				const prNumber = parseInt(urlObj[6]);
-				const body = {
-					"repo_owner": ownerName,
-					"repo_name": repoName,
-					"user_id": userId,
-					"pr_number": prNumber,
-					"repo_provider": 'github'
-				};
-				let query_params = { type: "file" };
-				const response = await apiCallOnprem(url, body, query_params);
-				showImpFileInPr(response, isDark);
-
-				query_params = { type: "hunk" };
-				const hunk_info_response = await apiCallOnprem(url, body, query_params);
-				githubHunkHighlight(hunk_info_response, isDark);
-			}
-		}
-		// for showing all tracked repo in organisation page
-		else if (
-			(urlObj[3] && urlObj[4] == undefined && !searchParams.includes('tab=repositories')) ||
-			(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
-			// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
-			const orgName = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
-			const trackedRepos = await getTrackedRepos(orgName, userId, 'github');
-			updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'org');
-		}
-		// for showing all tracked repo in user page
-		else if (urlObj[3] && !urlObj[4] && searchParams.includes('tab=repositories')) {
-			// for working on this url https://github.com/username?tab=repositories
-			const userName = urlObj[3];
-			const trackedRepos = await getTrackedRepos(userName, userId, 'github');
-			updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'user');
-		}
+		await orchestrateGitHubUrls(userId, urlObj, searchParams, websiteUrl, relevanceApiUrl);
 	}
 
 	if (urlObj[2] === 'bitbucket.org') {
-		addSignedOutIndicator(websiteUrl, 'bitbucket');
-		// for showing tracked repo of a organization 
-		if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
-			const workspaceSlug = urlObj[3];
-			const trackedRepos = await getTrackedRepos(workspaceSlug, userId, 'bitbucket');
-			updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl);
+		await orchestrateBitbucketUrls(userId, urlObj, searchParams, websiteUrl, relevanceApiUrl);
+	}
+};
+
+const orchestrateGitHubUrls = async (userId, urlObj, searchParams, websiteUrl, relevanceApiUrl) => {
+	const githubReservedPages = ['sessions', 'login'];
+	if (urlObj[3] && githubReservedPages.includes(urlObj[3])) {
+		return;
+	}
+	const isDark = getThemeColor().every((color) => color < 128);
+	addSignedOutIndicator(websiteUrl, 'github');
+	if (urlObj[3] && (urlObj[3] !== 'orgs') && urlObj[4]) {
+		// for showing fav button if org repo is not added, eg : https://github.com/mui/mui-toolpad
+		await handleGitHubRepoUrls(userId, urlObj, searchParams, websiteUrl, relevanceApiUrl, isDark);
+	}
+	// for showing all tracked repo in organisation page
+	else if (
+		(urlObj[3] && urlObj[4] == undefined && !searchParams.includes('tab=repositories')) ||
+		(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
+		// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
+		const orgName = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
+		const trackedRepos = await getTrackedRepos(orgName, userId, 'github');
+		updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'org');
+	}
+	// for showing all tracked repo in user page
+	else if (urlObj[3] && !urlObj[4] && searchParams.includes('tab=repositories')) {
+		// for working on this url https://github.com/username?tab=repositories
+		const userName = urlObj[3];
+		const trackedRepos = await getTrackedRepos(userName, userId, 'github');
+		updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'user');
+	}
+};
+
+const handleGitHubRepoUrls = async (userId, urlObj, searchParams, websiteUrl, relevanceApiUrl, isDark) => {
+	const ownerName = urlObj[3];
+	const repoName = urlObj[4];
+	showFloatingActionButton(ownerName, repoName, userId, websiteUrl, 'github');
+
+	if (urlObj[5] === 'pulls') {
+		// show relevant PRs
+		const body = {
+			"repo_owner": ownerName,
+			"repo_name": repoName,
+			"user_id": userId,
+			"repo_provider": "github"
+		};
+		const query_params = { type: "review" };
+		const highlightedPRIds = await apiCallOnprem(relevanceApiUrl, body, query_params);
+		highlightRelevantPRs(highlightedPRIds, isDark);
+	}
+
+	let triggerBtnMutationObserver;
+	if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6]))) {
+		// show trigger button on pull request page
+		const prNumber = parseInt(urlObj[6]);
+		const ownerName = urlObj[3];
+		const repoName = urlObj[4];
+		const prUrl = `https://github.com/${ownerName}/${repoName}/pull/${prNumber}`;
+
+		// Initial attempt to add the button
+		addTriggerButton('github', prUrl, websiteUrl);
+
+		// Set up a MutationObserver to watch for changes in the DOM
+		if (triggerBtnMutationObserver) {
+			triggerBtnMutationObserver.disconnect();
 		}
+		triggerBtnMutationObserver = new MutationObserver(() => addTriggerButton('github', prUrl, websiteUrl));
+		triggerBtnMutationObserver.observe(document.body, { childList: true, subtree: true });
+	} else if (triggerBtnMutationObserver) {
+		triggerBtnMutationObserver.disconnect();
+		triggerBtnMutationObserver = null;
+	}
 
-		let triggerBtnMutationObserver;
-		if (urlObj[5] === "pull-requests") {
-			const ownerName = urlObj[3];
-			const repoName = urlObj[4];
-			// for showing tracked pr of a repo 
-			if (!urlObj[6]) {
-				const body = {
-					"repo_owner": ownerName,
-					"repo_name": repoName,
-					"user_id": userId,
-					"repo_provider": "bitbucket"
-				};
-				const query_params = { type: "review" };
-				const highlightedPRIds = await apiCallOnprem(url, body, query_params);
-				addCssElementToBitbucket(highlightedPRIds);
+	if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6])) && urlObj[7] && urlObj[7].startsWith('files')) {
+		const prNumber = parseInt(urlObj[6]);
+		const body = {
+			"repo_owner": ownerName,
+			"repo_name": repoName,
+			"user_id": userId,
+			"pr_number": prNumber,
+			"repo_provider": 'github'
+		};
+		let query_params = { type: "file" };
+		const response = await apiCallOnprem(relevanceApiUrl, body, query_params);
+		showImpFileInPr(response, isDark);
 
-				if (triggerBtnMutationObserver) {
-					triggerBtnMutationObserver.disconnect();
-					triggerBtnMutationObserver = null;
-				}
+		query_params = { type: "hunk" };
+		const hunk_info_response = await apiCallOnprem(relevanceApiUrl, body, query_params);
+		githubHunkHighlight(hunk_info_response, isDark);
+	}
+};
+
+const orchestrateBitbucketUrls = async (userId, urlObj, searchParams, websiteUrl, relevanceApiUrl) => {
+	addSignedOutIndicator(websiteUrl, 'bitbucket');
+	// for showing tracked repo of a organization 
+	if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
+		const workspaceSlug = urlObj[3];
+		const trackedRepos = await getTrackedRepos(workspaceSlug, userId, 'bitbucket');
+		updateTrackedReposInBitbucketOrg(trackedRepos, websiteUrl);
+	}
+
+	let triggerBtnMutationObserver;
+	if (urlObj[5] === "pull-requests") {
+		const ownerName = urlObj[3];
+		const repoName = urlObj[4];
+		// for showing tracked pr of a repo 
+		if (!urlObj[6]) {
+			const body = {
+				"repo_owner": ownerName,
+				"repo_name": repoName,
+				"user_id": userId,
+				"repo_provider": "bitbucket"
+			};
+			const query_params = { type: "review" };
+			const highlightedPRIds = await apiCallOnprem(relevanceApiUrl, body, query_params);
+			addCssElementToBitbucket(highlightedPRIds);
+
+			if (triggerBtnMutationObserver) {
+				triggerBtnMutationObserver.disconnect();
+				triggerBtnMutationObserver = null;
 			}
-			// for showing highlighted file in single pr and also for hunkLevel highlight 
-			else if (urlObj[6]) {
-				const prNumber = parseInt(urlObj[6]);
-				// show trigger button on pull request page
-				const prUrl = `https://bitbucket.org/${ownerName}/${repoName}/pull-requests/${prNumber}`;
-				addTriggerButton('bitbucket', prUrl, websiteUrl);
+		}
+		// for showing highlighted file in single pr and also for hunkLevel highlight 
+		else if (urlObj[6]) {
+			const prNumber = parseInt(urlObj[6]);
+			// show trigger button on pull request page
+			const prUrl = `https://bitbucket.org/${ownerName}/${repoName}/pull-requests/${prNumber}`;
+			addTriggerButton('bitbucket', prUrl, websiteUrl);
 
-				if (triggerBtnMutationObserver) {
-					triggerBtnMutationObserver.disconnect();
-				}
-				const triggerBtnMutationObserver = new MutationObserver(() => addTriggerButton('bitbucket', prUrl, websiteUrl));
-				triggerBtnMutationObserver.observe(document.body, { childList: true, subtree: true });
-
-				// file and hunk highlighting
-				const body = {
-					"repo_owner": ownerName,
-					"repo_name": repoName,
-					"user_id": userId,
-					"pr_number": prNumber,
-					"repo_provider": 'bitbucket'
-				};
-				let query_params = { type: "file" };
-				const response = await apiCallOnprem(url, body, query_params);
-				FilesInPrBitbucket(response);
-				// for hunk level high light of each file 
-				query_params = { type: "hunk" };
-				const hunkResponse = await apiCallOnprem(url, body, query_params);
-				bitBucketHunkHighlight(hunkResponse);
+			if (triggerBtnMutationObserver) {
+				triggerBtnMutationObserver.disconnect();
 			}
+			const triggerBtnMutationObserver = new MutationObserver(() => addTriggerButton('bitbucket', prUrl, websiteUrl));
+			triggerBtnMutationObserver.observe(document.body, { childList: true, subtree: true });
+
+			// file and hunk highlighting
+			const body = {
+				"repo_owner": ownerName,
+				"repo_name": repoName,
+				"user_id": userId,
+				"pr_number": prNumber,
+				"repo_provider": 'bitbucket'
+			};
+			let query_params = { type: "file" };
+			const response = await apiCallOnprem(relevanceApiUrl, body, query_params);
+			FilesInPrBitbucket(response);
+			// for hunk level high light of each file 
+			query_params = { type: "hunk" };
+			const hunkResponse = await apiCallOnprem(relevanceApiUrl, body, query_params);
+			bitBucketHunkHighlight(hunkResponse);
 		}
 	}
 };
