@@ -141,8 +141,8 @@ li {
 }
 
 .producthunt_review_button {
-	width: 250px;
-	height: 54px;
+	width: 200px;
+	height: 45px;
 	margin-top: 16px;
 	margin-bottom: 16px;
 }
@@ -182,4 +182,42 @@ li {
 	100% {
 		transform: rotate(360deg);
 	}
+}
+
+.dpu-status-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid #e4e4e7;
+	border-radius: 9999px;
+	padding: 0.5rem;
+	margin-top: 16px;
+}
+
+.dpu-status-indicator {
+	width: 1rem;
+	height: 1rem;
+	border: 0;
+	margin-top: 0;
+}
+
+.chip {
+	--status-color: gray;
+	display: inline-flex;
+	align-items: center;
+	padding: 0.25rem 0.75rem;
+	border-radius: 9999px;
+	font-size: 0.875rem;
+	outline: 1px solid #cbd5e0;
+	margin-left: 0.5rem;
+}
+
+.chip::before {
+	content: '';
+	width: 0.75rem;
+	height: 0.75rem;
+	border-radius: 50%;
+	margin-right: 0.5rem;
+	background-color: var(--status-color);
 }
