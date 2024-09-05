@@ -68,16 +68,58 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 				.catch((err) => {
 					console.error("Unable to get Cookie value for session: ", err);
 				});
-        } else {
-            // If no user session exists, display the login options.
-            document.querySelector("#login-div").style.display = "flex";
-        }
-    });
+
+			// Evaluating and displaying the DPU health status
+			const refreshButton = document.getElementById('refreshDpuHealth');
+			const statusChip = document.getElementById('dpuHealthStatus');
+
+			const dpuHealthStates = {
+				START: 'yellow',
+				FAILED: 'red',
+				SUCCESS: 'green',
+				INACTIVE: 'grey'
+			};
+
+			async function fetchDpuHealth() {
+				refreshButton.disabled = true;
+				refreshButton.innerHTML = '<div class="loader"></div>';
+
+				try {
+					const response = await fetch(`${websiteUrl}/api/docs/getDpuHealth`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							"Authorization": `Bearer ${tokenval}`
+						},
+						body: JSON.stringify({ user_id: user.id })
+					});
+					const data = await response.json();
+
+					const healthStatus = data.healthStatus in dpuHealthStates ? data.healthStatus : 'INACTIVE';
+					statusChip.textContent = healthStatus.charAt(0).toUpperCase() + healthStatus.slice(1);
+					statusChip.style.setProperty('--status-color', dpuHealthStates[healthStatus]);
+				} catch (error) {
+					console.error('Error fetching DPU health status:', error);
+					statusChip.textContent = 'Inactive';
+					statusChip.style.backgroundColor = dpuHealthStates.INACTIVE;
+				} finally {
+					refreshButton.disabled = false;
+					refreshButton.innerHTML = '<span style="font-size: 1.25rem;">↻</span>';
+				}
+			}
+
+			refreshButton.addEventListener('click', fetchDpuHealth);
+			fetchDpuHealth(); // Initial fetch
+		} else {
+			// If no user session exists, display the login options.
+			document.querySelector("#login-div").style.display = "flex";
+		}
+	});
 });
 
 // Display the extension version on window load.
 window.addEventListener('load', () => {
-    const manifestData = chrome.runtime.getManifest();
-    const version_p = document.getElementById("version");
-    version_p.innerHTML = "v" + manifestData.version;
+	const manifestData = chrome.runtime.getManifest();
+	const version_p = document.getElementById("version");
+	version_p.innerHTML = "v" + manifestData.version;
 });
