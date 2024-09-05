@@ -82,14 +82,17 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 
 			async function fetchDpuHealth() {
 				refreshButton.disabled = true;
-				refreshButton.innerHTML = '<div class="loader"></div>';
+				refreshButton.classList.add('loader');
 
 				try {
 					const response = await fetch(`${websiteUrl}/api/docs/getDpuHealth`, {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
-							"Authorization": `Bearer ${tokenval}`
+							"Authorization": `Bearer ${tokenval}`,
+							'Cache-Control': 'no-cache, no-store, must-revalidate',
+							'Pragma': 'no-cache',
+							'Expires': '0'
 						},
 						body: JSON.stringify({ user_id: user.id })
 					});
@@ -104,7 +107,7 @@ chrome.storage.local.get(["websiteUrl"]).then(({ websiteUrl }) => {
 					statusChip.style.backgroundColor = dpuHealthStates.INACTIVE;
 				} finally {
 					refreshButton.disabled = false;
-					refreshButton.innerHTML = '<span style="font-size: 1.25rem;">↻</span>';
+					refreshButton.classList.remove('loader');
 				}
 			}
 
