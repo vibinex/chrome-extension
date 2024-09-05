@@ -14,7 +14,7 @@ chrome.runtime.onInstalled.addListener(() => {
 	// Make an API call to the backend to create a Rudderstack event when the extension is installed.
 	chrome.storage.local.get(["userId"]).then(({ userId }) => {
 		const body = {
-			userId: userId ? userId : "anonymous-id", // Use the stored userId or "anonymous-id" if not available.
+			userId: userId || "anonymous-id", // Use the stored userId or "anonymous-id" if not available.
 			function: 'chrome-extension-installed'
 		};
 		const url = `${websiteUrl}/api/extension/events`;
