@@ -24,7 +24,7 @@ const orchestrator = async (tabUrl, websiteUrl, userId) => {
 	const urlEnd = tabUrl.split('?')[1];
 	// for a possible case like https://github.com/AJAYK-01?tab=repositories&success=true
 	const searchParams = urlEnd !== undefined ? urlEnd.split('&') : [];
-	
+
 	const relevanceApiUrl = `${websiteUrl}/api/extension/relevant`;
 
 	if (!userId && (urlObj[2] === 'github.com' || urlObj[2] === 'bitbucket.org')) {
@@ -54,7 +54,7 @@ const orchestrateGitHubUrls = async (userId, urlObj, searchParams, websiteUrl, r
 	else if (
 		(urlObj[3] && urlObj[4] == undefined && !searchParams.includes('tab=repositories')) ||
 		(urlObj[3] == 'orgs' && urlObj[4] && urlObj[5] === 'repositories')) {
-		// for woking on this url https://github.com/Alokit-Innovations or https://github.com/orgs/Alokit-Innovations/repositories?type=all type 
+		// for working on this url https://github.com/vibinex or https://github.com/orgs/vibinex/repositories?type=all type
 		const orgName = (urlObj[3] === "orgs") ? urlObj[4] : urlObj[3];
 		const trackedRepos = await getTrackedRepos(orgName, userId, 'github');
 		updateTrackedReposInGitHub(trackedRepos, websiteUrl, 'org');
@@ -129,7 +129,7 @@ const handleGitHubRepoUrls = async (userId, urlObj, searchParams, websiteUrl, re
 
 const orchestrateBitbucketUrls = async (userId, urlObj, searchParams, websiteUrl, relevanceApiUrl) => {
 	addSignedOutIndicator(websiteUrl, 'bitbucket');
-	// for showing tracked repo of a organization 
+	// for showing tracked repo of a organization
 	if (urlObj[4] === 'workspace' && urlObj[5] === 'repositories') {
 		const workspaceSlug = urlObj[3];
 		const trackedRepos = await getTrackedRepos(workspaceSlug, userId, 'bitbucket');
@@ -140,7 +140,7 @@ const orchestrateBitbucketUrls = async (userId, urlObj, searchParams, websiteUrl
 	if (urlObj[5] === "pull-requests") {
 		const ownerName = urlObj[3];
 		const repoName = urlObj[4];
-		// for showing tracked pr of a repo 
+		// for showing tracked pr of a repo
 		if (!urlObj[6]) {
 			const body = {
 				"repo_owner": ownerName,
@@ -157,7 +157,7 @@ const orchestrateBitbucketUrls = async (userId, urlObj, searchParams, websiteUrl
 				triggerBtnMutationObserver = null;
 			}
 		}
-		// for showing highlighted file in single pr and also for hunkLevel highlight 
+		// for showing highlighted file in single pr and also for hunkLevel highlight
 		else if (urlObj[6]) {
 			const prNumber = parseInt(urlObj[6]);
 			// show trigger button on pull request page
@@ -181,7 +181,7 @@ const orchestrateBitbucketUrls = async (userId, urlObj, searchParams, websiteUrl
 			let query_params = { type: "file" };
 			const response = await apiCallOnprem(relevanceApiUrl, body, query_params);
 			FilesInPrBitbucket(response);
-			// for hunk level high light of each file 
+			// for hunk level high light of each file
 			query_params = { type: "hunk" };
 			const hunkResponse = await apiCallOnprem(relevanceApiUrl, body, query_params);
 			bitBucketHunkHighlight(hunkResponse);
@@ -192,7 +192,7 @@ const orchestrateBitbucketUrls = async (userId, urlObj, searchParams, websiteUrl
 const getThemeColor = () => {
 	const bgColor = window.getComputedStyle(document.body).getPropertyValue('background-color');
 
-	// Extract R, G, B values 
+	// Extract R, G, B values
 	const match = /rgb\((\d+), (\d+), (\d+)\)/.exec(bgColor);
 
 	if (!match) {
