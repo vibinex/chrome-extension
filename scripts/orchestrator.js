@@ -108,6 +108,21 @@ const handleGitHubRepoUrls = async (userId, urlObj, searchParams, websiteUrl, re
 		triggerBtnMutationObserver = null;
 	}
 
+	if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6])) && !urlObj[7]) {
+		console.log('Hello brother');
+		// Read through the comments in the conversation
+		const comments = document.querySelectorAll('.js-comment-body');
+		// Extract the one that has a Mermaid code block in it
+		let mermaidCode;
+		comments.forEach(comment => {
+			const rawCommentValue = comment.textContent;
+			if (rawCommentValue && rawCommentValue.includes('flowchart')) {
+				mermaidCode = rawCommentValue;
+			}
+		});
+		console.log(mermaidCode);
+	}
+
 	if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6])) && urlObj[7] && urlObj[7].startsWith('files')) {
 		const prNumber = parseInt(urlObj[6]);
 		const body = {
