@@ -227,8 +227,7 @@ const getThemeColor = () => {
 	return bgRGB;
 };
 
-const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
-	const panelBackgroundColor = 'beige';
+const createPanelButton = (websiteUrl) => {
 	const vibinexLogo = document.createElement("img");
 	vibinexLogo.src = `${websiteUrl}/favicon.ico`;
 	vibinexLogo.style.width = '30px';
@@ -249,6 +248,53 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 		e.preventDefault();
 	};
 
+	return panelButton;
+};
+
+const createPanel = () => {
+	const panel = document.createElement('div');
+	panel.style.position = 'fixed';
+	panel.style.left = '0';
+	panel.style.top = '0';
+	panel.style.height = '100vh';
+	panel.style.width = '33.33%';
+	panel.style.backgroundColor = 'beige';
+	panel.style.zIndex = '1000';
+	panel.style.display = 'none';
+	panel.style.borderTopRightRadius = '20px';
+	panel.style.borderBottomRightRadius = '20px';
+	panel.style.padding = '10px';
+	panel.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+	panel.style.transition = 'all 0.3s ease-in-out';
+	document.body.appendChild(panel);
+	return panel;
+};
+
+const createCloseButton = (panel) => {
+	const closeButton = document.createElement('button');
+	closeButton.textContent = 'X';
+	closeButton.style.position = 'absolute';
+	closeButton.style.top = '50%';
+	closeButton.style.left = '100%';
+	closeButton.style.zIndex = '1001';
+	closeButton.style.cursor = 'pointer';
+	closeButton.style.backgroundColor = 'beige';
+	closeButton.style.border = 'none';
+	closeButton.style.padding = '10px 15px';
+	closeButton.style.borderTopRightRadius = '20px';
+	closeButton.style.borderBottomRightRadius = '20px';
+	closeButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+	panel.appendChild(closeButton);
+	return closeButton;
+};
+
+const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
+	const panelButton = createPanelButton(websiteUrl);
+	const panel = createPanel();
+	const closeButton = createCloseButton(panel);
+
+	document.body.appendChild(panelButton);
+
 	panelButton.onmousedown = (e) => {
 		e.preventDefault();
 		const startTop = e.pageY;
@@ -258,8 +304,7 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 			// Ensuring the button does not go beyond the top of the viewport
 			if (newTop > 0) {
 				panelButton.style.top = newTop + 'px';
-				// Adjusting the closeButton position to match the panelButton
-				closeButton.style.top = newTop + 'px';
+				closeButton.style.top = newTop + 'px'; // Move the close button along with the panel button
 			}
 		};
 		document.onmouseup = () => {
@@ -267,41 +312,10 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 			document.onmouseup = null;
 		};
 	};
-	document.body.appendChild(panelButton);
-
-	const panel = document.createElement('div');
-	panel.style.position = 'fixed';
-	panel.style.left = '0';
-	panel.style.top = '0';
-	panel.style.height = '100vh';
-	panel.style.width = '33.33%';
-	panel.style.backgroundColor = panelBackgroundColor;
-	panel.style.zIndex = '1000';
-	panel.style.display = 'none';
-	panel.style.borderTopRightRadius = '20px';
-	panel.style.borderBottomRightRadius = '20px';
-	panel.style.padding = '10px';
-	panel.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-	panel.style.transition = 'all 0.3s ease-in-out';
-	document.body.appendChild(panel);
-
-	const closeButton = document.createElement('button');
-	closeButton.textContent = 'X';
-	closeButton.style.position = 'absolute';
-	closeButton.style.top = '50%';
-	closeButton.style.left = '100%';
-	closeButton.style.zIndex = '1001';
-	closeButton.style.cursor = 'pointer';
-	closeButton.style.backgroundColor = panelBackgroundColor;
-	closeButton.style.border = 'none';
-	closeButton.style.padding = '10px 15px';
-	closeButton.style.borderTopRightRadius = '20px';
-	closeButton.style.borderBottomRightRadius = '20px';
-	closeButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-	panel.appendChild(closeButton);
 
 	panelButton.addEventListener('click', () => {
 		panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+		panelButton.style.display = panel.style.display === 'block' ? 'none' : 'block'; // Hide the panel button when the panel is shown
 		if (panel.style.display === 'block') {
 			const loader = document.createElement('div');
 			loader.textContent = 'Loading...';
@@ -322,5 +336,6 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 
 	closeButton.addEventListener('click', () => {
 		panel.style.display = 'none';
+		panelButton.style.display = 'block'; // Show the panel button when the panel is hidden
 	});
 }
