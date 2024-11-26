@@ -255,6 +255,8 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 		const startHeight = panelButton.getBoundingClientRect().height / 2;
 		document.onmousemove = (moveEvent) => {
 			panelButton.style.top = moveEvent.pageY + 'px';
+			// Adjusting the closeButton position to match the panelButton
+			closeButton.style.top = moveEvent.pageY + 'px';
 		};
 		document.onmouseup = () => {
 			document.onmousemove = null;
@@ -272,18 +274,26 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 	panel.style.backgroundColor = panelBackgroundColor;
 	panel.style.zIndex = '1000';
 	panel.style.display = 'none';
-	panel.style.borderRadius = '20px';
+	panel.style.borderTopRightRadius = '20px';
+	panel.style.borderBottomRightRadius = '20px';
 	panel.style.padding = '10px';
+	panel.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+	panel.style.transition = 'all 0.3s ease-in-out';
 	document.body.appendChild(panel);
 
 	const closeButton = document.createElement('button');
 	closeButton.textContent = 'X';
 	closeButton.style.position = 'absolute';
-	closeButton.style.top = '10px';
+	closeButton.style.top = '50%';
 	closeButton.style.left = '100%';
 	closeButton.style.zIndex = '1001';
 	closeButton.style.cursor = 'pointer';
 	closeButton.style.backgroundColor = panelBackgroundColor;
+	closeButton.style.border = 'none';
+	closeButton.style.padding = '10px 15px';
+	closeButton.style.borderTopRightRadius = '20px';
+	closeButton.style.borderBottomRightRadius = '20px';
+	closeButton.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
 	panel.appendChild(closeButton);
 
 	panelButton.addEventListener('click', () => {
