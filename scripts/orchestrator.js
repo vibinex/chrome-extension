@@ -94,6 +94,8 @@ const handleGitHubRepoUrls = async (userId, urlObj, searchParams, websiteUrl, re
 		const repoName = urlObj[4];
 		const prUrl = `https://github.com/${ownerName}/${repoName}/pull/${prNumber}`;
 
+		addDiffGraphPanel(websiteUrl, ownerName, repoName, prNumber);
+
 		// Initial attempt to add the button
 		addTriggerButton('github', prUrl, websiteUrl);
 
@@ -109,7 +111,7 @@ const handleGitHubRepoUrls = async (userId, urlObj, searchParams, websiteUrl, re
 	}
 
 	if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6])) && !urlObj[7]) {
-		console.log('Hello brother');
+		const prNumber = parseInt(urlObj[6]);
 		// Read through the comments in the conversation
 		const comments = document.querySelectorAll('.js-comment-body');
 		// Extract the one that has a Mermaid code block in it
@@ -120,7 +122,7 @@ const handleGitHubRepoUrls = async (userId, urlObj, searchParams, websiteUrl, re
 				mermaidCode = rawCommentValue;
 			}
 		});
-		console.log(mermaidCode);
+		sessionStorage.setItem(`mermaidCode-${ownerName}-${repoName}-${prNumber}`, mermaidCode);
 	}
 
 	if (urlObj[5] === "pull" && urlObj[6] && !Number.isNaN(parseInt(urlObj[6])) && urlObj[7] && urlObj[7].startsWith('files')) {
@@ -224,3 +226,87 @@ const getThemeColor = () => {
 	const bgRGB = [r, g, b];
 	return bgRGB;
 };
+
+const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
+	const panelBackgroundColor = 'beige';
+	const vibinexLogo = document.createElement("img");
+	vibinexLogo.src = `${websiteUrl}/favicon.ico`;
+	vibinexLogo.style.width = '30px';
+	vibinexLogo.style.verticalAlign = 'middle';
+
+	const panelButton = document.createElement('button');
+	panelButton.style.position = 'fixed';
+	panelButton.style.left = '0px';
+	panelButton.style.top = '50%';
+	panelButton.style.zIndex = '1000';
+	panelButton.appendChild(vibinexLogo);
+	panelButton.style.backgroundColor = 'black';
+	panelButton.style.borderTopRightRadius = '20px';
+	panelButton.style.borderBottomRightRadius = '20px';
+
+	// Preventing the default drag behavior
+	panelButton.ondragstart = (e) => {
+		e.preventDefault();
+	};
+
+	panelButton.onmousedown = (e) => {
+		e.preventDefault();
+		const startTop = e.pageY;
+		const startHeight = panelButton.getBoundingClientRect().height / 2;
+		document.onmousemove = (moveEvent) => {
+			panelButton.style.top = moveEvent.pageY + 'px';
+		};
+		document.onmouseup = () => {
+			document.onmousemove = null;
+			document.onmouseup = null;
+		};
+	};
+	document.body.appendChild(panelButton);
+
+	const panel = document.createElement('div');
+	panel.style.position = 'fixed';
+	panel.style.left = '0';
+	panel.style.top = '0';
+	panel.style.height = '100vh';
+	panel.style.width = '33.33%';
+	panel.style.backgroundColor = panelBackgroundColor;
+	panel.style.zIndex = '1000';
+	panel.style.display = 'none';
+	panel.style.borderRadius = '20px';
+	panel.style.padding = '10px';
+	document.body.appendChild(panel);
+
+	const closeButton = document.createElement('button');
+	closeButton.textContent = 'X';
+	closeButton.style.position = 'absolute';
+	closeButton.style.top = '10px';
+	closeButton.style.left = '100%';
+	closeButton.style.zIndex = '1001';
+	closeButton.style.cursor = 'pointer';
+	closeButton.style.backgroundColor = panelBackgroundColor;
+	panel.appendChild(closeButton);
+
+	panelButton.addEventListener('click', () => {
+		panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+		if (panel.style.display === 'block') {
+			const loader = document.createElement('div');
+			loader.textContent = 'Loading...';
+			panel.appendChild(loader);
+
+			const mermaidCode = sessionStorage.getItem(`mermaidCode-${ownerName}-${repoName}-${prNumber}`);
+
+			const graphContainer = document.createElement('div');
+			if (!mermaidCode) {
+				graphContainer.textContent = 'No DiffGraph to display';
+			} else {
+				graphContainer.innerHTML = `<div class="mermaid">${mermaidCode}</div>`;
+			}
+			panel.removeChild(loader); // Remove the loader once the graph is loaded
+			panel.appendChild(graphContainer);
+		}
+	});
+
+	closeButton.addEventListener('click', () => {
+		panel.style.display = 'none';
+	});
+}

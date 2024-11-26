@@ -3,9 +3,9 @@
  * 1. Retrieves the 'websiteUrl' and 'userId' from the Chrome local storage.
  * 2. Logs the retrieved 'userId' (this log is marked for future removal).
  * 3. Checks the current document's URL and invokes the 'orchestrator' function with it.
- * 4. Sets up a MutationObserver to monitor changes in the document's body. 
+ * 4. Sets up a MutationObserver to monitor changes in the document's body.
  *    If the document's URL changes, the 'orchestrator' function is invoked again with the new URL.
- * 
+ *
  * Note: This script assumes it's running in the context of a browser extension, given its use of the 'chrome.storage' API.
  */
 console.log('[vibinex] Running content scripts');
