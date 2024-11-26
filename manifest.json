@@ -40,6 +40,7 @@
                 "scripts/repoHandlers.js",
                 "scripts/triggerButton.js",
                 "scripts/signedOutIndicator.js",
+                "scripts/panelUiComponents.js",
                 "scripts/orchestrator.js",
                 "scripts/init.js"
             ]
