@@ -254,9 +254,13 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 		const startTop = e.pageY;
 		const startHeight = panelButton.getBoundingClientRect().height / 2;
 		document.onmousemove = (moveEvent) => {
-			panelButton.style.top = moveEvent.pageY + 'px';
-			// Adjusting the closeButton position to match the panelButton
-			closeButton.style.top = moveEvent.pageY + 'px';
+			const newTop = moveEvent.pageY - startHeight;
+			// Ensuring the button does not go beyond the top of the viewport
+			if (newTop > 0) {
+				panelButton.style.top = newTop + 'px';
+				// Adjusting the closeButton position to match the panelButton
+				closeButton.style.top = newTop + 'px';
+			}
 		};
 		document.onmouseup = () => {
 			document.onmousemove = null;
