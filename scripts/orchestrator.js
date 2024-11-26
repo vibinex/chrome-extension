@@ -228,8 +228,13 @@ const getThemeColor = () => {
 };
 
 const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
+	if (document.getElementById('diffGraphPanel')) {
+		return;
+	}
+
 	const panelButton = createPanelButton(websiteUrl);
 	const panel = createPanel();
+	panel.id = 'diffGraphPanel';
 	const closeButton = createCloseButton(panel);
 
 	document.body.appendChild(panelButton);
