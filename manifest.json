@@ -42,6 +42,7 @@
                 "scripts/signedOutIndicator.js",
                 "scripts/panelUiComponents.js",
                 "scripts/orchestrator.js",
+                "scripts/mermaid.min.js",
                 "scripts/init.js"
             ]
         }

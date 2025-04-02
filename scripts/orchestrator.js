@@ -265,13 +265,39 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 			loader.textContent = 'Loading...';
 			panel.appendChild(loader);
 
-			const mermaidCode = sessionStorage.getItem(`mermaidCode-${ownerName}-${repoName}-${prNumber}`);
-
+			// const mermaidCode = sessionStorage.getItem(`mermaidCode-${ownerName}-${repoName}-${prNumber}`);
+			const mermaidCode = `graph TD
+    A[Enter Chart Definition] --> B(Preview)
+    B --> C{decide}
+    C --> D[Keep]
+    C --> E[Edit Definition]
+    E --> B
+    D --> F[Save Image and Code]
+    F --> B`;
 			const graphContainer = document.createElement('div');
 			if (!mermaidCode) {
 				graphContainer.textContent = 'No DiffGraph to display';
 			} else {
-				graphContainer.innerHTML = `<div class="mermaid">${mermaidCode}</div>`;
+				const mermaidDiv = document.createElement('div');
+				mermaidDiv.className = "mermaid";
+				mermaidDiv.innerHTML = mermaidCode;
+				graphContainer.appendChild(mermaidDiv);
+
+				// Initialize Mermaid with proper error handling
+				try {
+					if (typeof mermaid === 'undefined') {
+						throw new Error('Mermaid library is not loaded');
+					}
+					mermaid.initialize({
+						startOnLoad: true,
+						theme: 'default',
+						securityLevel: 'loose'
+					});
+					mermaid.init(undefined, mermaidDiv);
+				} catch (error) {
+					console.error('Error initializing Mermaid:', error);
+					graphContainer.textContent = 'Error loading graph. Please try again.';
+				}
 			}
 			panel.removeChild(loader); // Remove the loader once the graph is loaded
 			panel.appendChild(graphContainer);
