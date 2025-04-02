@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Vibinex Code Review</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="../scripts/mermaid.min.js"></script>
+</head>
+
+<body>
+	<div class="container">
+		<div class="header">
+			<h1>Code Changes</h1>
+		</div>
+		<div class="mermaid-container">
+			<div class="mermaid">
+				<!-- Mermaid flowchart will be inserted here -->
+				graph TD
+				A[Enter Chart Definition] --> B(Preview)
+				B --> C{decide}
+				C --> D[Keep]
+				C --> E[Edit Definition]
+				E --> B
+				D --> F[Save Image and Code]
+				F --> B
+
+			</div>
+		</div>
+	</div>
+	<script src="script.js"></script>
+</body>
+
+</html>
