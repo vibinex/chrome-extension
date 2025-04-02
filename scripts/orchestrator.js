@@ -265,15 +265,7 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 			loader.textContent = 'Loading...';
 			panel.appendChild(loader);
 
-			// const mermaidCode = sessionStorage.getItem(`mermaidCode-${ownerName}-${repoName}-${prNumber}`);
-			const mermaidCode = `graph TD
-    A[Enter Chart Definition] --> B(Preview)
-    B --> C{decide}
-    C --> D[Keep]
-    C --> E[Edit Definition]
-    E --> B
-    D --> F[Save Image and Code]
-    F --> B`;
+			const mermaidCode = sessionStorage.getItem(`mermaidCode-${ownerName}-${repoName}-${prNumber}`);
 			const graphContainer = document.createElement('div');
 			if (!mermaidCode) {
 				graphContainer.textContent = 'No DiffGraph to display';
@@ -300,7 +292,14 @@ const addDiffGraphPanel = (websiteUrl, ownerName, repoName, prNumber) => {
 				}
 			}
 			panel.removeChild(loader); // Remove the loader once the graph is loaded
-			panel.appendChild(graphContainer);
+
+			// Check for existing Mermaid elements and replace them
+			const existingMermaid = panel.querySelector('.mermaid');
+			if (existingMermaid) {
+				existingMermaid.parentNode.replaceChild(graphContainer, existingMermaid);
+			} else {
+				panel.appendChild(graphContainer);
+			}
 		}
 	});
 
